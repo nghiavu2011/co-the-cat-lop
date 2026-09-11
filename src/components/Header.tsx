@@ -1,3 +1,5 @@
+import BrandLogo from './BrandLogo';
+
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
 const THEME_LABEL: Record<ThemeChoice, string> = {
@@ -18,7 +20,7 @@ export default function Header({ theme, onCycleTheme, onShare, shareStatus }: He
     <header className="topPro">
       <div className="topMain">
         <div className="brandGroup">
-          <img src="/logo.png" alt="N&Mstudio Logo" className="brandLogo" />
+          <BrandLogo size={52} className="brandLogo" />
           <div className="brandText">
             <div className="brandMeta">
               <span className="brandTag">Interactive 3D Atlas</span>
