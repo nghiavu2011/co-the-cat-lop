@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import './fonts';
 import './styles.css';
 import App from './App.tsx';
+import { initSecurityGuards } from './security.ts';
+
+initSecurityGuards();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
