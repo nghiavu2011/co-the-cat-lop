@@ -317,6 +317,13 @@ export default function View3D({
     let px = 0;
     let py = 0;
 
+    // ponytail: touch gesture state — minimal vars for pinch/pan detection
+    let lastTouchDist = 0;
+    let lastTouchCX = 0;
+    let lastTouchCY = 0;
+    let touchCount = 0;
+    let lastTapTime = 0;
+
     const onDown = (e: PointerEvent) => {
       isDragging = true;
       draggingRef.current = true;
@@ -463,12 +470,127 @@ export default function View3D({
       }
     };
 
+    // ---------- cử chỉ cảm ứng cho thiết bị di động ----------
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      touchCount = e.touches.length;
+      lastInteractRef.current = performance.now();
+      if (touchCount === 1) {
+        // 1 ngón = xoay orbit
+        px = e.touches[0].clientX;
+        py = e.touches[0].clientY;
+        isDragging = true;
+        draggingRef.current = true;
+        dragMode = 'orbit';
+        moved = 0;
+        // Double-tap detection
+        const now = performance.now();
+        if (now - lastTapTime < 320) {
+          // Giả lập double-click tại vị trí ngón tay
+          const fakeEvt = { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY } as MouseEvent;
+          onDblClick(fakeEvt);
+          lastTapTime = 0;
+        } else {
+          lastTapTime = now;
+        }
+      } else if (touchCount === 2) {
+        // 2 ngón = pinch zoom + pan
+        isDragging = true;
+        draggingRef.current = true;
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        lastTouchDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        lastTouchCX = (t0.clientX + t1.clientX) / 2;
+        lastTouchCY = (t0.clientY + t1.clientY) / 2;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      lastInteractRef.current = performance.now();
+      if (e.touches.length === 1 && touchCount === 1) {
+        // 1 ngón: xoay orbit
+        const dx = e.touches[0].clientX - px;
+        const dy = e.touches[0].clientY - py;
+        moved += Math.abs(dx) + Math.abs(dy);
+        px = e.touches[0].clientX;
+        py = e.touches[0].clientY;
+        camState.current.destTheta -= dx * 0.008;
+        camState.current.destPhi = Math.max(0.2, Math.min(2.95, camState.current.destPhi - dy * 0.006));
+        camState.current.theta = camState.current.destTheta;
+        camState.current.phi = camState.current.destPhi;
+      } else if (e.touches.length === 2) {
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        // Pinch zoom
+        const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        if (lastTouchDist > 0) {
+          const scale = lastTouchDist / dist;
+          camState.current.destRadius = Math.max(0.18, Math.min(5.5, camState.current.destRadius * scale));
+        }
+        lastTouchDist = dist;
+        // Pan bằng trung tâm 2 ngón
+        const cx = (t0.clientX + t1.clientX) / 2;
+        const cy = (t0.clientY + t1.clientY) / 2;
+        const dx = cx - lastTouchCX;
+        const dy = cy - lastTouchCY;
+        lastTouchCX = cx;
+        lastTouchCY = cy;
+        const forward = new THREE.Vector3()
+          .subVectors(
+            new THREE.Vector3(camState.current.targetX, camState.current.targetY, camState.current.targetZ),
+            camera.position
+          )
+          .normalize();
+        const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+        const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+        const factor = (camState.current.radius / 1000) * 1.5;
+        const panX = -right.x * dx * factor + up.x * dy * factor;
+        const panY = -right.y * dx * factor + up.y * dy * factor;
+        const panZ = -right.z * dx * factor + up.z * dy * factor;
+        camState.current.destTargetX += panX;
+        camState.current.destTargetY += panY;
+        camState.current.destTargetZ += panZ;
+        camState.current.targetX += panX;
+        camState.current.targetY += panY;
+        camState.current.targetZ += panZ;
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 0) {
+        isDragging = false;
+        draggingRef.current = false;
+        lastInteractRef.current = performance.now();
+        // Tap chọn (không kéo nhiều)
+        if (touchCount === 1 && moved < 10) {
+          const fakeEvt = { clientX: px, clientY: py } as MouseEvent;
+          onClick(fakeEvt);
+        }
+      }
+      touchCount = e.touches.length;
+      if (touchCount === 2) {
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        lastTouchDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        lastTouchCX = (t0.clientX + t1.clientX) / 2;
+        lastTouchCY = (t0.clientY + t1.clientY) / 2;
+      }
+    };
+
+    const onCtxMenu = (e: Event) => e.preventDefault();
+
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('click', onClick);
     canvas.addEventListener('dblclick', onDblClick);
+    canvas.addEventListener('contextmenu', onCtxMenu);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
 
     const resize = () => {
       const w = canvas.clientWidth || 600;
@@ -543,6 +665,10 @@ export default function View3D({
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('click', onClick);
       canvas.removeEventListener('dblclick', onDblClick);
+      canvas.removeEventListener('contextmenu', onCtxMenu);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      canvas.removeEventListener('touchend', onTouchEnd);
       renderer.dispose();
       entriesRef.current.forEach((en) => en.mesh.geometry.dispose());
       Object.values(normalMat).forEach((m) => m.dispose());
@@ -647,7 +773,7 @@ export default function View3D({
 
   return (
     <>
-      <canvas id="c3d" ref={canvasRef} />
+      <canvas id="c3d" ref={canvasRef} style={{ touchAction: 'none' }} />
 
       {ready && (
         <div className="view3dTools">

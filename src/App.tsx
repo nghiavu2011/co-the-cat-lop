@@ -302,8 +302,10 @@ export default function App() {
                   onCounts={(visible, total) => setCounts({ visible, total })}
                 />
                 <span className="hint3d">
-                  Chuột trái: <b>xoay 360°</b> · Chuột phải / Shift: <b>kéo Pan góc nhìn</b> · <b>Click đúp: zoom sâu vào bộ phận</b> · Lăn chuột: phóng to/thu nhỏ
-                  {counts ? ` · Đang hiển thị ${counts.visible.toLocaleString('vi-VN')}/${counts.total.toLocaleString('vi-VN')} cấu trúc giải phẫu` : ''}
+                  {'ontouchstart' in window
+                    ? <>1 ngón: <b>xoay</b> · 2 ngón: <b>zoom + kéo</b> · Chạm đúp: <b>zoom vào bộ phận</b></>
+                    : <>Chuột trái: <b>xoay 360°</b> · Chuột phải / Shift: <b>kéo Pan</b> · Click đúp: <b>zoom vào bộ phận</b> · Lăn chuột: phóng to/thu nhỏ</>}
+                  {counts ? ` · ${counts.visible.toLocaleString('vi-VN')}/${counts.total.toLocaleString('vi-VN')} cấu trúc` : ''}
                 </span>
               </>
             ) : (

@@ -309,3 +309,84 @@ img { max-width: 100%; }
   background: var(--brass);
   color: #fff;
 }
+
+/* ---------- responsive: touch targets & mobile/tablet ---------- */
+@media (max-width:720px) {
+  .wrap { padding-inline: 10px; padding-block: 12px 24px; }
+  .topMain { gap: 12px; }
+  .brandLogo { height: 38px; }
+  .brandTitle { font-size: 20px; }
+  .brandTagline { font-size: 12px; }
+  .headerActions { gap: 5px; }
+  .hdrBtn { padding: 6px 10px; font-size: 10px; min-height: 36px; display: inline-flex; align-items: center; }
+  .contactBadge { padding: 6px 10px; }
+  /* stage & plate full-width on mobile */
+  .plate { min-height: 340px; }
+  #c3d { height: min(56vh, 420px); }
+  .hint3d { font-size: 9px; left: 8px; bottom: 6px; max-width: calc(100% - 16px); }
+  /* view preset toolbar compact on mobile */
+  .view3dTools { top: 8px; right: 8px; gap: 3px; padding: 3px 4px; flex-wrap: wrap; max-width: 200px; }
+  .view3dToolsTitle { display: none; }
+  .view3dTools button { min-width: 44px; min-height: 36px; padding: 6px 8px; font-size: 10.5px; }
+  /* controls touch-friendly */
+  .ctrls { padding: 12px 10px; gap: 10px 14px; }
+  .depth { flex: 1 1 100%; min-width: 0; }
+  input[type=range] { height: 28px; }
+  .tg { min-height: 36px; padding: 7px 12px; font-size: 12px; }
+  /* tabs touch-friendly */
+  .tab { padding: 8px 14px; font-size: 11.5px; min-height: 36px; }
+  .tabs { gap: 5px; padding: 8px 10px; }
+  .readout { font-size: 10px; }
+  .tourpicker { display: none; }
+  /* panel full-width on mobile */
+  .panel { position: static; max-height: 50vh; overflow-y: auto; }
+  .pcap h2 { font-size: 18px; }
+  /* partlist touch-friendly items */
+  .partlist button { padding: 10px; font-size: 13px; min-height: 44px; }
+  .partlist { max-height: min(38vh, 340px); }
+  /* system pills touch-friendly */
+  .sysbtn { padding: 8px 14px; font-size: 13px; min-height: 40px; }
+  /* search box touch-friendly */
+  .searchbox input { padding: 10px 10px 10px 32px; font-size: 14px; min-height: 44px; }
+  /* footer compact on mobile */
+  .footerRefined { margin-top: 24px; gap: 14px; }
+  .footerHeroTitle { font-size: 18px; }
+  .footerHeroLogo { width: 44px; height: 44px; }
+  .footerFinePrint { font-size: 11px; padding: 8px 10px; }
+  /* onboarding card */
+  .onboardCard { max-width: 92vw; padding: 16px; }
+  .onboardOk { min-height: 44px; font-size: 14px; }
+  /* insight list items touch-friendly */
+  .insightBtn { padding: 10px 12px; }
+  .insightQText { font-size: 13px; }
+  /* railtabs touch-friendly */
+  .railtab { padding: 8px 10px; font-size: 11px; min-height: 36px; }
+}
+
+/* ---------- tablet (iPad) breakpoint ---------- */
+@media (min-width:721px) and (max-width:1024px) {
+  .app { grid-template-columns: 180px minmax(0,1fr); gap: 14px; }
+  .panel { grid-column: 1/-1; }
+  #c3d { height: min(65vh, 560px); }
+  .view3dTools button { min-width: 40px; min-height: 38px; padding: 5px 10px; }
+  .partlist button { padding: 8px 10px; min-height: 40px; }
+  .sysbtn { min-height: 38px; }
+  .searchbox input { min-height: 40px; }
+  .tab { min-height: 38px; }
+  .tg { min-height: 38px; }
+}
+
+/* ---------- touch device: larger tap targets for all interactive elements ---------- */
+@media (pointer:coarse) {
+  .view3dTools button { min-width: 44px; min-height: 40px; }
+  .tg { min-height: 40px; padding: 7px 12px; }
+  .tab { min-height: 40px; }
+  .sysbtn { min-height: 42px; }
+  .partlist button { min-height: 44px; padding: 9px 10px; }
+  .searchbox input { min-height: 44px; }
+  input[type=range] { height: 26px; }
+  .hdrBtn { min-height: 38px; }
+  .onboardOk { min-height: 44px; }
+  .insightBtn { padding: 10px 12px; min-height: 44px; }
+  .railtab { min-height: 38px; }
+}
