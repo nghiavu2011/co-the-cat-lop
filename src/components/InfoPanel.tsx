@@ -3,6 +3,7 @@ import { MATCH_3D } from '../content/match3d';
 import { SYSTEM_BY_ID, defaultSystemFor } from '../data/systems';
 import { buildBinding } from '../data/bind';
 import { PHYSICAL_MECHANISMS, BODY_INSIGHTS } from '../content/insights';
+import { getAnatomicalInsight } from '../content/anatomyDict';
 import type { AtlasJSON } from '../data/types';
 import type { Selection } from '../selection';
 
@@ -40,23 +41,49 @@ function RawPartCard({ partId, atlas }: { partId: string; atlas: AtlasJSON | nul
   if (!part) return null;
   const concept = atlas?.concepts.find((c) => c.id === part.conceptId);
   const sys = SYSTEM_BY_ID[defaultSystemFor(part)];
+  const insight = getAnatomicalInsight(part.name, sys.name, concept?.name);
+
   return (
     <>
       <div className="pcap">
         <span className="sys">
           <span className="dot" style={{ background: `var(${sys.color})`, display: 'inline-block', width: 9, height: 9, borderRadius: 2 }} />
-          {sys.name} · cấu trúc thật BodyParts3D
+          {sys.name} · Cấu trúc giải phẫu 3D thật
         </span>
-        <h2>{part.name}</h2>
-        <div className="en">{part.conceptId}{concept ? ` · ${concept.name}` : ''}</div>
+        <h2>{insight.viName || part.name}</h2>
+        <div className="en">
+          {part.name} {concept && concept.name !== part.name ? `(${concept.name})` : ''} · Mã: {part.conceptId}
+        </div>
       </div>
       <div className="pbody">
+        <div className="fld mech">
+          <div className="mechHead">
+            <span className="mechBadge">🏷️ Phân loại</span>
+            <span className="mechRole">{insight.category}</span>
+          </div>
+          <p className="mechPrinciple">{insight.function}</p>
+        </div>
+
         <div className="fld">
-          <h3>Về cấu trúc này</h3>
+          <h3>Vị trí giải phẫu</h3>
+          <p>{insight.location}</p>
+        </div>
+
+        <div className="fld">
+          <h3>Chức năng sinh lý học</h3>
+          <p>{insight.function}</p>
+        </div>
+
+        <div className="fld care">
+          <h3>Lưu ý lâm sàng & sức khỏe</h3>
+          <p>{insight.clinicalNote}</p>
+        </div>
+
+        <div className="fld num">
+          <h3>Dữ liệu hình học 3D thật</h3>
           <p>
-            Đây là một trong 2.234 cấu trúc giải phẫu gốc của BodyParts3D, hiển thị đúng hình học thật nhưng{' '}
-            <b>chưa có chú thích tiếng Việt riêng</b>. 94 bộ phận quan trọng nhất đã được biên soạn đầy đủ — dùng ô
-            tìm kiếm hoặc chọn một hệ cơ quan ở cột trái để xem các bộ phận đó.
+            Mã định danh: <b>{part.id}</b> · Số đỉnh: <b>{part.vertexCount.toLocaleString('vi-VN')}</b> · Hệ: <b>{sys.name}</b> ·
+            Tọa độ quét gốc BodyParts3D từ Đại học Tokyo.
           </p>
         </div>
       </div>

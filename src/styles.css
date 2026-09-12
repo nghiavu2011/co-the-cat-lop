@@ -255,3 +255,57 @@ img { max-width: 100%; }
 /* ---------- huy hiệu số lượng mesh thật trong panel ---------- */
 .meshcount { display:inline-flex; align-items:center; gap:5px; font-family:var(--f-mono); font-size:10.5px; color:var(--muted); margin-top:6px; }
 .meshcount b { color:var(--ink2); font-weight:500; }
+
+/* ---------- công cụ góc nhìn 3D đa chiều (.view3dTools) ---------- */
+.view3dTools {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 4px 6px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+  backdrop-filter: blur(8px);
+}
+.view3dToolsTitle {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 4px;
+  font-weight: 600;
+}
+.view3dTools button {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.view3dTools button:hover {
+  background: var(--surface);
+  border-color: var(--brass);
+  color: var(--brass);
+  transform: translateY(-1px);
+}
+.view3dTools button.resetBtn {
+  background: var(--surface);
+  border-color: var(--brass);
+  color: var(--brass);
+  font-weight: 600;
+}
+.view3dTools button.resetBtn:hover {
+  background: var(--brass);
+  color: #fff;
+}

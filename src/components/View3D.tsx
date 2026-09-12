@@ -168,7 +168,20 @@ export default function View3D({
   const highlightedRef = useRef<THREE.Mesh[]>([]);
   const heartMeshesRef = useRef<THREE.Mesh[]>([]);
   const lungMeshesRef = useRef<THREE.Mesh[]>([]);
-  const camState = useRef({ theta: 0.34, phi: 1.46, radius: 3.0 });
+  const camState = useRef({
+    theta: 0.34,
+    phi: 1.46,
+    radius: 3.0,
+    targetX: 0,
+    targetY: 0.92,
+    targetZ: 0,
+    destTheta: 0.34,
+    destPhi: 1.46,
+    destRadius: 3.0,
+    destTargetX: 0,
+    destTargetY: 0.92,
+    destTargetZ: 0,
+  });
   const lastInteractRef = useRef(0);
   const draggingRef = useRef(false);
   const reducedMotionRef = useRef(
@@ -297,40 +310,86 @@ export default function View3D({
       }
     })();
 
-    // ---------- tương tác chuột: xoay / phóng to / bấm chọn ----------
-    let dragging = false;
+    // ---------- tương tác chuột đa chiều: xoay (left-drag), kéo pan (right-drag hoặc Shift+left), phóng to, double-click zoom in ----------
+    let isDragging = false;
+    let dragMode: 'orbit' | 'pan' = 'orbit';
     let moved = 0;
     let px = 0;
     let py = 0;
+
     const onDown = (e: PointerEvent) => {
-      dragging = true;
+      isDragging = true;
       draggingRef.current = true;
       lastInteractRef.current = performance.now();
       moved = 0;
       px = e.clientX;
       py = e.clientY;
+      // Chuột phải (button === 2) hoặc giữ phím Shift: Chế độ kéo Pan (di chuyển góc nhìn)
+      dragMode = e.button === 2 || e.shiftKey ? 'pan' : 'orbit';
       canvas.setPointerCapture(e.pointerId);
     };
+
     const onMove = (e: PointerEvent) => {
-      if (!dragging) return;
+      if (!isDragging) return;
       lastInteractRef.current = performance.now();
-      moved += Math.abs(e.clientX - px) + Math.abs(e.clientY - py);
-      camState.current.theta -= (e.clientX - px) * 0.008;
-      camState.current.phi = Math.max(0.3, Math.min(2.85, camState.current.phi - (e.clientY - py) * 0.006));
+      const dx = e.clientX - px;
+      const dy = e.clientY - py;
+      moved += Math.abs(dx) + Math.abs(dy);
       px = e.clientX;
       py = e.clientY;
+
+      if (dragMode === 'pan') {
+        // TÍNH TOÁN VECTOR PAN VUÔNG GÓC VỚI HƯỚNG NHÌN CAMERA
+        const forward = new THREE.Vector3()
+          .subVectors(
+            new THREE.Vector3(camState.current.targetX, camState.current.targetY, camState.current.targetZ),
+            camera.position
+          )
+          .normalize();
+        const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+        const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+
+        const factor = (camState.current.radius / 1000) * 1.5;
+        const panX = -right.x * dx * factor + up.x * dy * factor;
+        const panY = -right.y * dx * factor + up.y * dy * factor;
+        const panZ = -right.z * dx * factor + up.z * dy * factor;
+
+        camState.current.destTargetX += panX;
+        camState.current.destTargetY += panY;
+        camState.current.destTargetZ += panZ;
+        camState.current.targetX += panX;
+        camState.current.targetY += panY;
+        camState.current.targetZ += panZ;
+      } else {
+        // CHẾ ĐỘ XOAY QUANH ĐIỂM TIÊU CỰ (ORBIT)
+        camState.current.destTheta -= dx * 0.008;
+        camState.current.destPhi = Math.max(0.2, Math.min(2.95, camState.current.destPhi - dy * 0.006));
+        camState.current.theta = camState.current.destTheta;
+        camState.current.phi = camState.current.destPhi;
+      }
     };
-    const onUp = () => {
-      dragging = false;
+
+    const onUp = (e: PointerEvent) => {
+      isDragging = false;
       draggingRef.current = false;
       lastInteractRef.current = performance.now();
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
     };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       lastInteractRef.current = performance.now();
-      camState.current.radius = Math.max(0.45, Math.min(5, camState.current.radius + e.deltaY * 0.0022));
+      const zoomDelta = e.deltaY * 0.0022;
+      camState.current.destRadius = Math.max(0.18, Math.min(5.5, camState.current.destRadius + zoomDelta));
     };
+
     const raycaster = new THREE.Raycaster();
+
+    // Bấm chọn đơn
     const onClick = (e: MouseEvent) => {
       if (moved > 6) return;
       const rect = canvas.getBoundingClientRect();
@@ -351,11 +410,65 @@ export default function View3D({
       if (!entry) return;
       onPick(entry.noteId ? { kind: 'note', id: entry.noteId } : { kind: 'part', id: partId });
     };
+
+    // DOUBLE-CLICK ĐỂ ZOOM IN VÀ TIÊU ĐIỂM (FOCUS) TRỰC TIẾP VÀO BỘ PHẬN ĐƯỢC CHỌN
+    const onDblClick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+      raycaster.setFromCamera(ndc, camera);
+      const pl = planeRef.current!;
+      const candidates = entriesRef.current.filter((en) => en.mesh.visible).map((en) => en.mesh);
+      const hits = raycaster
+        .intersectObjects(candidates, false)
+        .filter((h) => pl.distanceToPoint(h.point) > 0);
+
+      if (hits.length > 0) {
+        const hit = hits[0];
+        const hitMesh = hit.object as THREE.Mesh;
+        const partId = hitMesh.userData.partId as string;
+        const entry = entriesRef.current.find((en) => en.part.id === partId);
+        if (entry) {
+          onPick(entry.noteId ? { kind: 'note', id: entry.noteId } : { kind: 'part', id: partId });
+        }
+
+        // Lấy tâm hình học thật của bộ phận vừa bấm
+        hitMesh.geometry.computeBoundingBox();
+        const bbox = hitMesh.geometry.boundingBox;
+        const targetPt = hit.point.clone();
+        if (bbox) {
+          const center = new THREE.Vector3();
+          bbox.getCenter(center);
+          hitMesh.localToWorld(center);
+          targetPt.copy(center);
+        }
+
+        // Tính khoảng cách zoom phù hợp theo kích thước bộ phận
+        let desiredRadius = 0.55;
+        if (bbox) {
+          const sz = new THREE.Vector3();
+          bbox.getSize(sz);
+          const maxDim = Math.max(sz.x, sz.y, sz.z);
+          desiredRadius = Math.max(0.28, Math.min(1.6, maxDim * 2.8));
+        }
+
+        // Mượt mà chuyển tiêu cự vào tâm bộ phận
+        camState.current.destTargetX = targetPt.x;
+        camState.current.destTargetY = targetPt.y;
+        camState.current.destTargetZ = targetPt.z;
+        camState.current.destRadius = desiredRadius;
+        lastInteractRef.current = performance.now();
+      }
+    };
+
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('dblclick', onDblClick);
 
     const resize = () => {
       const w = canvas.clientWidth || 600;
@@ -367,8 +480,8 @@ export default function View3D({
     window.addEventListener('resize', resize);
     resize();
 
-    const IDLE_DELAY_MS = 3200;
-    const IDLE_ROTATE_SPEED = 0.055; // rad/giây
+    const IDLE_DELAY_MS = 4000;
+    const IDLE_ROTATE_SPEED = 0.045; // rad/giây
 
     let rafId = 0;
     let lastTs = 0;
@@ -379,31 +492,43 @@ export default function View3D({
       const t = ts / 1000;
       const reduceMotion = reducedMotionRef.current;
 
-      // tự xoay chậm khi người dùng chưa tương tác một lúc — thu hút chú ý ban đầu
+      // Nội suy mượt mà (Lerp) góc nhìn, độ phóng và tâm nhìn
+      const lerpSpeed = dt * 8.5;
+      camState.current.radius += (camState.current.destRadius - camState.current.radius) * lerpSpeed;
+      camState.current.targetX += (camState.current.destTargetX - camState.current.targetX) * lerpSpeed;
+      camState.current.targetY += (camState.current.destTargetY - camState.current.targetY) * lerpSpeed;
+      camState.current.targetZ += (camState.current.destTargetZ - camState.current.targetZ) * lerpSpeed;
+
+      // Tự xoay nhẹ khi rảnh tay
       if (!reduceMotion && !draggingRef.current && ts - lastInteractRef.current > IDLE_DELAY_MS) {
         camState.current.theta += IDLE_ROTATE_SPEED * dt;
+        camState.current.destTheta = camState.current.theta;
       }
 
       if (!reduceMotion) {
-        // nhịp tim (~72 lần/phút): xung nhọn kiểu "thình" thay vì sóng sin đều
+        // Nhịp tim
         const heartPulse = 1 + 0.07 * Math.pow(Math.max(0, Math.sin(2 * Math.PI * 1.2 * t)), 6);
         for (const m of heartMeshesRef.current) m.scale.setScalar(heartPulse);
 
-        // hô hấp (~15 lần/phút): phồng lên khi hít vào, xẹp khi thở ra
+        // Hô hấp
         const breathPulse = 1 + 0.035 * Math.sin(2 * Math.PI * 0.25 * t);
         for (const m of lungMeshesRef.current) m.scale.setScalar(breathPulse);
 
-        // dòng chảy trong mạch máu
+        // Mạch máu
         if (vesselMatRef.current) vesselMatRef.current.uniforms.uTime.value = t;
 
-        // ánh sáng "thở" nhẹ trên khối đang được chọn
+        // Điểm sáng thở nhẹ
         const glow = 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(2 * Math.PI * 0.9 * t));
         selectedMaterial.emissive.setRGB(glow * 0.62, glow * 0.42, glow * 0.16);
       }
 
-      const { theta, phi, radius } = camState.current;
-      camera.position.set(radius * Math.sin(phi) * Math.sin(theta), 0.92 + radius * Math.cos(phi), radius * Math.sin(phi) * Math.cos(theta));
-      camera.lookAt(0, 0.92, 0);
+      const { theta, phi, radius, targetX, targetY, targetZ } = camState.current;
+      camera.position.set(
+        targetX + radius * Math.sin(phi) * Math.sin(theta),
+        targetY + radius * Math.cos(phi),
+        targetZ + radius * Math.sin(phi) * Math.cos(theta)
+      );
+      camera.lookAt(targetX, targetY, targetZ);
       renderer.render(scene, camera);
     };
     rafId = requestAnimationFrame(loop);
@@ -417,6 +542,7 @@ export default function View3D({
       canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('click', onClick);
+      canvas.removeEventListener('dblclick', onDblClick);
       renderer.dispose();
       entriesRef.current.forEach((en) => en.mesh.geometry.dispose());
       Object.values(normalMat).forEach((m) => m.dispose());
@@ -485,9 +611,68 @@ export default function View3D({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection, ready]);
 
+  const setCameraPreset = (view: 'front' | 'back' | 'left' | 'right' | 'top' | 'reset') => {
+    lastInteractRef.current = performance.now();
+    switch (view) {
+      case 'front':
+        camState.current.destTheta = 0;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'back':
+        camState.current.destTheta = Math.PI;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'left':
+        camState.current.destTheta = -Math.PI / 2;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'right':
+        camState.current.destTheta = Math.PI / 2;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'top':
+        camState.current.destTheta = 0;
+        camState.current.destPhi = 0.25;
+        break;
+      case 'reset':
+        camState.current.destTheta = 0.34;
+        camState.current.destPhi = 1.46;
+        camState.current.destRadius = 3.0;
+        camState.current.destTargetX = 0;
+        camState.current.destTargetY = 0.92;
+        camState.current.destTargetZ = 0;
+        break;
+    }
+  };
+
   return (
     <>
       <canvas id="c3d" ref={canvasRef} />
+
+      {ready && (
+        <div className="view3dTools">
+          <span className="view3dToolsTitle">Góc nhìn:</span>
+          <button type="button" onClick={() => setCameraPreset('front')} title="Góc nhìn chính diện">
+            Trước
+          </button>
+          <button type="button" onClick={() => setCameraPreset('back')} title="Góc nhìn từ sau lưng">
+            Sau
+          </button>
+          <button type="button" onClick={() => setCameraPreset('left')} title="Góc nhìn nghiêng trái">
+            Trái
+          </button>
+          <button type="button" onClick={() => setCameraPreset('right')} title="Góc nhìn nghiêng phải">
+            Phải
+          </button>
+          <button type="button" onClick={() => setCameraPreset('top')} title="Góc nhìn từ đỉnh đầu">
+            Đỉnh
+          </button>
+          <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
+            ↺ Đặt lại
+          </button>
+        </div>
+      )}
+
       {!ready && (
         <div className="loading3d">
           <div className="load3d">

@@ -4,6 +4,7 @@ import { KEY } from '../content/constants';
 import { SYSTEMS } from '../data/systems';
 import { buildBinding } from '../data/bind';
 import { BODY_INSIGHTS } from '../content/insights';
+import { translateAnatomyName } from '../content/anatomyDict';
 import type { AtlasJSON, SystemId } from '../data/types';
 import type { Selection } from '../selection';
 
@@ -46,8 +47,13 @@ export default function Sidebar({
     if (!q || !atlas) return [];
     const { partToNote } = buildBinding(atlas);
     return atlas.parts
-      .filter((p) => !partToNote.has(p.id) && stripAccents(p.name).includes(q))
-      .slice(0, 60);
+      .filter((p) => {
+        if (partToNote.has(p.id)) return false;
+        const vi = stripAccents(translateAnatomyName(p.name));
+        const en = stripAccents(p.name);
+        return en.includes(q) || vi.includes(q);
+      })
+      .slice(0, 100);
   }, [q, atlas]);
 
   const insightMatches = useMemo(() => {
@@ -191,21 +197,26 @@ export default function Sidebar({
               Cấu trúc chi tiết (chỉ có ở 3D) · {rawMatches.length}
             </div>
           )}
-          {rawMatches.map((p) => (
-            <button
-              key={p.id}
-              aria-pressed={selection?.kind === 'part' && selection.id === p.id}
-              onClick={() => {
-                onPick({ kind: 'part', id: p.id });
-                onNeeds3D();
-              }}
-            >
-              <span className="idx" style={{ fontSize: 9 }}>
-                ·
-              </span>
-              {p.name}
-            </button>
-          ))}
+          {rawMatches.map((p) => {
+            const vi = translateAnatomyName(p.name);
+            return (
+              <button
+                key={p.id}
+                aria-pressed={selection?.kind === 'part' && selection.id === p.id}
+                onClick={() => {
+                  onPick({ kind: 'part', id: p.id });
+                  onNeeds3D();
+                }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '6px 10px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <span className="idx" style={{ fontSize: 9 }}>·</span>
+                  <span style={{ fontWeight: 500 }}>{vi}</span>
+                </div>
+                <span style={{ fontSize: 10.5, color: 'var(--faint)', marginLeft: 16 }}>{p.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </aside>
