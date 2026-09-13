@@ -206,7 +206,7 @@ export default function App() {
   return (
     <div className="wrap">
       <Header theme={theme} onCycleTheme={cycleTheme} onShare={onShare} shareStatus={shareStatus} />
-      <div className="app">
+      <div className={`app${mode === 'detail' ? ' isDetailMode' : ''}`}>
         <Sidebar
           atlas={atlas}
           activeSystem={activeSystem}
@@ -418,17 +418,19 @@ export default function App() {
           )}
         </main>
 
-        <aside className="panel">
-          <InfoPanel
-            selection={selection}
-            atlas={atlas}
-            mode={mode === 'detail' ? '3d' : mode}
-            onOpenDetail={() => {
-              setMode('detail');
-              setActiveTour(null);
-            }}
-          />
-        </aside>
+        {mode !== 'detail' && (
+          <aside className="panel">
+            <InfoPanel
+              selection={selection}
+              atlas={atlas}
+              mode={mode}
+              onOpenDetail={() => {
+                setMode('detail');
+                setActiveTour(null);
+              }}
+            />
+          </aside>
+        )}
       </div>
       <Footer />
     </div>

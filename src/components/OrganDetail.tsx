@@ -9,6 +9,7 @@ import {
   type OrganDef,
   type OrganId,
 } from '../organs/organData';
+import { PHYSICAL_MECHANISMS } from '../content/insights';
 import { OrganDetailViewer } from '../organs/OrganViewer';
 
 interface Props {
@@ -49,6 +50,8 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
 
   const organDef: OrganDef = ORGAN_BY_ID[currentOrganId] ?? ORGANS[0];
   const images = useMemo(() => getOrganImages(currentOrganId), [currentOrganId]);
+  const primaryNoteId = ORGAN_TO_NOTE[currentOrganId];
+  const mech = primaryNoteId ? PHYSICAL_MECHANISMS[primaryNoteId] : null;
 
   // Init 3D viewer
   useEffect(() => {
@@ -301,6 +304,15 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
           </div>
 
           <p className="organDetailDesc">{organDef.description}</p>
+          {mech && (
+            <div className="organDetailMech">
+              <div className="mechHead">
+                <span className="mechBadge">⚙️ Cơ chế vật lý</span>
+                <span className="mechRole">{mech.role}</span>
+              </div>
+              <p className="mechPrinciple">{mech.principle}</p>
+            </div>
+          )}
 
           {/* Key Facts */}
           <div className="organDetailSectionTitle">📊 Thông số & Đặc điểm sinh học</div>

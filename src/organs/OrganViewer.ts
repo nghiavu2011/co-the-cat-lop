@@ -186,7 +186,8 @@ export class OrganDetailViewer {
       organ = await this.assets.load(modelUrl, (progress) => {
         if (request === this.loadRequest) this.callbacks.onLoading(true, progress);
       });
-    } catch {
+    } catch (err) {
+      console.error('Failed to load organ in OrganViewer:', modelUrl, err);
       if (request === this.loadRequest) this.callbacks.onLoading(false, 0);
       return;
     }

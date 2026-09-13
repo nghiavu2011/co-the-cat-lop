@@ -76,6 +76,14 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
   .rail{order:0}
   .panel{order:1;grid-column:auto}
 }
+.app.isDetailMode {
+  grid-template-columns: 222px minmax(0, 1fr);
+}
+@media (max-width: 900px) {
+  .app.isDetailMode {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 /* ---------- rail ---------- */
 .rail{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
@@ -458,14 +466,50 @@ img { max-width: 100%; }
 /* 2-Column Responsive Layout */
 .organDetailLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .organDetailLayout {
     grid-template-columns: 1fr;
   }
+}
+
+.organDetailMech {
+  background: var(--surface2);
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.organDetailMech .mechHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.organDetailMech .mechBadge {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  background: var(--brass);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.organDetailMech .mechRole {
+  font-family: var(--f-disp);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.organDetailMech .mechPrinciple {
+  font-size: 12.6px;
+  color: var(--ink2);
+  line-height: 1.55;
+  margin: 0;
 }
 
 /* Visualizer Stage */
@@ -522,7 +566,8 @@ img { max-width: 100%; }
 .organDetailViewer {
   position: relative;
   width: 100%;
-  height: 480px;
+  height: min(70vh, 580px);
+  min-height: 420px;
   cursor: grab;
 }
 .organDetailViewer:active {

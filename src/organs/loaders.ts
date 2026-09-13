@@ -50,12 +50,16 @@ export class OrganAssetManager {
       this.evict();
       this.current = organ;
       return organ;
+    } catch (e) {
+      console.error('Error loading organ model:', url, e);
+      throw e;
     } finally {
       this.inflight.delete(url);
     }
   }
 
   private async parse(url: string, onProgress?: (p: number) => void): Promise<LoadedOrgan> {
+    await MeshoptDecoder.ready;
     const gltf = await this.loader.loadAsync(url, (event) => {
       if (event.total > 0) onProgress?.(event.loaded / event.total);
     });
