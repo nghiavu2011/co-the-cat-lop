@@ -564,7 +564,11 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
           </div>
 
           <div className="organHintText">
-            💡 Dùng chuột hoặc 1 ngón tay để xoay 360° · Cuộn chuột hoặc chụm 2 ngón để phóng to/thu nhỏ · Bấm <b>⛶ Toàn màn hình</b> để xem cận cảnh mọi góc
+            {'ontouchstart' in window ? (
+              <>1 ngón: <b>xoay 360°</b> · 2 ngón: <b>zoom & kéo Pan</b> · Chạm điểm sáng: <b>xem cấu trúc</b> · Bấm <b>⛶</b> để xem toàn màn hình</>
+            ) : (
+              <>Chuột trái: <b>xoay 360°</b> · Chuột phải / Shift: <b>kéo Pan</b> · Lăn chuột: <b>phóng to/thu nhỏ</b> · Nhấp điểm sáng: <b>xem cấu trúc</b> · Bấm <b>⛶ Toàn màn hình</b></>
+            )}
           </div>
         </div>
 

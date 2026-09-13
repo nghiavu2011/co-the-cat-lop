@@ -72,10 +72,11 @@ export class OrganDetailViewer {
     this.camera.position.set(HOME_CAMERA.x, HOME_CAMERA.y, HOME_CAMERA.z);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.055;
-    this.controls.enablePan = false;
-    this.controls.minDistance = 4.8;
-    this.controls.maxDistance = 12;
+    this.controls.enablePan = true;
+    this.controls.panSpeed = 1.0;
+    this.controls.screenSpacePanning = true;
+    this.controls.minDistance = 2.5;
+    this.controls.maxDistance = 15;
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.65;
     this.controls.target.set(HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z);
@@ -99,6 +100,7 @@ export class OrganDetailViewer {
     canvas.addEventListener('pointerup', this.onPointerUp);
     canvas.addEventListener('pointerleave', this.onPointerLeave);
     canvas.addEventListener('keydown', this.onKeyDown);
+    canvas.addEventListener('contextmenu', this.onContextMenu);
 
     this.resize();
     this.animate();
@@ -324,6 +326,7 @@ export class OrganDetailViewer {
     canvas.removeEventListener('pointerup', this.onPointerUp);
     canvas.removeEventListener('pointerleave', this.onPointerLeave);
     canvas.removeEventListener('keydown', this.onKeyDown);
+    canvas.removeEventListener('contextmenu', this.onContextMenu);
     this.hotspots.dispose();
     this.depthMaterial.dispose();
     this.assets.dispose();
@@ -331,4 +334,8 @@ export class OrganDetailViewer {
     this.renderer.dispose();
     canvas.remove();
   }
+
+  private onContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+  };
 }
