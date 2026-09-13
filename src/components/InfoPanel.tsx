@@ -93,7 +93,7 @@ function RawPartCard({ partId, atlas }: { partId: string; atlas: AtlasJSON | nul
   );
 }
 
-export default function InfoPanel({ selection, atlas, mode }: InfoPanelProps) {
+export default function InfoPanel({ selection, atlas, mode, onOpenDetail }: InfoPanelProps) {
   if (!selection) return <Intro />;
   if (selection.kind === 'part') return <RawPartCard partId={selection.id} atlas={atlas} />;
 
