@@ -11,8 +11,6 @@ type ViewerCallbacks = {
 
 const DOT_PIXELS = 34;
 const CAMERA_FOV = 34;
-const PLINTH_Y = -2.5;
-const PLINTH_TOP = PLINTH_Y + 0.17;
 const HOME_CAMERA = { x: 0, y: 1.05, z: 8.2 };
 const HOME_TARGET = { x: 0, y: 0.02, z: 0 };
 
@@ -26,8 +24,6 @@ export class OrganDetailViewer {
   private callbacks: ViewerCallbacks;
   private container: HTMLElement;
   private organ: LoadedOrgan | null = null;
-  private plinth!: THREE.Mesh;
-  private contactShadow!: THREE.Mesh;
 
   private frame = 0;
   private clock = new THREE.Clock();
@@ -120,22 +116,6 @@ export class OrganDetailViewer {
     const glow = new THREE.PointLight(0xee7c6a, 0.5, 8, 2); glow.name = 'organ-glow'; glow.position.set(2.8, 0.4, 2.8); this.scene.add(glow);
 
     this.scene.environment = this.buildEnvironmentMap();
-
-    this.plinth = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.3, 2.48, 0.34, 56),
-      new THREE.MeshStandardMaterial({ color: 0xead7c1, roughness: 0.78, metalness: 0 }),
-    );
-    this.plinth.position.y = PLINTH_Y;
-    this.scene.add(this.plinth);
-
-    this.contactShadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(4.2, 4.2),
-      new THREE.MeshBasicMaterial({ map: contactShadowTexture(), transparent: true, depthWrite: false, opacity: 0.62, toneMapped: false }),
-    );
-    this.contactShadow.rotation.x = -Math.PI / 2;
-    this.contactShadow.position.y = PLINTH_TOP + 0.005;
-    this.contactShadow.renderOrder = 1;
-    this.scene.add(this.contactShadow);
 
     const positions = new Float32Array(48 * 3);
     for (let i = 0; i < positions.length; i += 3) {
@@ -348,24 +328,7 @@ export class OrganDetailViewer {
     this.depthMaterial.dispose();
     this.assets.dispose();
     this.scene.environment?.dispose();
-    (this.contactShadow.material as THREE.MeshBasicMaterial).map?.dispose();
     this.renderer.dispose();
     canvas.remove();
   }
-}
-
-function contactShadowTexture() {
-  const size = 256;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext('2d')!;
-  const gradient = ctx.createRadialGradient(size / 2, size / 2, size * 0.04, size / 2, size / 2, size * 0.5);
-  gradient.addColorStop(0, 'rgba(94, 62, 42, 0.62)');
-  gradient.addColorStop(0.45, 'rgba(94, 62, 42, 0.26)');
-  gradient.addColorStop(1, 'rgba(94, 62, 42, 0)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
 }

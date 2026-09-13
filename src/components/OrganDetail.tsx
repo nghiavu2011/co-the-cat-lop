@@ -40,6 +40,9 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const [wireframe, setWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [activeTab, setActiveTab] = useState<GalleryView>('3d');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
+  const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
 
   // Update currentOrganId when noteId changes externally
   useEffect(() => {
@@ -52,6 +55,19 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const images = useMemo(() => getOrganImages(currentOrganId), [currentOrganId]);
   const primaryNoteId = ORGAN_TO_NOTE[currentOrganId];
   const mech = primaryNoteId ? PHYSICAL_MECHANISMS[primaryNoteId] : null;
+
+  // Handle Esc to exit fullscreen
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+        setLeftDrawerOpen(false);
+        setRightDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
 
   // Init 3D viewer
   useEffect(() => {
@@ -123,28 +139,275 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
     }
   };
 
-  return (
-    <div className="organDetailContainer">
-      {/* Selector Pills for all 9 organs */}
-      <div className="organSelectorBar" role="tablist" aria-label="Danh sách 9 nội tạng 3D">
-        {ORGANS.map((item) => {
-          const isSelected = item.id === currentOrganId;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={isSelected}
-              className={`organPill${isSelected ? ' isSelected' : ''}`}
-              style={{ '--organ-accent': item.accent } as React.CSSProperties}
-              onClick={() => handleOrganSelect(item.id)}
-            >
-              <span className="organPillIcon">{item.icon}</span>
-              <span className="organPillName">{item.name}</span>
-            </button>
-          );
-        })}
+  // Touch gesture swipe detection in fullscreen
+  const touchStartRef = useRef({ x: 0, y: 0 });
+  const onFsTouchStart = (e: React.TouchEvent) => {
+    if (!isFullscreen || e.touches.length !== 1) return;
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const onFsTouchEnd = (e: React.TouchEvent) => {
+    if (!isFullscreen) return;
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx > 0) {
+        // Swipe left to right
+        if (touchStartRef.current.x < 120) setLeftDrawerOpen(true);
+        if (rightDrawerOpen) setRightDrawerOpen(false);
+      } else {
+        // Swipe right to left
+        if (touchStartRef.current.x > window.innerWidth - 120) setRightDrawerOpen(true);
+        if (leftDrawerOpen) setLeftDrawerOpen(false);
+      }
+    }
+  };
+
+  // Mouse hover detection near screen edges in fullscreen
+  const onFsMouseMove = (e: React.MouseEvent) => {
+    if (!isFullscreen) return;
+    const x = e.clientX;
+    const w = window.innerWidth;
+    if (x < 24) setLeftDrawerOpen(true);
+    if (x > w - 24) setRightDrawerOpen(true);
+  };
+
+  // Medical Info Card component (reused in both standard and fullscreen drawer)
+  const renderInfoContent = () => (
+    <>
+      <div className="organDetailHeader">
+        <span className="organDetailIcon" style={{ color: organDef.accent }}>
+          {organDef.icon}
+        </span>
+        <div>
+          <h3>{organDef.name}</h3>
+          <span className="organDetailSys">
+            {organDef.system} · <em>{organDef.nameEn}</em>
+          </span>
+        </div>
       </div>
+
+      <p className="organDetailDesc">{organDef.description}</p>
+
+      {mech && (
+        <div className="organDetailMech">
+          <div className="mechHead">
+            <span className="mechBadge">⚙️ Cơ chế vật lý</span>
+            <span className="mechRole">{mech.role}</span>
+          </div>
+          <p className="mechPrinciple">{mech.principle}</p>
+        </div>
+      )}
+
+      {/* Key Facts */}
+      <div className="organDetailSectionTitle">📊 Thông số & Đặc điểm sinh học</div>
+      <dl className="organDetailFacts">
+        <div>
+          <dt>Kích thước</dt>
+          <dd>{organDef.size}</dd>
+        </div>
+        <div>
+          <dt>Trọng lượng</dt>
+          <dd>{organDef.weight}</dd>
+        </div>
+        <div>
+          <dt>Vị trí</dt>
+          <dd>{organDef.location}</dd>
+        </div>
+        <div>
+          <dt>Chức năng chính</dt>
+          <dd>{organDef.function}</dd>
+        </div>
+        <div>
+          <dt>Hoạt động mỗi ngày</dt>
+          <dd>{organDef.dailyFact}</dd>
+        </div>
+        <div>
+          <dt>Cấp máu nuôi dưỡng</dt>
+          <dd>{organDef.bloodSupply}</dd>
+        </div>
+      </dl>
+
+      {/* Fun Fact */}
+      <div className="organDetailFun">
+        <strong>💡 Bạn có biết?</strong>
+        <p>{organDef.funFact}</p>
+      </div>
+
+      {/* Common Medical Conditions */}
+      <div className="organDetailConditions">
+        <div className="organDetailSectionTitle">🏥 Bệnh lý thường gặp ({organDef.conditions.length})</div>
+        <div className="organConditionsList">
+          {organDef.conditions.map((c) => (
+            <span key={c} className="organConditionTag">
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Hotspot Markers List */}
+      <div className="organDetailHotspots">
+        <div className="organDetailSectionTitle">
+          📍 Mốc cấu trúc giải phẫu ({organDef.hotspots.length})
+        </div>
+        <div className="organDetailHotspotList">
+          {organDef.hotspots.map((h) => {
+            const isActive = selectedHotspot?.id === h.id;
+            return (
+              <button
+                key={h.id}
+                type="button"
+                className={`organDetailHotspotItem${isActive ? ' active' : ''}`}
+                onClick={() => onHotspotClick(h)}
+              >
+                <span className="organDetailHotspotDot" style={{ background: h.color }} />
+                <span className="organHotspotLabel">{h.label}</span>
+                <small className="organHotspotDetail">{h.detail}</small>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div
+      className={`organDetailContainer${isFullscreen ? ' isFullscreen' : ''}`}
+      onTouchStart={onFsTouchStart}
+      onTouchEnd={onFsTouchEnd}
+      onMouseMove={onFsMouseMove}
+    >
+      {/* Standard Organ Selector Bar (hidden in fullscreen) */}
+      {!isFullscreen && (
+        <div className="organSelectorBar" role="tablist" aria-label="Danh sách 9 nội tạng 3D">
+          {ORGANS.map((item) => {
+            const isSelected = item.id === currentOrganId;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                className={`organPill${isSelected ? ' isSelected' : ''}`}
+                style={{ '--organ-accent': item.accent } as React.CSSProperties}
+                onClick={() => handleOrganSelect(item.id)}
+              >
+                <span className="organPillIcon">{item.icon}</span>
+                <span className="organPillName">{item.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Fullscreen Floating Header & Edge Trigger Handles */}
+      {isFullscreen && (
+        <>
+          <div className="fsTopBar">
+            <div className="fsOrganBadge" style={{ borderColor: organDef.accent }}>
+              <span style={{ color: organDef.accent }}>{organDef.icon}</span>
+              <strong>{organDef.name}</strong>
+              <small>({organDef.nameEn})</small>
+            </div>
+            <button
+              type="button"
+              className="fsExitBtn"
+              onClick={() => {
+                setIsFullscreen(false);
+                setLeftDrawerOpen(false);
+                setRightDrawerOpen(false);
+              }}
+              title="Thoát toàn màn hình (Phím Esc)"
+            >
+              ✕ Thu nhỏ (Esc)
+            </button>
+          </div>
+
+          {/* Left Edge Tab Trigger */}
+          <button
+            type="button"
+            className={`fsEdgeTrigger fsTriggerLeft${leftDrawerOpen ? ' active' : ''}`}
+            onClick={() => setLeftDrawerOpen(!leftDrawerOpen)}
+            onMouseEnter={() => setLeftDrawerOpen(true)}
+            title="Mở danh sách 9 cơ quan"
+          >
+            <span>◀ 9 Nội tạng</span>
+          </button>
+
+          {/* Right Edge Tab Trigger */}
+          <button
+            type="button"
+            className={`fsEdgeTrigger fsTriggerRight${rightDrawerOpen ? ' active' : ''}`}
+            onClick={() => setRightDrawerOpen(!rightDrawerOpen)}
+            onMouseEnter={() => setRightDrawerOpen(true)}
+            title="Mở bảng thông tin giải phẫu"
+          >
+            <span>Thông tin ▶</span>
+          </button>
+
+          {/* Left Sliding Drawer */}
+          <div
+            className={`fsDrawer fsDrawerLeft${leftDrawerOpen ? ' isOpen' : ''}`}
+            onMouseLeave={() => setLeftDrawerOpen(false)}
+          >
+            <div className="fsDrawerHead">
+              <span>9 Cơ quan nội tạng</span>
+              <button type="button" className="fsDrawerClose" onClick={() => setLeftDrawerOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="fsDrawerOrgansList">
+              {ORGANS.map((item) => {
+                const isSelected = item.id === currentOrganId;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`fsOrganItem${isSelected ? ' isSelected' : ''}`}
+                    style={{ '--organ-accent': item.accent } as React.CSSProperties}
+                    onClick={() => {
+                      handleOrganSelect(item.id);
+                      setLeftDrawerOpen(false);
+                    }}
+                  >
+                    <span className="fsOrganIcon">{item.icon}</span>
+                    <div className="fsOrganNames">
+                      <strong>{item.name}</strong>
+                      <small>{item.system}</small>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Sliding Drawer */}
+          <div
+            className={`fsDrawer fsDrawerRight${rightDrawerOpen ? ' isOpen' : ''}`}
+            onMouseLeave={() => setRightDrawerOpen(false)}
+          >
+            <div className="fsDrawerHead">
+              <span>Giải phẫu & Bệnh lý: {organDef.name}</span>
+              <button type="button" className="fsDrawerClose" onClick={() => setRightDrawerOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="fsDrawerContent">{renderInfoContent()}</div>
+          </div>
+
+          {/* Backdrop overlay to close drawers on mobile tap */}
+          {(leftDrawerOpen || rightDrawerOpen) && (
+            <div
+              className="fsDrawerBackdrop"
+              onClick={() => {
+                setLeftDrawerOpen(false);
+                setRightDrawerOpen(false);
+              }}
+            />
+          )}
+        </>
+      )}
 
       <div className="organDetailLayout">
         {/* Left / Center: Interactive 3D Visualizer + Visual Gallery */}
@@ -188,7 +451,15 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             </button>
           </div>
 
-          <div className="organViewportWrapper">
+          <div
+            className="organViewportWrapper"
+            onClick={() => {
+              if (isFullscreen) {
+                setLeftDrawerOpen(false);
+                setRightDrawerOpen(false);
+              }
+            }}
+          >
             {/* 3D Canvas */}
             <div
               className="organDetailViewer"
@@ -259,6 +530,14 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
                 >
                   ↺ Đặt lại
                 </button>
+                <button
+                  type="button"
+                  className={`tg fsToggleBtn${isFullscreen ? ' active' : ''}`}
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  title={isFullscreen ? 'Thu nhỏ lại (Esc)' : 'Xem toàn màn hình không bị che chắn'}
+                >
+                  {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
+                </button>
               </div>
             )}
 
@@ -285,106 +564,12 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
           </div>
 
           <div className="organHintText">
-            💡 Dùng chuột hoặc 1 ngón tay để xoay 360° · Cuộn chuột hoặc chụm 2 ngón để phóng to/thu nhỏ · Nhấp vào điểm phát sáng để xem cấu trúc
+            💡 Dùng chuột hoặc 1 ngón tay để xoay 360° · Cuộn chuột hoặc chụm 2 ngón để phóng to/thu nhỏ · Bấm <b>⛶ Toàn màn hình</b> để xem cận cảnh mọi góc
           </div>
         </div>
 
-        {/* Right: Comprehensive Medical & Functional Info */}
-        <div className="organDetailInfo">
-          <div className="organDetailHeader">
-            <span className="organDetailIcon" style={{ color: organDef.accent }}>
-              {organDef.icon}
-            </span>
-            <div>
-              <h3>{organDef.name}</h3>
-              <span className="organDetailSys">
-                {organDef.system} · <em>{organDef.nameEn}</em>
-              </span>
-            </div>
-          </div>
-
-          <p className="organDetailDesc">{organDef.description}</p>
-          {mech && (
-            <div className="organDetailMech">
-              <div className="mechHead">
-                <span className="mechBadge">⚙️ Cơ chế vật lý</span>
-                <span className="mechRole">{mech.role}</span>
-              </div>
-              <p className="mechPrinciple">{mech.principle}</p>
-            </div>
-          )}
-
-          {/* Key Facts */}
-          <div className="organDetailSectionTitle">📊 Thông số & Đặc điểm sinh học</div>
-          <dl className="organDetailFacts">
-            <div>
-              <dt>Kích thước</dt>
-              <dd>{organDef.size}</dd>
-            </div>
-            <div>
-              <dt>Trọng lượng</dt>
-              <dd>{organDef.weight}</dd>
-            </div>
-            <div>
-              <dt>Vị trí</dt>
-              <dd>{organDef.location}</dd>
-            </div>
-            <div>
-              <dt>Chức năng chính</dt>
-              <dd>{organDef.function}</dd>
-            </div>
-            <div>
-              <dt>Hoạt động mỗi ngày</dt>
-              <dd>{organDef.dailyFact}</dd>
-            </div>
-            <div>
-              <dt>Cấp máu nuôi dưỡng</dt>
-              <dd>{organDef.bloodSupply}</dd>
-            </div>
-          </dl>
-
-          {/* Fun Fact */}
-          <div className="organDetailFun">
-            <strong>💡 Bạn có biết?</strong>
-            <p>{organDef.funFact}</p>
-          </div>
-
-          {/* Common Medical Conditions */}
-          <div className="organDetailConditions">
-            <div className="organDetailSectionTitle">🏥 Bệnh lý thường gặp ({organDef.conditions.length})</div>
-            <div className="organConditionsList">
-              {organDef.conditions.map((c) => (
-                <span key={c} className="organConditionTag">
-                  {c}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Hotspot Markers List */}
-          <div className="organDetailHotspots">
-            <div className="organDetailSectionTitle">
-              📍 Mốc cấu trúc giải phẫu ({organDef.hotspots.length})
-            </div>
-            <div className="organDetailHotspotList">
-              {organDef.hotspots.map((h) => {
-                const isActive = selectedHotspot?.id === h.id;
-                return (
-                  <button
-                    key={h.id}
-                    type="button"
-                    className={`organDetailHotspotItem${isActive ? ' active' : ''}`}
-                    onClick={() => onHotspotClick(h)}
-                  >
-                    <span className="organDetailHotspotDot" style={{ background: h.color }} />
-                    <span className="organHotspotLabel">{h.label}</span>
-                    <small className="organHotspotDetail">{h.detail}</small>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        {/* Right: Comprehensive Medical & Functional Info (visible in standard mode) */}
+        {!isFullscreen && <div className="organDetailInfo">{renderInfoContent()}</div>}
       </div>
     </div>
   );

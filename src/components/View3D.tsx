@@ -771,8 +771,26 @@ export default function View3D({
     }
   };
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 60);
+  }, [isFullscreen]);
+
   return (
-    <>
+    <div className={isFullscreen ? 'view3dFullscreen' : undefined}>
       <canvas id="c3d" ref={canvasRef} style={{ touchAction: 'none' }} />
 
       {ready && (
@@ -796,6 +814,14 @@ export default function View3D({
           <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
             ↺ Đặt lại
           </button>
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            title={isFullscreen ? 'Thu nhỏ lại (Esc)' : 'Xem toàn màn hình'}
+            className="fsToggleBtn"
+          >
+            {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
+          </button>
         </div>
       )}
 
@@ -818,6 +844,6 @@ export default function View3D({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
