@@ -1,0 +1,378 @@
+export type OrganId = 'heart' | 'brain' | 'lungs' | 'liver' | 'kidneys' | 'eyeball' | 'intestine' | 'pancreas' | 'skin';
+
+export interface HotspotDef {
+  id: string;
+  label: string;
+  detail: string;
+  position: [number, number, number];
+  color: string;
+}
+
+export interface OrganDef {
+  id: OrganId;
+  model: string; // path to .glb
+  name: string; // Vietnamese name
+  nameEn: string; // English/Latin
+  icon: string;
+  accent: string;
+  system: string; // Vietnamese system name
+  description: string;
+  size: string;
+  weight: string;
+  location: string;
+  function: string;
+  dailyFact: string;
+  bloodSupply: string;
+  funFact: string;
+  conditions: string[];
+  hotspots: HotspotDef[];
+}
+
+// Map co-the-cat-lop noteId -> organId
+export const NOTE_TO_ORGAN: Record<string, OrganId> = {
+  tim: 'heart',
+  nao: 'brain',
+  phoiphai: 'lungs',
+  phoitrai: 'lungs',
+  gan: 'liver',
+  thanphai: 'kidneys',
+  thantrai: 'kidneys',
+  mat: 'eyeball',
+  ruotnon: 'intestine',
+  ruotgia: 'intestine',
+  daitruc: 'intestine',
+  tuyentuy: 'pancreas',
+  da: 'skin',
+};
+
+// Map organId -> primary noteId in co-the-cat-lop
+export const ORGAN_TO_NOTE: Record<OrganId, string> = {
+  heart: 'tim',
+  brain: 'nao',
+  lungs: 'phoiphai',
+  liver: 'gan',
+  kidneys: 'thanphai',
+  eyeball: 'mat',
+  intestine: 'ruotnon',
+  pancreas: 'tuyentuy',
+  skin: 'da',
+};
+
+export interface OrganImages {
+  organ: string;
+  location: string;
+  microscopic: string;
+  compare: string;
+  thumb: string;
+}
+
+export function getOrganImages(id: OrganId): OrganImages {
+  return {
+    organ: `/organs/images/${id}/organ.webp`,
+    location: `/organs/images/${id}/location.webp`,
+    microscopic: `/organs/images/${id}/microscopic.webp`,
+    compare: `/organs/images/${id}/compare.webp`,
+    thumb: `/organs/images/${id}/thumb.webp`,
+  };
+}
+
+export const ORGANS: OrganDef[] = [
+  {
+    id: 'heart',
+    model: '/organs/models/heart.glb',
+    name: 'Tim',
+    nameEn: 'Heart / Cor',
+    icon: '♥',
+    accent: '#ee7c6a',
+    system: 'Hệ tuần hoàn',
+    description: 'Cơ quan cơ rỗng co bóp nhịp nhàng như một chiếc bơm không ngừng nghỉ, vận chuyển máu giàu oxy và dinh dưỡng đi nuôi toàn bộ tế bào trong cơ thể.',
+    size: 'Khoảng bằng nắm tay người trưởng thành (~12 × 8,5 × 6 cm)',
+    weight: '250–350 g',
+    location: 'Nằm trong trung thất giữa, sau xương ức, hơi lệch sang trái giữa hai phổi',
+    function: 'Co bóp bơm máu qua hai vòng tuần hoàn lớn (nuôi cơ thể) và nhỏ (lên phổi trao đổi khí)',
+    dailyFact: 'Đập khoảng 100.000 nhịp và bơm khoảng 7.500 lít máu mỗi ngày',
+    bloodSupply: 'Động mạch vành trái và động mạch vành phải xuất phát từ gốc động mạch chủ',
+    funFact: 'Tim đập khoảng 2,5 tỷ lần trong suốt cuộc đời và bắt đầu co bóp từ tuần thứ tư thai kỳ trước khi bạn sinh ra.',
+    conditions: [
+      'Bệnh động mạch vành',
+      'Rối loạn nhịp tim',
+      'Bệnh hở và hẹp van tim',
+      'Suy tim',
+      'Bệnh cơ tim',
+      'Viêm cơ tim',
+      'Rung nhĩ',
+      'Dị tật tim bẩm sinh',
+    ],
+    hotspots: [
+      { id: 'aorta', label: 'Động mạch chủ', detail: 'Mạch máu lớn nhất cơ thể', position: [-0.35, 1.65, 0.55], color: '#ee7c6a' },
+      { id: 'left-atrium', label: 'Tâm nhĩ trái', detail: 'Nhận máu giàu oxy từ phổi', position: [0.82, 0.65, 0.5], color: '#f2a33b' },
+      { id: 'right-atrium', label: 'Tâm nhĩ phải', detail: 'Nhận máu tĩnh mạch', position: [-0.9, 0.35, 0.55], color: '#6393d8' },
+      { id: 'left-ventricle', label: 'Tâm thất trái', detail: 'Bơm máu đi khắp cơ thể', position: [0.7, -0.75, 0.65], color: '#f2a33b' },
+      { id: 'right-ventricle', label: 'Tâm thất phải', detail: 'Bơm máu lên phổi', position: [-0.65, -0.68, 0.66], color: '#ee7c6a' },
+      { id: 'mitral', label: 'Van hai lá', detail: 'Ngăn máu chảy ngược', position: [0.18, -1.35, 0.48], color: '#d89bc4' },
+    ],
+  },
+  {
+    id: 'brain',
+    model: '/organs/models/brain.glb',
+    name: 'Não bộ',
+    nameEn: 'Brain / Encephalon',
+    icon: '◉',
+    accent: '#c58696',
+    system: 'Hệ thần kinh',
+    description: 'Trung tâm chỉ huy tối cao của cơ thể, tổng hợp thông tin cảm giác, kiểm soát vận động, ngôn ngữ, tư duy, cảm xúc và lưu trữ trí nhớ.',
+    size: 'Khoảng bằng hai nắm tay gập lại (~15 × 14 × 12 cm)',
+    weight: '1,3–1,4 kg',
+    location: 'Nằm gọn trong hộp sọ, được bảo vệ bởi ba lớp màng não và dịch não tủy',
+    function: 'Xử lý thông tin thần kinh, điều khiển cử động, nhận thức, tư duy trừu tượng và nhịp điệu sinh học',
+    dailyFact: 'Tiêu thụ khoảng 20% tổng năng lượng và oxy của cơ thể dù chỉ chiếm 2% khối lượng',
+    bloodSupply: 'Động mạch cảnh trong và động mạch đốt sống nối với nhau qua đa giác Willis',
+    funFact: 'Bản thân mô não không có thụ thể tiếp nhận cảm giác đau; cơn đau đầu thực chất phát ra từ các mạch máu, màng não và cơ quanh đầu.',
+    conditions: [
+      'Đau nửa đầu (Migraine)',
+      'Đột quỵ não',
+      'Thoái hóa thần kinh (Alzheimer, Parkinson)',
+      'Động kinh',
+      'Chấn thương sọ não',
+      'Viêm màng não',
+      'Xơ cứng rải rác',
+      'Phình động mạch não',
+    ],
+    hotspots: [
+      { id: 'frontal', label: 'Thuỳ trán', detail: 'Tư duy & vận động', position: [-0.7, 0.65, 0.8], color: '#ee7c6a' },
+      { id: 'parietal', label: 'Thuỳ đỉnh', detail: 'Xử lý cảm giác', position: [0.15, 1.1, 0.65], color: '#f2a33b' },
+      { id: 'temporal', label: 'Thuỳ thái dương', detail: 'Trí nhớ & thính giác', position: [0.75, -0.1, 0.82], color: '#6393d8' },
+      { id: 'cerebellum', label: 'Tiểu não', detail: 'Thăng bằng & phối hợp', position: [0.72, -0.9, 0.55], color: '#d89bc4' },
+    ],
+  },
+  {
+    id: 'lungs',
+    model: '/organs/models/lungs.glb',
+    name: 'Phổi',
+    nameEn: 'Lungs / Pulmones',
+    icon: '◍',
+    accent: '#dd8f8b',
+    system: 'Hệ hô hấp',
+    description: 'Cơ quan hô hấp chính dạng xốp đàn hồi, liên tục trao đổi oxy từ khí quyển vào máu và đào thải carbon dioxide ra ngoài qua bề mặt phế nang.',
+    size: 'Chiều cao mỗi bên phổi khoảng 20–25 cm',
+    weight: 'Khoảng 1.000–1.200 g cho cả hai phổi (phổi phải ~620 g, phổi trái ~570 g)',
+    location: 'Nằm trong lồng ngực hai bên trung thất, tựa trên cơ hoành và được khung sườn che chở',
+    function: 'Thông khí và trao đổi khí oxy – carbon dioxide giữa mao mạch máu và phế nang',
+    dailyFact: 'Lưu chuyển khoảng 11.000 lít không khí qua phế nang mỗi ngày',
+    bloodSupply: 'Động mạch phổi mang máu trao đổi khí và động mạch phế quản nuôi dưỡng mô phổi',
+    funFact: 'Phổi phải có 3 thùy còn phổi trái chỉ có 2 thùy với một khuyết tim sâu dành chỗ cho quả tim đập.',
+    conditions: [
+      'Hen phế quản',
+      'Bệnh phổi tắc nghẽn mạn tính (COPD)',
+      'Viêm phổi',
+      'Thuyên tắc động mạch phổi',
+      'Xơ phổi mô kẽ',
+      'Viêm phế quản mạn',
+      'Tràn khí màng phổi',
+      'Ung thư phổi',
+    ],
+    hotspots: [
+      { id: 'trachea', label: 'Khí quản', detail: 'Dẫn khí vào phổi', position: [0, 1.6, 0.2], color: '#6393d8' },
+      { id: 'right-lung', label: 'Phổi phải', detail: 'Ba thuỳ', position: [-1.2, 0.1, 0.7], color: '#ee7c6a' },
+      { id: 'left-lung', label: 'Phổi trái', detail: 'Hai thuỳ, nhường chỗ cho tim', position: [1.2, 0.1, 0.7], color: '#f2a33b' },
+      { id: 'bronchus', label: 'Phế quản', detail: 'Đường dẫn khí phân nhánh', position: [-0.03, 0.3, 0.35], color: '#d89bc4' },
+      { id: 'base', label: 'Đáy phổi', detail: 'Tựa trên cơ hoành', position: [-1.14, -1.2, 1], color: '#7fa88a' },
+    ],
+  },
+  {
+    id: 'liver',
+    model: '/organs/models/liver.glb',
+    name: 'Gan',
+    nameEn: 'Liver / Hepar',
+    icon: '≈',
+    accent: '#b86858',
+    system: 'Hệ tiêu hoá',
+    description: 'Tạng đặc và tuyến tiêu hóa lớn nhất cơ thể, giữ vai trò một nhà máy sinh hóa chuyển hóa chất, thanh lọc độc tố và sản xuất dịch mật.',
+    size: 'Dài khoảng 25–28 cm theo chiều ngang, cỡ một quả bóng bầu dục',
+    weight: '1,4–1,6 kg',
+    location: 'Nằm ở hạ sườn phải và vùng thượng vị, ngay dưới vòm hoành phải',
+    function: 'Chuyển hóa dinh dưỡng, khử độc máu, dự trữ glycogen và sản xuất dịch mật giúp tiêu hóa lipid',
+    dailyFact: 'Thực hiện hơn 500 chức năng sinh hóa khác nhau và tiết ra 800–1.000 ml mật mỗi ngày',
+    bloodSupply: 'Tĩnh mạch cửa (75% lượng máu giàu dưỡng chất từ ruột) và động mạch gan riêng (25% máu giàu oxy)',
+    funFact: 'Gan là cơ quan nội tạng duy nhất có khả năng tự tái tạo hoàn chỉnh kích thước ban đầu dù bị cắt bỏ tới 70% thể tích.',
+    conditions: [
+      'Gan nhiễm mỡ',
+      'Viêm gan virus (B, C)',
+      'Xơ gan',
+      'Sỏi mật và viêm túi mật',
+      'Tăng áp lực tĩnh mạch cửa',
+      'Suy gan',
+      'Nhiễm sắc tố sắt (Hemochromatosis)',
+      'Ung thư biểu mô tế bào gan',
+    ],
+    hotspots: [
+      { id: 'right-lobe', label: 'Thuỳ phải', detail: 'Thuỳ gan lớn nhất', position: [-0.75, 0.35, 0.75], color: '#ee7c6a' },
+      { id: 'left-lobe', label: 'Thuỳ trái', detail: 'Vượt qua đường giữa', position: [0.85, 0.25, 0.75], color: '#f2a33b' },
+      { id: 'portal', label: 'Tĩnh mạch cửa', detail: 'Dòng máu giàu dinh dưỡng', position: [0.1, -0.3, 0.82], color: '#6393d8' },
+    ],
+  },
+  {
+    id: 'kidneys',
+    model: '/organs/models/kidneys.glb',
+    name: 'Thận',
+    nameEn: 'Kidneys / Renes',
+    icon: '∞',
+    accent: '#c96963',
+    system: 'Hệ tiết niệu',
+    description: 'Cặp cơ quan hình hạt đậu đảm trách bộ lọc tinh vi, loại bỏ chất thải chuyển hóa, duy trì cân bằng nước - điện giải và huyết áp nội môi.',
+    size: 'Mỗi quả dài khoảng 10–12 cm, rộng 5–6 cm, dày 3–4 cm (cỡ chuột máy tính)',
+    weight: '120–170 g mỗi quả',
+    location: 'Nằm sau phúc mạc, ở hai bên cột sống thắt lưng từ mức đốt sống ngực T12 đến thắt lưng L3',
+    function: 'Lọc máu tạo nước tiểu, cân bằng nước – điện giải – kiềm toan và tiết hormone erythropoietin, renin',
+    dailyFact: 'Lọc liên tục khoảng 180 lít dịch huyết tương qua các nephron mỗi ngày',
+    bloodSupply: 'Động mạch thận xuất phát trực tiếp từ động mạch chủ bụng (nhận tới 20–25% cung lượng tim)',
+    funFact: 'Thận tái hấp thu lại tới 99% lượng dịch đã lọc qua cầu thận; chỉ khoảng 1–2 lít được thải ra ngoài dưới dạng nước tiểu.',
+    conditions: [
+      'Sỏi thận và sỏi niệu quản',
+      'Bệnh thận mạn tính',
+      'Nhiễm trùng đường tiết niệu',
+      'Viêm cầu thận cấp và mạn',
+      'Thận đa nang di truyền',
+      'Tổn thương thận cấp',
+      'Hội chứng thận hư',
+      'Tăng huyết áp thứ phát do hẹp động mạch thận',
+    ],
+    hotspots: [
+      { id: 'cortex', label: 'Vỏ thận', detail: 'Lọc máu', position: [-0.9, 0.55, 0.7], color: '#ee7c6a' },
+      { id: 'medulla', label: 'Tuỷ thận', detail: 'Cô đặc nước tiểu', position: [0.85, 0.2, 0.7], color: '#f2a33b' },
+      { id: 'ureter', label: 'Niệu quản', detail: 'Dẫn nước tiểu xuống bàng quang', position: [0.4, -1.1, 0.5], color: '#6393d8' },
+    ],
+  },
+  {
+    id: 'eyeball',
+    model: '/organs/models/eyeball.glb',
+    name: 'Mắt',
+    nameEn: 'Eye / Oculus',
+    icon: '⊙',
+    accent: '#7294b9',
+    system: 'Hệ giác quan',
+    description: 'Cơ quan thị giác cảm giác tinh xảo, tiếp nhận và khúc xạ ánh sáng hội tụ lên võng mạc để chuyển thành tín hiệu thần kinh truyền lên não.',
+    size: 'Đường kính trước - sau khoảng 24 mm',
+    weight: 'Khoảng 7,5 g',
+    location: 'Nằm trong ổ mắt xương, được bảo vệ bởi mi mắt, lệ bộ và hệ thống cơ vận nhãn',
+    function: 'Thu nhận, điều tiết và tập trung ánh sáng để tạo nên cảm thụ thị giác và phân biệt màu sắc',
+    dailyFact: 'Chớp mắt khoảng 15.000–20.000 lần mỗi ngày và cử động liên tục hàng trăm nghìn lần',
+    bloodSupply: 'Động mạch mắt (nhánh động mạch cảnh trong) và động mạch trung tâm võng mạc',
+    funFact: 'Giác mạc là một trong số rất ít mô trong cơ thể hoàn toàn không có mạch máu; mô này lấy oxy trực tiếp từ không khí bên ngoài.',
+    conditions: [
+      'Tật khúc xạ (cận thị, viễn thị, loạn thị)',
+      'Đục thủy tinh thể',
+      'Bệnh thiên đầu thống (Glocom)',
+      'Thoái hóa hoàng điểm tuổi già',
+      'Bong võng mạc',
+      'Hội chứng khô mắt',
+      'Viêm kết mạc',
+      'Bệnh võng mạc đái tháo đường',
+    ],
+    hotspots: [
+      { id: 'cornea', label: 'Giác mạc', detail: 'Cửa sổ trong suốt', position: [-0.94, 0.05, 1.47], color: '#6393d8' },
+      { id: 'iris', label: 'Mống mắt', detail: 'Điều chỉnh ánh sáng', position: [-1.22, -0.53, 1.15], color: '#f2a33b' },
+      { id: 'optic', label: 'Thần kinh thị giác', detail: 'Truyền hình ảnh về não', position: [1.61, -0.18, 0.54], color: '#d89bc4' },
+    ],
+  },
+  {
+    id: 'intestine',
+    model: '/organs/models/intestine.glb',
+    name: 'Ruột',
+    nameEn: 'Intestines / Intestinum',
+    icon: '§',
+    accent: '#d78b77',
+    system: 'Hệ tiêu hoá',
+    description: 'Đoạn ống tiêu hóa uốn khúc kéo dài từ môn vị đến ống hậu môn, nơi diễn ra phần lớn quá trình phân giải thức ăn, hấp thu dưỡng chất và tái hấp thu nước.',
+    size: 'Dài khoảng 6–7 m khi duỗi thẳng (ruột non 5–6 m, đại tràng ~1,5 m)',
+    weight: 'Khoảng 1,5–2,0 kg (thay đổi theo thức ăn và dịch tiêu hóa)',
+    location: 'Chiếm phần lớn khoang bụng và chậu hông, dưới dạ dày và gan',
+    function: 'Tiêu hóa enzym, hấp thu dinh dưỡng, tái hấp thu nước - muối khoáng và tống xuất bã phân',
+    dailyFact: 'Là ngôi nhà của hơn 100 nghìn tỷ vi khuẩn thuộc hệ vi sinh vật đường ruột có ích',
+    bloodSupply: 'Động mạch mạc treo tràng trên và động mạch mạc treo tràng dưới',
+    funFact: 'Toàn bộ lớp tế bào niêm mạc lót trong lòng ruột tự bong và tái sinh mới hoàn toàn chỉ sau mỗi 3 đến 5 ngày.',
+    conditions: [
+      'Hội chứng ruột kích thích (IBS)',
+      'Bệnh viêm ruột mạn (Crohn, viêm loét đại tràng)',
+      'Bệnh Celiac (không dung nạp gluten)',
+      'Viêm túi thừa đại tràng',
+      'Tắc ruột cơ học',
+      'Polyp đại trực tràng',
+      'Viêm ruột thừa cấp',
+      'Ung thư đại trực tràng',
+    ],
+    hotspots: [
+      { id: 'duodenum', label: 'Tá tràng', detail: 'Nhận thức ăn từ dạ dày', position: [0.6, 0.8, 0.75], color: '#f2a33b' },
+      { id: 'jejunum', label: 'Hỗng tràng', detail: 'Hấp thu dinh dưỡng chính', position: [-0.45, 0.1, 0.82], color: '#ee7c6a' },
+      { id: 'colon', label: 'Đại tràng', detail: 'Hấp thu nước', position: [0.75, -0.55, 0.72], color: '#6393d8' },
+    ],
+  },
+  {
+    id: 'pancreas',
+    model: '/organs/models/pancreas.glb',
+    name: 'Tụy',
+    nameEn: 'Pancreas / Pancreas',
+    icon: '◈',
+    accent: '#c69a5e',
+    system: 'Hệ tiêu hoá & nội tiết',
+    description: 'Tuyến nội - ngoại tiết nằm vắt ngang thành bụng sau, vừa tiết dịch enzym tiêu hóa thức ăn vừa bài tiết insulin và glucagon giữ ổn định đường huyết.',
+    size: 'Dài khoảng 12–15 cm, rộng 3–4 cm, dẹt theo hướng trước sau',
+    weight: '70–100 g',
+    location: 'Nằm sau phúc mạc, vắt ngang cột sống thắt lưng sau dạ dày, từ quai tá tràng đến rốn lách',
+    function: 'Tiết dịch tụy chứa enzym phân hủy lipid, protein, glucid và tiết hormone nội tiết insulin, glucagon',
+    dailyFact: 'Tiết khoảng 1,5 lít dịch tụy giàu enzyme tiêu hóa vào tá tràng mỗi ngày',
+    bloodSupply: 'Động mạch lách và các nhánh động mạch tụy tá tràng',
+    funFact: 'Chỉ 1–2% khối lượng tụy làm nhiệm vụ nội tiết (các đảo Langerhans), hơn 98% còn lại dành cho việc sản xuất dịch enzym tiêu hóa.',
+    conditions: [
+      'Viêm tụy cấp',
+      'Viêm tụy mạn',
+      'Đái tháo đường týp 1',
+      'Đái tháo đường týp 2',
+      'Suy tụy ngoại tiết',
+      'Nang và giả nang tụy',
+      'U nội tiết tụy (Insulinoma)',
+      'Ung thư biểu mô tuyến tụy',
+    ],
+    hotspots: [
+      { id: 'head', label: 'Đầu tụy', detail: 'Nằm trong vòng cung tá tràng', position: [-1.32, -0.36, 0.55], color: '#ee7c6a' },
+      { id: 'body', label: 'Thân tụy', detail: 'Tiết enzyme & hormone', position: [0.05, 0.25, 0.45], color: '#f2a33b' },
+      { id: 'tail', label: 'Đuôi tụy', detail: 'Gần lách', position: [1.55, 0.3, 0.35], color: '#6393d8' },
+      { id: 'duct', label: 'Ống tụy', detail: 'Dẫn dịch tụy', position: [-0.61, 0.39, 0.5], color: '#d89bc4' },
+    ],
+  },
+  {
+    id: 'skin',
+    model: '/organs/models/skin.glb',
+    name: 'Da',
+    nameEn: 'Skin / Integumentum',
+    icon: '▦',
+    accent: '#c99277',
+    system: 'Da & mô dưới da',
+    description: 'Cơ quan có diện tích bề mặt và trọng lượng lớn nhất cơ thể, tạo lớp vỏ bọc sinh học ngăn cách nội môi với tác nhân bên ngoài và điều hòa nhiệt độ.',
+    size: 'Diện tích khoảng 1,8–2,0 m² ở người lớn',
+    weight: 'Khoảng 3,5–5 kg (chiếm khoảng 15–16% trọng lượng cơ thể)',
+    location: 'Bao phủ kín toàn bộ bề mặt bên ngoài cơ thể',
+    function: 'Bảo vệ cơ học - vi sinh, điều hòa thân nhiệt, thụ cảm xúc giác - nhiệt độ và tổng hợp vitamin D',
+    dailyFact: 'Bong tróc khoảng 500 triệu tế bào sừng chết mỗi ngày và thay mới hoàn toàn sau 28–40 ngày',
+    bloodSupply: 'Mạng lưới mao mạch trung bì phong phú chia thành đám rối nông dưới nhú và đám rối sâu',
+    funFact: 'Một centimet vuông da người chứa trung bình hàng trăm tuyến mồ hôi, hàng chục nang lông tuyến bã và khoảng 4 mét dây thần kinh cảm giác.',
+    conditions: [
+      'Viêm da cơ địa (Eczema)',
+      'Bệnh vảy nến (Psoriasis)',
+      'Ung thư hắc tố da (Melanoma)',
+      'Mụn trứng cá (Acne vulgaris)',
+      'Viêm mô tế bào',
+      'Viêm da tiếp xúc dị ứng',
+      'Bệnh trứng cá đỏ (Rosacea)',
+      'Bệnh bạch biến (Vitiligo)',
+    ],
+    hotspots: [
+      { id: 'epidermis', label: 'Thượng bì', detail: 'Lớp ngoài cùng', position: [-0.05, 0.88, 1.4], color: '#ee7c6a' },
+      { id: 'dermis', label: 'Trung bì', detail: 'Chứa mạch máu & dây thần kinh', position: [0.29, 0.05, 1.4], color: '#f2a33b' },
+      { id: 'hypodermis', label: 'Hạ bì', detail: 'Mô mỡ cách nhiệt', position: [-0.39, -1.15, 1.4], color: '#6393d8' },
+      { id: 'follicle', label: 'Nang lông', detail: 'Nơi mọc tóc/lông', position: [0.89, -0.44, 1.4], color: '#d89bc4' },
+    ],
+  },
+];
+
+export const ORGAN_BY_ID = Object.fromEntries(ORGANS.map(o => [o.id, o])) as Record<OrganId, OrganDef>;

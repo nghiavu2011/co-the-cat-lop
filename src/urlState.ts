@@ -7,7 +7,7 @@ import type { SystemId } from './data/types';
 import type { Selection } from './selection';
 
 export interface UrlState {
-  mode: '2d' | '3d' | null;
+  mode: '2d' | '3d' | 'detail' | null;
   activeSystem: SystemId | null;
   selection: Selection | null;
 }
@@ -18,7 +18,7 @@ export function readUrlState(): UrlState {
   const p = new URLSearchParams(window.location.search);
 
   const modeRaw = p.get('mode');
-  const mode: UrlState['mode'] = modeRaw === '2d' || modeRaw === '3d' ? modeRaw : null;
+  const mode: UrlState['mode'] = modeRaw === '2d' || modeRaw === '3d' || modeRaw === 'detail' ? modeRaw : null;
 
   const sysRaw = p.get('he');
   const activeSystem: SystemId | null = sysRaw && sysRaw in SYSTEM_BY_ID ? (sysRaw as SystemId) : null;

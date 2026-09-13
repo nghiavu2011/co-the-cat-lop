@@ -390,3 +390,458 @@ img { max-width: 100%; }
   .insightBtn { padding: 10px 12px; min-height: 44px; }
   .railtab { min-height: 38px; }
 }
+
+/* ===== Organ Detail (Khám phá 9 nội tạng chi tiết) ===== */
+.plate.isDetail {
+  overflow-y: auto;
+  padding: 0;
+  display: block;
+  background: var(--surface2);
+  min-height: 520px;
+}
+
+.organDetailContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Selector Pills for 9 Organs */
+.organSelectorBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: thin;
+}
+.organPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink2);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.organPill:hover {
+  background: var(--surface2);
+  border-color: var(--line-strong);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+.organPill.isSelected {
+  background: var(--surface);
+  border-color: var(--organ-accent, var(--brass));
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 0 0 1px var(--organ-accent, var(--brass));
+}
+.organPillIcon {
+  font-size: 15px;
+  line-height: 1;
+}
+.organPillName {
+  letter-spacing: 0.01em;
+}
+
+/* 2-Column Responsive Layout */
+.organDetailLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .organDetailLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Visualizer Stage */
+.organDetailStage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.organViewSwitch {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+.organViewTab {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.organViewTab:hover {
+  color: var(--ink);
+}
+.organViewTab.active {
+  background: var(--surface2);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.organViewportWrapper {
+  position: relative;
+  background: var(--plate);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-height: 440px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.organDetailViewer {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  cursor: grab;
+}
+.organDetailViewer:active {
+  cursor: grabbing;
+}
+.organDetailViewer canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+}
+
+.organDetailLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(15, 20, 28, 0.75);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+.organDetailLoadBar {
+  height: 4px;
+  background: var(--brass);
+  border-radius: 2px;
+  width: 0%;
+  min-width: 160px;
+  transition: width 0.25s ease;
+}
+
+/* Image Display for Gallery Tabs */
+.organImageDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--plate);
+  min-height: 480px;
+}
+.organDisplayImg {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+.organImgCaption {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  font-family: var(--f-mono);
+  max-width: 480px;
+  line-height: 1.45;
+}
+
+/* 3D Tools Overlay */
+.organDetailTools {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+  background: rgba(var(--surface-rgb, 255, 255, 255), 0.85);
+  backdrop-filter: blur(8px);
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.organDetailTools .tg {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Hotspot Callout Card */
+.organDetailCallout {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 10px 14px;
+  max-width: 280px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 4;
+}
+.organCalloutHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.organCalloutDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.organCalloutHead strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+.organDetailCallout p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink2);
+  line-height: 1.45;
+}
+.organCalloutClose {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.organHintText {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+  padding: 4px 2px;
+}
+
+/* Medical & Anatomical Information Panel */
+.organDetailInfo {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow);
+}
+.organDetailHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.organDetailIcon {
+  font-size: 34px;
+  line-height: 1;
+}
+.organDetailHeader h3 {
+  font-family: var(--f-disp);
+  font-size: 22px;
+  margin: 0 0 2px;
+  color: var(--ink);
+}
+.organDetailSys {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.organDetailDesc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin: 0;
+}
+
+.organDetailSectionTitle {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.organDetailFacts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin: 0;
+  background: var(--surface2);
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.organDetailFacts div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.organDetailFacts dt {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.organDetailFacts dd {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.organDetailFun {
+  background: var(--brass-soft);
+  border: 1px solid color-mix(in srgb, var(--brass) 30%, transparent);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 12.8px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.organDetailFun strong {
+  display: block;
+  font-size: 12px;
+  color: var(--brass);
+  font-family: var(--f-mono);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.organDetailFun p {
+  margin: 0;
+}
+
+.organConditionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.organConditionTag {
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  color: var(--ink2);
+}
+
+.organDetailHotspotList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.organDetailHotspotItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s ease;
+}
+.organDetailHotspotItem:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+.organDetailHotspotItem.active {
+  background: var(--surface);
+  border-color: var(--brass);
+  box-shadow: 0 0 0 1px var(--brass);
+}
+.organDetailHotspotDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.organHotspotLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.organHotspotDetail {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* CTA in InfoPanel */
+.organDetailCta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: var(--brass-soft);
+  border: 1px solid var(--brass);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  justify-content: center;
+}
+.organDetailCta:hover {
+  background: var(--brass);
+  color: #fff;
+  transform: translateY(-1px);
+}

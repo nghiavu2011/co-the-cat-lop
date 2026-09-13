@@ -7,6 +7,8 @@ import View3D, { AXES, sliceValue } from './components/View3D';
 import InfoPanel from './components/InfoPanel';
 import OnboardingHint from './components/OnboardingHint';
 import TourBar from './components/TourBar';
+import OrganDetail from './components/OrganDetail';
+import { NOTE_TO_ORGAN } from './organs/organData';
 import { useAtlas } from './data/useAtlas';
 import { LAYERS, NOTE_BY_ID } from './content/notes';
 import { TOURS, type Tour } from './content/tours';
@@ -17,7 +19,7 @@ import type { Selection } from './selection';
 
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 
-type Mode = '2d' | '3d';
+type Mode = '2d' | '3d' | 'detail';
 
 interface ActiveTour {
   tour: Tour;
@@ -191,13 +193,15 @@ export default function App() {
                     : ' · chi dưới';
   const sliceName = AXES[axis].label + zone;
   const readout =
-    mode === '2d'
-      ? `Lớp ${depth + 1}/6 · ${LAYERS[depth].d}`
-      : full
-        ? 'Toàn thân · kéo thanh trượt để cắt'
-        : axis === 0
-          ? `Mặt cắt ngang · ${(h * 100).toFixed(0)} cm từ gót`
-          : `Mặt cắt ${AXES[axis].label.split(' ')[0].toLowerCase()} · ${(h * 100).toFixed(1)} cm từ trục giữa`;
+    mode === 'detail'
+      ? `Chi tiết nội tạng${selection?.kind === 'note' && NOTE_BY_ID[selection.id] ? ' · ' + NOTE_BY_ID[selection.id].n : ''}`
+      : mode === '2d'
+        ? `Lớp ${depth + 1}/6 · ${LAYERS[depth].d}`
+        : full
+          ? 'Toàn thân · kéo thanh trượt để cắt'
+          : axis === 0
+            ? `Mặt cắt ngang · ${(h * 100).toFixed(0)} cm từ gót`
+            : `Mặt cắt ${AXES[axis].label.split(' ')[0].toLowerCase()} · ${(h * 100).toFixed(1)} cm từ trục giữa`;
 
   return (
     <div className="wrap">
@@ -239,6 +243,21 @@ export default function App() {
             >
               Cắt lát 3D thật
             </button>
+            <button
+              className="tab"
+              role="tab"
+              aria-selected={mode === 'detail'}
+              onClick={() => {
+                setMode('detail');
+                setActiveTour(null);
+                if (!selection || selection.kind !== 'note' || !(selection.id in NOTE_TO_ORGAN)) {
+                  setSelection({ kind: 'note', id: 'tim' });
+                }
+              }}
+              title="Khám phá mô hình 3D chi tiết & vi thể 9 cơ quan nội tạng chính"
+            >
+              Chi tiết nội tạng (9 cơ quan)
+            </button>
             {!activeTour && (
               <div className="tourpicker" role="group" aria-label="Hành trình dẫn dắt chu trình">
                 <span className="tourpickerLabel">Chu trình:</span>
@@ -275,7 +294,7 @@ export default function App() {
             <TourBar tour={activeTour.tour} stepIndex={activeTour.stepIndex} onNext={tourNext} onPrev={tourPrev} onExit={tourExit} />
           )}
 
-          <div className={`plate${mode === '3d' ? ' is3d' : ''}`}>
+          <div className={`plate${mode === '3d' ? ' is3d' : ''}${mode === 'detail' ? ' isDetail' : ''}`}>
             {mode === '2d' ? (
               <Peel2D
                 depth={depth}
@@ -285,6 +304,11 @@ export default function App() {
                 showGhost={showGhost}
                 selectedId={selection?.kind === 'note' ? selection.id : null}
                 onPick={(id) => onPick({ kind: 'note', id })}
+              />
+            ) : mode === 'detail' ? (
+              <OrganDetail
+                noteId={selection?.kind === 'note' ? selection.id : null}
+                onSelectNote={(noteId) => onPick({ kind: 'note', id: noteId })}
               />
             ) : atlasError ? (
               <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
@@ -315,9 +339,10 @@ export default function App() {
                 </div>
               </div>
             )}
-            {showOnboarding && !activeTour && <OnboardingHint mode={mode} onDismiss={dismissOnboarding} />}
+            {showOnboarding && !activeTour && mode !== 'detail' && <OnboardingHint mode={mode} onDismiss={dismissOnboarding} />}
           </div>
 
+          {mode !== 'detail' && (
           <div className="ctrls">
             {mode === '2d' ? (
               <div className="depth">
@@ -390,10 +415,19 @@ export default function App() {
               )}
             </div>
           </div>
+          )}
         </main>
 
         <aside className="panel">
-          <InfoPanel selection={selection} atlas={atlas} mode={mode} />
+          <InfoPanel
+            selection={selection}
+            atlas={atlas}
+            mode={mode === 'detail' ? '3d' : mode}
+            onOpenDetail={() => {
+              setMode('detail');
+              setActiveTour(null);
+            }}
+          />
         </aside>
       </div>
       <Footer />

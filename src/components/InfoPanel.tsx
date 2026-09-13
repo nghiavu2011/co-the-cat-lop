@@ -4,6 +4,7 @@ import { SYSTEM_BY_ID, defaultSystemFor } from '../data/systems';
 import { buildBinding } from '../data/bind';
 import { PHYSICAL_MECHANISMS, BODY_INSIGHTS } from '../content/insights';
 import { getAnatomicalInsight } from '../content/anatomyDict';
+import { NOTE_TO_ORGAN, ORGAN_BY_ID } from '../organs/organData';
 import type { AtlasJSON } from '../data/types';
 import type { Selection } from '../selection';
 
@@ -11,6 +12,7 @@ export interface InfoPanelProps {
   selection: Selection | null;
   atlas: AtlasJSON | null;
   mode: '2d' | '3d';
+  onOpenDetail?: () => void;
 }
 
 function Intro() {
@@ -113,6 +115,15 @@ export default function InfoPanel({ selection, atlas, mode }: InfoPanelProps) {
         </span>
         <h2>{note.n}</h2>
         <div className="en">{note.e}</div>
+        {onOpenDetail && note.i in NOTE_TO_ORGAN && (
+          <button
+            type="button"
+            className="organDetailCta"
+            onClick={onOpenDetail}
+          >
+            ✨ Xem mô hình 3D chi tiết & Vi thể ({ORGAN_BY_ID[NOTE_TO_ORGAN[note.i]]?.name})
+          </button>
+        )}
       </div>
       <div className="pbody">
         {mech && (
