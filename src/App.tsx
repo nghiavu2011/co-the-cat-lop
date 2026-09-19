@@ -254,9 +254,9 @@ export default function App() {
                   setSelection({ kind: 'note', id: 'tim' });
                 }
               }}
-              title="Khám phá mô hình 3D chi tiết & vi thể 9 cơ quan nội tạng chính"
+              title="Khám phá mô hình 3D chi tiết & vi thể 11 cơ quan nội tạng & hệ sinh dục nữ"
             >
-              Chi tiết nội tạng (9 cơ quan)
+              Chi tiết cơ quan (11 cơ quan)
             </button>
             {!activeTour && (
               <div className="tourpicker" role="group" aria-label="Hành trình dẫn dắt chu trình">

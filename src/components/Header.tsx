@@ -65,7 +65,7 @@ export default function Header({ theme, onCycleTheme, onShare, shareStatus }: He
           <path d="M12 8v5M12 16.5v.5" />
         </svg>
         <span>
-          <b>Lưu ý y khoa:</b> Mô hình chuẩn tham chiếu nam giới trưởng thành (TARO MRI) phục vụ mục đích giáo dục, trực quan hóa và nghiên cứu sinh học — không dùng thay thế chẩn đoán lâm sàng của bác sĩ chuyên khoa.
+          <b>Lưu ý y khoa & SGK:</b> Đã bổ sung giải phẫu chi tiết hệ sinh dục và khung chậu nữ (HuBMAP HRA / NIH) song song với mô hình tham chiếu toàn thân (BodyParts3D) phục vụ mục đích giáo dục, trực quan hóa và giảng dạy sinh học.
         </span>
       </div>
     </header>

@@ -1,4 +1,4 @@
-export type OrganId = 'heart' | 'brain' | 'lungs' | 'liver' | 'kidneys' | 'eyeball' | 'intestine' | 'pancreas' | 'skin';
+export type OrganId = 'heart' | 'brain' | 'lungs' | 'liver' | 'kidneys' | 'eyeball' | 'intestine' | 'pancreas' | 'skin' | 'uterus' | 'pelvis';
 
 export interface HotspotDef {
   id: string;
@@ -43,6 +43,9 @@ export const NOTE_TO_ORGAN: Record<string, OrganId> = {
   daitruc: 'intestine',
   tuyentuy: 'pancreas',
   da: 'skin',
+  tucung: 'uterus',
+  buongtrung: 'uterus',
+  xuongchau: 'pelvis',
 };
 
 // Map organId -> primary noteId in co-the-cat-lop
@@ -56,6 +59,8 @@ export const ORGAN_TO_NOTE: Record<OrganId, string> = {
   intestine: 'ruotnon',
   pancreas: 'tuyentuy',
   skin: 'da',
+  uterus: 'tucung',
+  pelvis: 'xuongchau',
 };
 
 export interface OrganImages {
@@ -371,6 +376,72 @@ export const ORGANS: OrganDef[] = [
       { id: 'dermis', label: 'Trung bì', detail: 'Chứa mạch máu & dây thần kinh', position: [0.29, 0.05, 1.4], color: '#f2a33b' },
       { id: 'hypodermis', label: 'Hạ bì', detail: 'Mô mỡ cách nhiệt', position: [-0.39, -1.15, 1.4], color: '#6393d8' },
       { id: 'follicle', label: 'Nang lông', detail: 'Nơi mọc tóc/lông', position: [0.89, -0.44, 1.4], color: '#d89bc4' },
+    ],
+  },
+  {
+    id: 'uterus',
+    model: '/organs/models/uterus.glb',
+    name: 'Tử cung & Buồng trứng',
+    nameEn: 'Uterus & Ovaries / Organa genitalia feminina',
+    icon: '♀',
+    accent: '#e06c9f',
+    system: 'Hệ sinh dục & Sinh sản nữ',
+    description: 'Cơ quan cơ trơn hình quả lê ngược trong khung chậu nữ giới, đóng vai trò nuôi dưỡng và bảo vệ thai nhi trong suốt thai kỳ, cùng buồng trứng điều hòa chu kỳ kinh nguyệt và nội tiết tố nữ.',
+    size: 'Dài khoảng 7,5 cm, rộng 5 cm, dày 2,5 cm (ở phụ nữ chưa sinh)',
+    weight: 'Khoảng 50–60 g (có thể tăng lên hơn 1.000 g khi mang thai)',
+    location: 'Nằm trong khoang chậu bé, phía sau bàng quang và phía trước trực tràng',
+    function: 'Nơi phôi làm tổ và phát triển; co bóp chuyển dạ khi sinh; buồng trứng phóng noãn và tiết Estrogen / Progesterone',
+    dailyFact: 'Nội mạc tử cung tự đổi mới sau mỗi 28 ngày chu kỳ kinh nguyệt, có khả năng tăng thể tích gấp 500 lần khi mang thai',
+    bloodSupply: 'Động mạch tử cung (nhánh của động mạch chậu trong) và động mạch buồng trứng (tách từ động mạch chủ bụng)',
+    funFact: 'Lớp cơ tử cung (myometrium) là một trong những khối cơ có lực kéo và sức đàn hồi mạnh nhất trong toàn bộ cơ thể người.',
+    conditions: [
+      'U xơ tử cung (Uterine fibroids)',
+      'Lạc nội mạc tử cung (Endometriosis)',
+      'Hội chứng buồng trứng đa nang (PCOS)',
+      'Viêm lộ tuyến cổ tử cung',
+      'Viêm vùng chậu (PID)',
+      'Sa tử cung',
+      'Ung thư cổ tử cung',
+      'Ung thư nội mạc tử cung',
+    ],
+    hotspots: [
+      { id: 'fundus', label: 'Đáy tử cung', detail: 'Phần vòm cong phía trên lỗ vòi trứng', position: [0.05, 0.84, 1.19], color: '#ee7c6a' },
+      { id: 'body', label: 'Thân tử cung', detail: 'Khối cơ trơn chính nơi thai phát triển', position: [0.06, 0.44, 0.32], color: '#f2a33b' },
+      { id: 'cervix', label: 'Cổ tử cung', detail: 'Đoạn hình trụ nối tử cung với âm đạo', position: [0.16, -0.58, -1.11], color: '#c58696' },
+      { id: 'ostium', label: 'Loa vòi trứng', detail: 'Phễu đón noãn từ buồng trứng', position: [0, 0.75, 1.03], color: '#6393d8' },
+      { id: 'isthmus', label: 'Eo tử cung', detail: 'Vùng hẹp chuyển tiếp thân và cổ', position: [0.11, -0.12, -0.47], color: '#d89bc4' },
+      { id: 'external-os', label: 'Lỗ ngoài cổ tử cung', detail: 'Cửa mở vào lòng âm đạo', position: [0.19, -0.85, -1.58], color: '#7cb69d' },
+    ],
+  },
+  {
+    id: 'pelvis',
+    model: '/organs/models/pelvis.glb',
+    name: 'Khung chậu nữ',
+    nameEn: 'Female Pelvis / Pelvis feminina',
+    icon: '🦴',
+    accent: '#a78bfa',
+    system: 'Hệ xương & Khung chậu nữ',
+    description: 'Khung chậu nữ giới có cấu trúc tiến hóa đặc biệt: thành chậu thấp, đường kính ngang rộng, góc vòm mu tù (>90°) tạo lòng chậu hình oval rộng rãi tạo đường thoát tự nhiên cho thai nhi khi sinh.',
+    size: 'Đường kính ngang eo trên khoảng 12,5–13 cm; đường kính trước-sau khoảng 11 cm',
+    weight: 'Nhẹ và mỏng hơn xương chậu nam khoảng 15–20%',
+    location: 'Nối cột sống thắt lưng với hai xương đùi, tạo đáy nâng đỡ toàn bộ nội tạng ổ bụng',
+    function: 'Nâng đỡ bàng quang, tử cung, trực tràng; phân phối trọng lực cơ thể xuống chi dưới; tạo đường kính khung chậu sinh sản',
+    dailyFact: 'Các khớp mu và khớp cùng-chậu có thể giãn nở nhẹ dưới tác động của hormone Relaxin vào những tháng cuối thai kỳ',
+    bloodSupply: 'Động mạch chậu trong và động mạch chậu ngoài cùng các nhánh cùng cụt',
+    funFact: 'Góc vòm mu (subpubic angle) ở nữ thường từ 90° đến 100° (hình chữ U tù), trong khi ở nam chỉ khoảng 60° đến 70° (hình chữ V nhọn).',
+    conditions: [
+      'Gãy xương chậu chấn thương',
+      'Đau khớp cùng chậu (Sacroiliitis)',
+      'Hẹp khung chậu gây đẻ khó',
+      'Loãng xương vùng chậu',
+      'Rối loạn sàn chậu sau sinh',
+      'Viêm khớp mu',
+    ],
+    hotspots: [
+      { id: 'ilium', label: 'Cánh chậu', detail: 'Tấm xương loe rộng đỡ bụng dưới', position: [-0.9, 0.6, 0.1], color: '#a78bfa' },
+      { id: 'pubis', label: 'Xương mu & Khớp mu', detail: 'Vòm mu rộng tạo đường kính eo dưới', position: [0, -0.7, 0.8], color: '#ee7c6a' },
+      { id: 'sacrum', label: 'Xương cùng', detail: 'Thành sau chậu, cong lõm ra sau', position: [0, 0.4, -0.9], color: '#f2a33b' },
+      { id: 'acetabulum', label: 'Ổ cối', detail: 'Khớp tiếp nối chỏm xương đùi', position: [0.85, -0.2, 0.2], color: '#6393d8' },
     ],
   },
 ];

@@ -280,7 +280,7 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
     >
       {/* Standard Organ Selector Bar (hidden in fullscreen) */}
       {!isFullscreen && (
-        <div className="organSelectorBar" role="tablist" aria-label="Danh sách 9 nội tạng 3D">
+        <div className="organSelectorBar" role="tablist" aria-label="Danh sách 11 cơ quan 3D">
           {ORGANS.map((item) => {
             const isSelected = item.id === currentOrganId;
             return (
@@ -330,9 +330,9 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             className={`fsEdgeTrigger fsTriggerLeft${leftDrawerOpen ? ' active' : ''}`}
             onClick={() => setLeftDrawerOpen(!leftDrawerOpen)}
             onMouseEnter={() => setLeftDrawerOpen(true)}
-            title="Mở danh sách 9 cơ quan"
+            title="Mở danh sách 11 cơ quan"
           >
-            <span>◀ 9 Nội tạng</span>
+            <span>◀ 11 Cơ quan</span>
           </button>
 
           {/* Right Edge Tab Trigger */}
@@ -352,7 +352,7 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             onMouseLeave={() => setLeftDrawerOpen(false)}
           >
             <div className="fsDrawerHead">
-              <span>9 Cơ quan nội tạng</span>
+              <span>11 Cơ quan & Hệ sinh dục</span>
               <button type="button" className="fsDrawerClose" onClick={() => setLeftDrawerOpen(false)}>
                 ✕
               </button>
