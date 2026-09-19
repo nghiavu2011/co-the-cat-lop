@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { AtlasJSON } from './types';
-import { loadAtlasJSON } from './loader';
+import { loadAtlasJSON, loadAtlasFemaleJSON } from './loader';
 
-export function useAtlas(): { atlas: AtlasJSON | null; error: string | null } {
+export function useAtlas(gender: 'male' | 'female' = 'male'): { atlas: AtlasJSON | null; error: string | null } {
   const [atlas, setAtlas] = useState<AtlasJSON | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    loadAtlasJSON()
+    const loader = gender === 'female' ? loadAtlasFemaleJSON : loadAtlasJSON;
+    loader()
       .then((a) => {
         if (!cancelled) setAtlas(a);
       })
@@ -18,7 +19,7 @@ export function useAtlas(): { atlas: AtlasJSON | null; error: string | null } {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [gender]);
 
   return { atlas, error };
 }

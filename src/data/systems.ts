@@ -44,6 +44,7 @@ const RAW_TO_SYSTEM: Record<RawSystem, SystemId> = {
   endocrine: 'noitiet',
   lymphatic: 'lympho',
   integumentary: 'da',
+  pregnancy: 'sinhduc',
 };
 
 // Lỗi gán hệ có sẵn trong dữ liệu nguồn: các não thất (ventricle) và lỗ gian

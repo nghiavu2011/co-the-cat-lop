@@ -27,7 +27,8 @@ interface ActiveTour {
 }
 
 export default function App() {
-  const { atlas, error: atlasError } = useAtlas();
+  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const { atlas, error: atlasError } = useAtlas(gender);
 
   const initialUrl = useMemo(() => readUrlState(), []);
   const [mode, setMode] = useState<Mode>(initialUrl.mode ?? '2d');
@@ -40,7 +41,6 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   const [showGhost, setShowGhost] = useState(true);
   const [onlySystem, setOnlySystem] = useState(false);
-  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [counts, setCounts] = useState<{ visible: number; total: number } | null>(null);
   const [soundOn, setSoundOn] = useState(() => {
     try {

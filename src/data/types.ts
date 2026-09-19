@@ -4,7 +4,8 @@
 export type RawSystem =
   | 'arterial' | 'venous' | 'muscular' | 'skeletal' | 'nervous'
   | 'respiratory' | 'digestive' | 'sensory' | 'connective' | 'cardiac'
-  | 'reproductive' | 'urinary' | 'integumentary' | 'endocrine' | 'lymphatic';
+  | 'reproductive' | 'urinary' | 'integumentary' | 'endocrine' | 'lymphatic'
+  | 'pregnancy';
 
 export interface AtlasPart {
   id: string;

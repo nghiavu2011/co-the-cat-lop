@@ -13,6 +13,17 @@ export function loadAtlasJSON(): Promise<AtlasJSON> {
   return atlasPromise;
 }
 
+let atlasFemalePromise: Promise<AtlasJSON> | null = null;
+export function loadAtlasFemaleJSON(): Promise<AtlasJSON> {
+  if (!atlasFemalePromise) {
+    atlasFemalePromise = fetch(`${MODELS_BASE}/atlas-female.json`).then((r) => {
+      if (!r.ok) throw new Error(`Không tải được atlas-female.json (HTTP ${r.status})`);
+      return r.json();
+    });
+  }
+  return atlasFemalePromise;
+}
+
 export const supportsGzipStream = typeof DecompressionStream !== 'undefined';
 
 /** true nếu 2 byte đầu là chữ ký gzip (0x1f 0x8b) — tức đây vẫn là bytes nén,
@@ -22,17 +33,12 @@ function looksGzipped(buf: ArrayBuffer): boolean {
   return b.length === 2 && b[0] === 0x1f && b[1] === 0x8b;
 }
 
-const chunkCache = new Map<number, Promise<ArrayBuffer>>();
+const chunkCache = new Map<string, Promise<ArrayBuffer>>();
 
-/** Tải và giải nén một chunk hình học (body-N.bin.gz) theo yêu cầu, có cache.
- *
- * Một số server tĩnh (kể cả `vite preview`) tự gắn header
- * `Content-Encoding: gzip` cho file .gz — khi đó trình duyệt ĐÃ tự giải nén
- * trước khi JS thấy được dữ liệu, nên không được giải nén lần hai. Ta kiểm
- * tra chữ ký gzip trên bytes nhận được để tự thích ứng với cả hai kiểu
- * server, thay vì đoán trước. */
+/** Tải và giải nén một chunk hình học theo yêu cầu, có cache. */
 export function loadChunk(atlas: AtlasJSON, chunkIndex: number): Promise<ArrayBuffer> {
-  let p = chunkCache.get(chunkIndex);
+  const cacheKey = `${atlas.sex || 'male'}_${chunkIndex}`;
+  let p = chunkCache.get(cacheKey);
   if (p) return p;
   const meta = atlas.chunks[chunkIndex];
   p = (async () => {
@@ -56,7 +62,7 @@ export function loadChunk(atlas: AtlasJSON, chunkIndex: number): Promise<ArrayBu
     const stream = new Blob([buf]).stream().pipeThrough(ds);
     return new Response(stream).arrayBuffer();
   })();
-  chunkCache.set(chunkIndex, p);
+  chunkCache.set(cacheKey, p);
   return p;
 }
 

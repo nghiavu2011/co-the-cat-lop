@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { disposeObject } from './dispose';
 
 export const FIT_SIZE = 3.8;
@@ -41,7 +42,9 @@ export class OrganAssetManager {
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.maxAnisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    this.loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const draco = new DRACOLoader();
+    draco.setDecoderPath('/draco/');
+    this.loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setDRACOLoader(draco);
   }
 
   get hasAnimation() { return Boolean(this.current?.mixer); }
@@ -134,8 +137,12 @@ export class OrganAssetManager {
           }
         }
         const anatColor = getAnatomicalColorForMesh(child.name);
-        if (anatColor && mat instanceof THREE.MeshStandardMaterial) {
-          mat.color.copy(anatColor);
+        if (anatColor && 'color' in mat && (mat as THREE.MeshStandardMaterial).color) {
+          (mat as THREE.MeshStandardMaterial).color.copy(anatColor);
+        }
+        if (child.name.toLowerCase().includes('ligament') || child.name.toLowerCase().includes('meso')) {
+          mat.transparent = true;
+          mat.opacity = 0.88;
         }
         mat.needsUpdate = true;
       });
