@@ -39,6 +39,9 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const [crossSection, setCrossSection] = useState(false);
   const [wireframe, setWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [cavityOpen, setCavityOpen] = useState(false);
+  const [cutAxis, setCutAxis] = useState<'coronal' | 'sagittal' | 'axial'>('coronal');
+  const [cutOffset, setCutOffset] = useState(0);
   const [activeTab, setActiveTab] = useState<GalleryView>('3d');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
@@ -93,6 +96,8 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
     setSelectedHotspot(null);
     setCrossSection(false);
     setWireframe(false);
+    setCavityOpen(false);
+    setCutOffset(0);
     viewerRef.current.setOrgan(organDef.model, organDef.hotspots, organDef.accent);
   }, [organDef]);
 
@@ -107,6 +112,26 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const onToggleCrossSection = useCallback(() => {
     if (!viewerRef.current) return;
     setCrossSection(viewerRef.current.toggleCrossSection());
+  }, []);
+
+  const onToggleCavity = useCallback(() => {
+    if (!viewerRef.current) return;
+    setCavityOpen(viewerRef.current.toggleAnteriorWall());
+  }, []);
+
+  const onChangeCutAxis = useCallback((axis: 'coronal' | 'sagittal' | 'axial') => {
+    setCutAxis(axis);
+    if (!viewerRef.current) return;
+    viewerRef.current.setCutAxis(axis);
+    if (!crossSection) {
+      setCrossSection(viewerRef.current.toggleCrossSection(axis));
+    }
+  }, [crossSection]);
+
+  const onChangeCutOffset = useCallback((offset: number) => {
+    setCutOffset(offset);
+    if (!viewerRef.current) return;
+    viewerRef.current.setCutOffset(offset);
   }, []);
 
   const onToggleWireframe = useCallback(() => {
@@ -125,6 +150,8 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
     viewerRef.current?.reset();
     setCrossSection(false);
     setWireframe(false);
+    setCavityOpen(false);
+    setCutOffset(0);
     setSelectedHotspot(null);
   }, []);
 
@@ -485,9 +512,9 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
                 />
                 <div className="organImgCaption">
                   {activeTab === 'organ' && `Hình minh họa giải phẫu chi tiết: ${organDef.name} (${organDef.nameEn})`}
-                  {activeTab === 'location' && `Vị trí và tương quan giải phẫu trong lồng ngực/khoang bụng: ${organDef.name}`}
+                  {activeTab === 'location' && `Vị trí và tương quan giải phẫu không gian: ${organDef.name}`}
                   {activeTab === 'microscopic' && `Hình ảnh vi thể mô học và cấu trúc tế bào: ${organDef.name}`}
-                  {activeTab === 'compare' && `Tương quan tỷ lệ kích thước so với các cơ quan lân cận`}
+                  {activeTab === 'compare' && `Tương quan tỷ lệ kích thước và hình thái so sánh: ${organDef.name}`}
                 </div>
               </div>
             )}
@@ -495,15 +522,69 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             {/* 3D Control overlay */}
             {activeTab === '3d' && (
               <div className="organDetailTools">
+                {currentOrganId === 'uterus' && (
+                  <button
+                    type="button"
+                    className={`tg${cavityOpen ? ' active' : ''}`}
+                    aria-pressed={cavityOpen}
+                    onClick={onToggleCavity}
+                    style={{
+                      borderColor: cavityOpen ? '#e91e63' : undefined,
+                      color: cavityOpen ? '#f06292' : undefined,
+                      fontWeight: 600,
+                    }}
+                    title="Bóc thành trước để nhìn thấy toàn bộ buồng tử cung, nội mạc và kênh cổ tử cung"
+                  >
+                    🩺 {cavityOpen ? 'Đóng thành trước' : 'Mở lòng tử cung'}
+                  </button>
+                )}
                 <button
                   type="button"
-                  className="tg"
+                  className={`tg${crossSection ? ' active' : ''}`}
                   aria-pressed={crossSection}
                   onClick={onToggleCrossSection}
-                  title="Cắt mặt phẳng dọc để nhìn bên trong"
+                  title="Cắt mặt phẳng để nhìn cấu trúc bên trong"
                 >
-                  ✂️ Cắt dọc
+                  ✂️ {crossSection ? `Mặt cắt (${cutAxis === 'coronal' ? 'Đứng ngang' : cutAxis === 'sagittal' ? 'Dọc giữa' : 'Ngang'})` : 'Mặt cắt 3D'}
                 </button>
+                {crossSection && (
+                  <div className="organCutControls">
+                    <button
+                      type="button"
+                      className={`tgMini${cutAxis === 'coronal' ? ' active' : ''}`}
+                      onClick={() => onChangeCutAxis('coronal')}
+                      title="Mặt phẳng đứng ngang (Coronal) - trước/sau"
+                    >
+                      Đứng ngang
+                    </button>
+                    <button
+                      type="button"
+                      className={`tgMini${cutAxis === 'sagittal' ? ' active' : ''}`}
+                      onClick={() => onChangeCutAxis('sagittal')}
+                      title="Mặt phẳng dọc giữa (Sagittal) - trái/phải"
+                    >
+                      Dọc giữa
+                    </button>
+                    <button
+                      type="button"
+                      className={`tgMini${cutAxis === 'axial' ? ' active' : ''}`}
+                      onClick={() => onChangeCutAxis('axial')}
+                      title="Mặt phẳng cắt ngang (Axial) - trên/dưới"
+                    >
+                      Ngang
+                    </button>
+                    <input
+                      type="range"
+                      min={-1.5}
+                      max={1.5}
+                      step={0.05}
+                      value={cutOffset}
+                      onChange={(e) => onChangeCutOffset(parseFloat(e.target.value))}
+                      style={{ width: '65px', cursor: 'pointer' }}
+                      title="Độ sâu mặt phẳng cắt"
+                    />
+                  </div>
+                )}
                 <button
                   type="button"
                   className="tg"

@@ -40,6 +40,7 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   const [showGhost, setShowGhost] = useState(true);
   const [onlySystem, setOnlySystem] = useState(false);
+  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [counts, setCounts] = useState<{ visible: number; total: number } | null>(null);
   const [soundOn, setSoundOn] = useState(() => {
     try {
@@ -322,6 +323,8 @@ export default function App() {
                   axis={axis}
                   sliceT={sliceT}
                   selection={selection}
+                  gender={gender}
+                  onGenderChange={setGender}
                   onPick={onPick}
                   onCounts={(visible, total) => setCounts({ visible, total })}
                 />
@@ -397,6 +400,20 @@ export default function App() {
               {mode === '2d' && (
                 <button className="tg" aria-pressed={showLabels} onClick={() => setShowLabels((v) => !v)}>
                   Nhãn tên
+                </button>
+              )}
+              {mode === '3d' && (
+                <button
+                  className="tg"
+                  style={{
+                    fontWeight: 600,
+                    borderColor: gender === 'female' ? '#e91e63' : undefined,
+                    color: gender === 'female' ? '#f06292' : undefined,
+                  }}
+                  onClick={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
+                  title="Chuyển đổi cấu trúc cơ thể Nam / Nữ (Khung chậu & Hệ sinh dục)"
+                >
+                  {gender === 'female' ? '♀ Cơ thể Nữ' : '♂ Cơ thể Nam'}
                 </button>
               )}
               <button className="tg" aria-pressed={showGhost} onClick={() => setShowGhost((v) => !v)}>

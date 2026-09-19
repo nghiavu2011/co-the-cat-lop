@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import type { AtlasJSON, AtlasPart, SystemId } from '../data/types';
 import { loadAllChunks, type LoadProgress } from '../data/loader';
 import { buildPartGeometry } from '../data/geometry';
@@ -49,6 +51,15 @@ const HEART_NOTE_IDS = new Set(['tim']);
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 /** Các mục thuộc hệ tuần hoàn nhưng KHÔNG phải mạch máu (không áp hiệu ứng dòng chảy). */
 const NON_VESSEL_CIRCULATORY_IDS = new Set(['tim', 'vantim']);
+
+/** Các cấu trúc giải phẫu đặc thù của cơ thể Nam trong dataset BodyParts3D (dương vật, tinh hoàn, tuyến tiền liệt, xương cánh chậu & xương cùng nam)
+ * sẽ được ẩn và thay thế bởi khung chậu và hệ sinh dục nữ (tử cung, buồng trứng, vòi trứng, khung chậu nữ) khi chọn chế độ Nữ */
+const MALE_PART_IDS = new Set([
+  'FJ2056', 'FJ2208', 'FJ3132', 'FJ3133', 'FJ3134',
+  'FJ3138', 'FJ3139', 'FJ3142', 'FJ3426', 'FJ3496',
+  'FJ3497', 'FJ3592', 'FJ3593', 'FJ3637',
+  'FJ3152', 'FJ3288', 'FJ3393'
+]);
 
 /** Dịch chuyển hình học về gốc rồi đặt lại vị trí ở tâm khối, để scale mesh
  * co-giãn quanh CHÍNH TÂM của nó thay vì quanh gốc toạ độ thế giới — cần cho
@@ -112,6 +123,8 @@ export interface View3DProps {
   axis: number;
   sliceT: number;
   selection: Selection | null;
+  gender?: 'male' | 'female';
+  onGenderChange?: (gender: 'male' | 'female') => void;
   onPick: (sel: Selection) => void;
   onCounts?: (visible: number, total: number) => void;
 }
@@ -149,6 +162,8 @@ export default function View3D({
   axis,
   sliceT,
   selection,
+  gender = 'male',
+  onGenderChange,
   onPick,
   onCounts,
 }: View3DProps) {
@@ -300,6 +315,87 @@ export default function View3D({
           if (isHeart) heartMeshesRef.current.push(mesh);
           if (isLung) lungMeshesRef.current.push(mesh);
         }
+
+        // Tải cấu trúc giải phẫu nữ (Khung chậu & Hệ sinh dục: tử cung, buồng trứng, vòi trứng)
+        try {
+          const gltfLoader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+          const femaleGroup = new THREE.Group();
+          femaleGroup.name = 'female-organs';
+          femaleGroup.position.set(0.008, 0.840, 0.067);
+          scene.add(femaleGroup);
+
+          const [pelvisGltf, uterusGltf] = await Promise.all([
+            gltfLoader.loadAsync('/organs/models/pelvis.glb'),
+            gltfLoader.loadAsync('/organs/models/uterus.glb'),
+          ]);
+
+          let fId = 0;
+          pelvisGltf.scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const ownMaterial = normalMat.xuong.clone();
+              ownMaterial.clippingPlanes = [plane];
+              child.material = ownMaterial;
+              const pid = `FEMALE_PELVIS_${fId++}`;
+              child.userData.partId = pid;
+              const dummyPart: AtlasPart = {
+                id: pid,
+                name: child.name || 'Khung chậu nữ',
+                conceptId: 'FMA16586',
+                system: 'skeletal',
+                chunk: 0,
+                positions: 0,
+                normals: 0,
+                indices: 0,
+                vertexCount: 0,
+                indexCount: 0,
+                bounds: [[-0.15, 0.83, -0.1], [0.15, 1.04, 0.04]],
+              };
+              entries.push({
+                mesh: child,
+                part: dummyPart,
+                system: 'xuong',
+                noteId: 'xuongchau',
+                ownMaterial,
+              });
+            }
+          });
+
+          uterusGltf.scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const ownMaterial = normalMat.sinhduc.clone();
+              ownMaterial.clippingPlanes = [plane];
+              child.material = ownMaterial;
+              const pid = `FEMALE_UTERUS_${fId++}`;
+              child.userData.partId = pid;
+              const dummyPart: AtlasPart = {
+                id: pid,
+                name: child.name || 'Tử cung & Phần phụ',
+                conceptId: 'FMA17558',
+                system: 'reproductive',
+                chunk: 0,
+                positions: 0,
+                normals: 0,
+                indices: 0,
+                vertexCount: 0,
+                indexCount: 0,
+                bounds: [[-0.05, 0.88, -0.04], [0.05, 0.94, 0.02]],
+              };
+              entries.push({
+                mesh: child,
+                part: dummyPart,
+                system: 'sinhduc',
+                noteId: 'tucung',
+                ownMaterial,
+              });
+            }
+          });
+
+          femaleGroup.add(pelvisGltf.scene);
+          femaleGroup.add(uterusGltf.scene);
+        } catch (err) {
+          console.warn('Could not load female organs into 3D view:', err);
+        }
+
         entriesRef.current = entries;
         if (!cancelled) {
           setReady(true);
@@ -685,19 +781,29 @@ export default function View3D({
     if (skinRef.current) skinRef.current.visible = showGhost;
   }, [showGhost]);
 
-  // ---------- hiển thị / ẩn theo hệ đang chọn ----------
+  // ---------- hiển thị / ẩn theo hệ đang chọn & giới tính (Nam / Nữ) ----------
   useEffect(() => {
     const entries = entriesRef.current;
     if (!entries.length) return;
     let visible = 0;
     for (const en of entries) {
+      const isMaleSpecific = MALE_PART_IDS.has(en.part.id);
+      const isFemaleSpecific = en.part.id.startsWith('FEMALE_');
+      if (gender === 'female' && isMaleSpecific) {
+        en.mesh.visible = false;
+        continue;
+      }
+      if (gender === 'male' && isFemaleSpecific) {
+        en.mesh.visible = false;
+        continue;
+      }
       const show = !onlySystem || !activeSystem || en.system === activeSystem;
       en.mesh.visible = show;
       if (show) visible += 1;
     }
     onCounts?.(visible, entries.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSystem, onlySystem, ready]);
+  }, [activeSystem, onlySystem, ready, gender]);
 
   // ---------- mặt phẳng cắt ----------
   useEffect(() => {
@@ -813,6 +919,18 @@ export default function View3D({
           </button>
           <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
             ↺ Đặt lại
+          </button>
+          <button
+            type="button"
+            onClick={() => onGenderChange?.(gender === 'male' ? 'female' : 'male')}
+            title="Chuyển đổi giải phẫu cơ thể Nam / Nữ"
+            style={{
+              borderColor: gender === 'female' ? '#e91e63' : undefined,
+              color: gender === 'female' ? '#f06292' : undefined,
+              fontWeight: 600,
+            }}
+          >
+            {gender === 'female' ? '♀ Nữ' : '♂ Nam'}
           </button>
           <button
             type="button"

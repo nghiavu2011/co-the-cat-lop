@@ -152,4 +152,12 @@ export const PHYSICAL_MECHANISMS: Record<string, { role: string; principle: stri
     role: 'Đường ống dẫn chịu áp & đệm áp lực (Windkessel)',
     principle: 'Thành động mạch giàu sợi chun co giãn hấp thu bớt áp lực tâm thu và duy trì dòng chảy liên tục khi tim nghỉ.',
   },
+  tucung: {
+    role: 'Buồng ấp sinh học co giãn siêu đàn hồi & máy bơm cơ học chuyển dạ',
+    principle: 'Thành cơ trơn 3 lớp đan chéo có khả năng giãn thể tích gấp hơn 500 lần khi mang thai và tạo lực co thắt mạnh tới 50–60 mmHg đẩy thai nhi ra đời.',
+  },
+  xuongchau: {
+    role: 'Cầu vòm chịu lực & bệ đỡ bảo vệ tạng sinh sản - tiết niệu',
+    principle: 'Cấu trúc vòng cung kép phân bổ toàn bộ trọng lượng thân trên xuống hai đầu xương đùi và mở rộng thích ứng thiên bẩm cho quá trình sinh nở ở nữ giới.',
+  },
 };

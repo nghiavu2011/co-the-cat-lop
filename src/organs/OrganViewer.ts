@@ -29,9 +29,12 @@ export class OrganDetailViewer {
   private clock = new THREE.Clock();
   private resizeObserver: ResizeObserver;
   private intersectionObserver: IntersectionObserver;
-  private clipPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+  private clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
   private depthMaterial = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: true, depthTest: true });
   private crossSection = false;
+  private cutAxis: 'coronal' | 'sagittal' | 'axial' = 'coronal';
+  private cutOffset = 0;
+  private anteriorWallHidden = false;
 
   private width = 1;
   private height = 1;
@@ -191,7 +194,10 @@ export class OrganDetailViewer {
     this.busy(1);
     this.dirty = true;
 
-    // Reset camera
+    // Reset camera & state
+    this.crossSection = false;
+    this.anteriorWallHidden = false;
+    this.cutOffset = 0;
     this.camera.position.set(HOME_CAMERA.x, HOME_CAMERA.y, HOME_CAMERA.z);
     this.controls.target.set(HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z);
   }
@@ -274,21 +280,78 @@ export class OrganDetailViewer {
     this.select(null);
     this.camera.position.set(HOME_CAMERA.x, HOME_CAMERA.y, HOME_CAMERA.z);
     this.controls.target.set(HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z);
-    if (this.organ) this.organ.pivot.rotation.set(0.05, -0.28, 0);
+    if (this.organ) {
+      this.organ.pivot.rotation.set(0.05, -0.28, 0);
+      if (this.anteriorWallHidden) {
+        this.toggleAnteriorWall();
+      }
+    }
+    this.cutOffset = 0;
+    this.updateClipPlane();
     this.dirty = true;
   }
 
-  toggleCrossSection() {
+  getCutAxis() { return this.cutAxis; }
+  getCutOffset() { return this.cutOffset; }
+  isAnteriorWallHidden() { return this.anteriorWallHidden; }
+
+  setCutAxis(axis: 'coronal' | 'sagittal' | 'axial') {
+    this.cutAxis = axis;
+    this.updateClipPlane();
+    this.dirty = true;
+  }
+
+  setCutOffset(offset: number) {
+    this.cutOffset = offset;
+    this.updateClipPlane();
+    this.dirty = true;
+  }
+
+  private updateClipPlane() {
+    switch (this.cutAxis) {
+      case 'coronal':
+        this.clipPlane.normal.set(0, 0, -1);
+        break;
+      case 'sagittal':
+        this.clipPlane.normal.set(-1, 0, 0);
+        break;
+      case 'axial':
+        this.clipPlane.normal.set(0, -1, 0);
+        break;
+    }
+    this.clipPlane.constant = this.cutOffset;
+  }
+
+  toggleCrossSection(axis?: 'coronal' | 'sagittal' | 'axial') {
+    if (axis) this.cutAxis = axis;
     this.crossSection = !this.crossSection;
     if (!this.organ) return this.crossSection;
+    this.updateClipPlane();
     const planes = this.crossSection ? [this.clipPlane] : null;
     this.organ.meshes.forEach(mesh => {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      mats.forEach(m => { m.clippingPlanes = planes; m.needsUpdate = true; });
+      mats.forEach(m => {
+        m.clippingPlanes = planes;
+        m.side = this.crossSection ? THREE.DoubleSide : THREE.FrontSide;
+        m.needsUpdate = true;
+      });
     });
-    this.clipPlane.constant = this.crossSection ? 0 : -1.8;
     this.dirty = true;
     return this.crossSection;
+  }
+
+  toggleAnteriorWall(): boolean {
+    if (!this.organ) return false;
+    this.anteriorWallHidden = !this.anteriorWallHidden;
+    const hide = this.anteriorWallHidden;
+    this.organ.meshes.forEach(mesh => {
+      const n = (mesh.name || '').toLowerCase();
+      if (n.includes('anterior_wall') || n.includes('anterior') || n.includes('thanh_truoc')) {
+        mesh.visible = !hide;
+      }
+    });
+    this.dirty = true;
+    return hide;
   }
 
   toggleWireframe() {
