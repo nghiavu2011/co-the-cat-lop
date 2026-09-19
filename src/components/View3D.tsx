@@ -52,14 +52,81 @@ const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 /** Các mục thuộc hệ tuần hoàn nhưng KHÔNG phải mạch máu (không áp hiệu ứng dòng chảy). */
 const NON_VESSEL_CIRCULATORY_IDS = new Set(['tim', 'vantim']);
 
-/** Các cấu trúc giải phẫu đặc thù của cơ thể Nam trong dataset BodyParts3D (dương vật, tinh hoàn, tuyến tiền liệt, xương cánh chậu & xương cùng nam)
- * sẽ được ẩn và thay thế bởi khung chậu và hệ sinh dục nữ (tử cung, buồng trứng, vòi trứng, khung chậu nữ) khi chọn chế độ Nữ */
+/** Các cấu trúc giải phẫu đặc thù của cơ thể Nam trong dataset BodyParts3D (dương vật, tinh hoàn, tuyến tiền liệt, ống dẫn tinh, túi tinh, xương cánh chậu & xương cùng nam)
+ * sẽ được ẩn và thay thế bởi khung chậu và hệ sinh dục nữ (tử cung, buồng trứng, vòi trứng, tuyến vú, mạch máu tử cung) khi chọn chế độ Nữ */
 const MALE_PART_IDS = new Set([
   'FJ2056', 'FJ2208', 'FJ3132', 'FJ3133', 'FJ3134',
-  'FJ3138', 'FJ3139', 'FJ3142', 'FJ3426', 'FJ3496',
-  'FJ3497', 'FJ3592', 'FJ3593', 'FJ3637',
+  'FJ3135', 'FJ3136', 'FJ3137', 'FJ3138', 'FJ3139',
+  'FJ3140', 'FJ3141', 'FJ3142', 'FJ3143', 'FJ3426',
+  'FJ3496', 'FJ3497', 'FJ3592', 'FJ3593', 'FJ3637',
   'FJ3152', 'FJ3288', 'FJ3393'
 ]);
+
+function getVietnameseFemaleName(nodeName: string): string {
+  const nameMap: Record<string, string> = {
+    // Sinh dục
+    VH_F_fundus_of_uterus: 'Đáy tử cung',
+    VH_F_body_of_uterus: 'Thân tử cung',
+    VH_F_cervix: 'Cổ tử cung',
+    VH_F_left_ovary: 'Buồng trứng trái',
+    VH_F_right_ovary: 'Buồng trứng phải',
+    VH_F_ampulla_of_uterine_tube_L: 'Bóng vòi trứng trái',
+    VH_F_ampulla_of_uterine_tube_R: 'Bóng vòi trứng phải',
+    VH_F_isthmus_of_fallopian_tube_L: 'Eo vòi trứng trái',
+    VH_F_isthmus_of_fallopian_tube_R: 'Eo vòi trứng phải',
+    VH_F_fibria_of_uterine_tube_L: 'Loa vòi trứng trái (Fimbriae)',
+    VH_F_fibria_of_uterine_tube_R: 'Loa vòi trứng phải (Fimbriae)',
+    VH_F_broad_ligament: 'Dây chằng rộng',
+    VH_F_round_ligament: 'Dây chằng tròn',
+    VH_F_ovarian_ligament: 'Dây chằng riêng buồng trứng',
+    VH_F_uterosacral_ligament: 'Dây chằng tử cung - cùng',
+    VH_F_suspensory_ligament_of_ovary: 'Dây chằng treo buồng trứng',
+    VH_F_vagina: 'Âm đạo',
+    VH_F_anterior_wall_of_uterus: 'Thành trước tử cung',
+    VH_F_posterior_wall_of_uterus: 'Thành sau tử cung',
+    VH_F_internal_cervical_os: 'Lỗ trong cổ tử cung',
+    VH_F_external_cervical_os: 'Lỗ ngoài cổ tử cung',
+    // Khung chậu
+    VH_F_pelvis: 'Khung chậu nữ',
+    VH_F_sacrum: 'Xương cùng nữ',
+    VH_F_coccyx: 'Xương cụt',
+    VH_F_pubis: 'Xương mu',
+    VH_F_ilium: 'Xương cánh chậu nữ',
+    VH_F_ischium: 'Xương ngồi',
+    // Tuyến vú (Integumentary)
+    VH_F_mammary_lobes_L: 'Thùy tuyến vú trái',
+    VH_F_mammary_lobes_R: 'Thùy tuyến vú phải',
+    VH_F_main_lactiferous_ducts_L: 'Ống dẫn sữa trái',
+    VH_F_main_lactiferous_ducts_R: 'Ống dẫn sữa phải',
+    VH_F_suspensory_ligaments_L: 'Dây chằng treo vú trái (Cooper)',
+    VH_F_suspensory_ligaments_R: 'Dây chằng treo vú phải (Cooper)',
+    VH_F_areola_L: 'Quầng vú trái',
+    VH_F_areola_R: 'Quầng vú phải',
+    VH_F_nipple_L: 'Núm vú trái',
+    VH_F_nipple_R: 'Núm vú phải',
+    VH_F_fat_L: 'Mô mỡ vú trái',
+    VH_F_fat_R: 'Mô mỡ vú phải',
+    // Mạch máu nữ
+    VH_F_left_uterine_artery: 'Động mạch tử cung trái',
+    VH_F_right_uterine_artery: 'Động mạch tử cung phải',
+    VH_F_left_uterine_vein: 'Tĩnh mạch tử cung trái',
+    VH_F_right_uterine_vein: 'Tĩnh mạch tử cung phải',
+    VH_F_internal_iliac_vein_L: 'Tĩnh mạch chậu trong trái',
+    VH_F_internal_iliac_vein_R: 'Tĩnh mạch chậu trong phải',
+    VH_F_left_common_iliac_vein: 'Tĩnh mạch chậu chung trái',
+    VH_F_right_common_iliac_vein: 'Tĩnh mạch chậu chung phải',
+    VH_F_descending_aorta_a: 'Động mạch chủ ngực',
+    VH_F_descending_aorta_b: 'Động mạch chủ bụng',
+    VH_F_inferior_vena_cava_a: 'Tĩnh mạch chủ dưới (ngực)',
+    VH_F_inferior_vena_cava_b: 'Tĩnh mạch chủ dưới (bụng)',
+  };
+
+  if (nameMap[nodeName]) return nameMap[nodeName];
+  return nodeName
+    .replace(/^VH_F_/, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 /** Dịch chuyển hình học về gốc rồi đặt lại vị trí ở tâm khối, để scale mesh
  * co-giãn quanh CHÍNH TÂM của nó thay vì quanh gốc toạ độ thế giới — cần cho
@@ -316,7 +383,7 @@ export default function View3D({
           if (isLung) lungMeshesRef.current.push(mesh);
         }
 
-        // Tải cấu trúc giải phẫu nữ (Khung chậu & Hệ sinh dục: tử cung, buồng trứng, vòi trứng)
+        // Tải toàn diện giải phẫu nữ Anatria-3D / HuBMAP HRA (Khung chậu, Tử cung & Buồng trứng, Tuyến vú, Mạch máu tử cung)
         try {
           const gltfLoader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
           const femaleGroup = new THREE.Group();
@@ -324,76 +391,210 @@ export default function View3D({
           femaleGroup.position.set(0.008, 0.840, 0.067);
           scene.add(femaleGroup);
 
-          const [pelvisGltf, uterusGltf] = await Promise.all([
-            gltfLoader.loadAsync('/organs/models/pelvis.glb'),
-            gltfLoader.loadAsync('/organs/models/uterus.glb'),
+          const [pelvisGltf, reproductiveGltf, integumentaryGltf, cardioGltf] = await Promise.all([
+            gltfLoader.loadAsync('/organs/models/pelvis.glb').catch((e) => { console.warn('Pelvis load fail', e); return null; }),
+            gltfLoader.loadAsync('/anatomy/female/reproductive_female.glb').catch((e) => { console.warn('Reproductive load fail', e); return null; }),
+            gltfLoader.loadAsync('/anatomy/female/integumentary_female.glb').catch((e) => { console.warn('Integumentary load fail', e); return null; }),
+            gltfLoader.loadAsync('/anatomy/female/cardiovascular_female.glb').catch((e) => { console.warn('Cardiovascular load fail', e); return null; }),
           ]);
 
           let fId = 0;
-          pelvisGltf.scene.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const ownMaterial = normalMat.xuong.clone();
-              ownMaterial.clippingPlanes = [plane];
-              child.material = ownMaterial;
-              const pid = `FEMALE_PELVIS_${fId++}`;
-              child.userData.partId = pid;
-              const dummyPart: AtlasPart = {
-                id: pid,
-                name: child.name || 'Khung chậu nữ',
-                conceptId: 'FMA16586',
-                system: 'skeletal',
-                chunk: 0,
-                positions: 0,
-                normals: 0,
-                indices: 0,
-                vertexCount: 0,
-                indexCount: 0,
-                bounds: [[-0.15, 0.83, -0.1], [0.15, 1.04, 0.04]],
-              };
-              entries.push({
-                mesh: child,
-                part: dummyPart,
-                system: 'xuong',
-                noteId: 'xuongchau',
-                ownMaterial,
-              });
-            }
-          });
 
-          uterusGltf.scene.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const ownMaterial = normalMat.sinhduc.clone();
-              ownMaterial.clippingPlanes = [plane];
-              child.material = ownMaterial;
-              const pid = `FEMALE_UTERUS_${fId++}`;
-              child.userData.partId = pid;
-              const dummyPart: AtlasPart = {
-                id: pid,
-                name: child.name || 'Tử cung & Phần phụ',
-                conceptId: 'FMA17558',
-                system: 'reproductive',
-                chunk: 0,
-                positions: 0,
-                normals: 0,
-                indices: 0,
-                vertexCount: 0,
-                indexCount: 0,
-                bounds: [[-0.05, 0.88, -0.04], [0.05, 0.94, 0.02]],
-              };
-              entries.push({
-                mesh: child,
-                part: dummyPart,
-                system: 'sinhduc',
-                noteId: 'tucung',
-                ownMaterial,
-              });
-            }
-          });
+          // 1. Khung chậu nữ (Hệ Xương)
+          if (pelvisGltf) {
+            pelvisGltf.scene.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const ownMaterial = normalMat.xuong.clone();
+                ownMaterial.clippingPlanes = [plane];
+                ownMaterial.side = THREE.DoubleSide;
+                child.material = ownMaterial;
+                const pid = `FEMALE_PELVIS_${fId++}`;
+                child.userData.partId = pid;
+                const dummyPart: AtlasPart = {
+                  id: pid,
+                  name: getVietnameseFemaleName(child.name) || 'Khung chậu nữ',
+                  conceptId: 'FMA16586',
+                  system: 'skeletal',
+                  chunk: 0,
+                  positions: 0,
+                  normals: 0,
+                  indices: 0,
+                  vertexCount: 0,
+                  indexCount: 0,
+                  bounds: [[-0.15, 0.83, -0.1], [0.15, 1.04, 0.04]],
+                };
+                entries.push({
+                  mesh: child,
+                  part: dummyPart,
+                  system: 'xuong',
+                  noteId: 'xuongchau',
+                  ownMaterial,
+                });
+              }
+            });
+            femaleGroup.add(pelvisGltf.scene);
+          }
 
-          femaleGroup.add(pelvisGltf.scene);
-          femaleGroup.add(uterusGltf.scene);
+          // 2. Hệ sinh dục nữ: Tử cung, Buồng trứng 2 bên, Vòi trứng, Loa vòi, Dây chằng (Hệ Sinh Dục)
+          if (reproductiveGltf) {
+            reproductiveGltf.scene.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const n = child.name.toLowerCase();
+                let colorHex = 0xb84666; // cơ tử cung đỏ mận
+                let shininess = 26;
+                let opacity = 1.0;
+                let transparent = false;
+
+                if (n.includes('ovary')) {
+                  colorHex = 0xe8a87c; // buồng trứng hồng đào
+                  shininess = 30;
+                } else if (n.includes('fibria') || n.includes('fimbria') || n.includes('ampulla') || n.includes('tube')) {
+                  colorHex = 0xd9446a; // vòi trứng & loa vòi
+                  shininess = 28;
+                } else if (n.includes('ligament')) {
+                  colorHex = 0xded3be; // dây chằng ngà bán trong suốt
+                  shininess = 12;
+                  opacity = 0.88;
+                  transparent = true;
+                }
+
+                const ownMaterial = new THREE.MeshPhongMaterial({
+                  color: colorHex,
+                  shininess,
+                  specular: 0x442838,
+                  opacity,
+                  transparent,
+                  side: THREE.DoubleSide,
+                  clippingPlanes: [plane],
+                });
+                child.material = ownMaterial;
+                const pid = `FEMALE_REPRO_${fId++}`;
+                child.userData.partId = pid;
+                const dummyPart: AtlasPart = {
+                  id: pid,
+                  name: getVietnameseFemaleName(child.name) || 'Tử cung & Phần phụ',
+                  conceptId: 'FMA17558',
+                  system: 'reproductive',
+                  chunk: 0,
+                  positions: 0,
+                  normals: 0,
+                  indices: 0,
+                  vertexCount: 0,
+                  indexCount: 0,
+                  bounds: [[-0.05, 0.88, -0.04], [0.05, 0.94, 0.02]],
+                };
+                entries.push({
+                  mesh: child,
+                  part: dummyPart,
+                  system: 'sinhduc',
+                  noteId: 'tucung',
+                  ownMaterial,
+                });
+              }
+            });
+            femaleGroup.add(reproductiveGltf.scene);
+          }
+
+          // 3. Tuyến vú & Cấu trúc ngực nữ (Integumentary / Tuyến vú)
+          if (integumentaryGltf) {
+            integumentaryGltf.scene.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const n = child.name.toLowerCase();
+                let colorHex = 0xdf8a9a; // thùy tuyến vú
+                let shininess = 20;
+                let opacity = 0.92;
+                let transparent = false;
+
+                if (n.includes('nipple') || n.includes('areola')) {
+                  colorHex = 0xc86a78; // quầng & núm vú
+                  shininess = 24;
+                } else if (n.includes('fat') || n.includes('suspensory')) {
+                  colorHex = 0xe8c8a8; // mô mỡ & dây chằng Cooper
+                  shininess = 14;
+                  opacity = 0.72;
+                  transparent = true;
+                }
+
+                const ownMaterial = new THREE.MeshPhongMaterial({
+                  color: colorHex,
+                  shininess,
+                  opacity,
+                  transparent,
+                  side: THREE.DoubleSide,
+                  clippingPlanes: [plane],
+                });
+                child.material = ownMaterial;
+                const pid = `FEMALE_BREAST_${fId++}`;
+                child.userData.partId = pid;
+                const dummyPart: AtlasPart = {
+                  id: pid,
+                  name: getVietnameseFemaleName(child.name) || 'Cấu trúc tuyến vú',
+                  conceptId: 'FMA9641',
+                  system: 'integumentary',
+                  chunk: 0,
+                  positions: 0,
+                  normals: 0,
+                  indices: 0,
+                  vertexCount: 0,
+                  indexCount: 0,
+                  bounds: [[-0.15, 1.18, 0.05], [0.15, 1.40, 0.20]],
+                };
+                entries.push({
+                  mesh: child,
+                  part: dummyPart,
+                  system: 'da',
+                  noteId: null,
+                  ownMaterial,
+                });
+              }
+            });
+            femaleGroup.add(integumentaryGltf.scene);
+          }
+
+          // 4. Mạch máu tử cung & chậu hông nữ (Hệ Tuần Hoàn)
+          if (cardioGltf) {
+            cardioGltf.scene.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const n = child.name.toLowerCase();
+                const isVein = n.includes('vein') || n.includes('cava');
+                const colorHex = isVein ? 0x3366bb : 0xcc2233;
+
+                const ownMaterial = new THREE.MeshPhongMaterial({
+                  color: colorHex,
+                  shininess: 42,
+                  specular: 0x662222,
+                  side: THREE.DoubleSide,
+                  clippingPlanes: [plane],
+                });
+                child.material = ownMaterial;
+                const pid = `FEMALE_CARDIO_${fId++}`;
+                child.userData.partId = pid;
+                const dummyPart: AtlasPart = {
+                  id: pid,
+                  name: getVietnameseFemaleName(child.name) || 'Mạch máu nữ',
+                  conceptId: 'FMA7159',
+                  system: isVein ? 'venous' : 'arterial',
+                  chunk: 0,
+                  positions: 0,
+                  normals: 0,
+                  indices: 0,
+                  vertexCount: 0,
+                  indexCount: 0,
+                  bounds: [[-0.10, 0.85, -0.15], [0.10, 1.35, 0.02]],
+                };
+                entries.push({
+                  mesh: child,
+                  part: dummyPart,
+                  system: 'tuanhoan',
+                  noteId: null,
+                  ownMaterial,
+                });
+              }
+            });
+            femaleGroup.add(cardioGltf.scene);
+          }
         } catch (err) {
-          console.warn('Could not load female organs into 3D view:', err);
+          console.warn('Could not load Anatria-3D female organs into 3D view:', err);
         }
 
         entriesRef.current = entries;
