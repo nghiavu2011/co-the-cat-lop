@@ -6,6 +6,25 @@ import { disposeObject } from './dispose';
 export const FIT_SIZE = 3.8;
 const CACHE_LIMIT = 3;
 
+export function getAnatomicalColorForMesh(name: string): THREE.Color | null {
+  const n = (name || '').toLowerCase();
+  if (n.includes('ovary')) return new THREE.Color('#e8a87c'); // Buồng trứng (vàng hạnh nhân / peach)
+  if (n.includes('fibria') || n.includes('fimbria')) return new THREE.Color('#d9446a'); // Loa vòi trứng (đỏ cánh sen)
+  if (n.includes('uterine_tube') || n.includes('ampulla') || n.includes('isthmus') || n.includes('infundibulum')) {
+    return new THREE.Color('#c95973'); // Vòi tử cung (hồng san hô)
+  }
+  if (n.includes('ligament') || n.includes('meso')) return new THREE.Color('#ded3be'); // Dây chằng & mạc treo (trắng ngà phúc mạc)
+  if (n.includes('pouch')) return new THREE.Color('#ebd9c8'); // Túi cùng
+  if (n.includes('cervix') || n.includes('os') || n.includes('vagina')) return new THREE.Color('#a84462'); // Cổ tử cung & âm đạo
+  if (n.includes('anterior_wall') || n.includes('posterior_wall') || n.includes('fundus') || n.includes('body_of_uterus') || n.includes('lower_uterine') || n.includes('uterus')) {
+    return new THREE.Color('#b84666'); // Thân & đáy tử cung (cơ trơn đỏ hồng)
+  }
+  // Pelvis bone layers
+  if (n.includes('spongy_bone')) return new THREE.Color('#c9986b'); // Xương xốp
+  if (n.includes('compact_bone') || n.includes('sacrum') || n.includes('coccyx')) return new THREE.Color('#d9cbb5'); // Xương đặc
+  return null;
+}
+
 export type LoadedOrgan = {
   url: string;
   pivot: THREE.Group;
@@ -114,6 +133,10 @@ export class OrganAssetManager {
             map.needsUpdate = true;
           }
         }
+        const anatColor = getAnatomicalColorForMesh(child.name);
+        if (anatColor && mat instanceof THREE.MeshStandardMaterial) {
+          mat.color.copy(anatColor);
+        }
         mat.needsUpdate = true;
       });
     });
@@ -130,6 +153,7 @@ export class OrganAssetManager {
     organ.pivot.rotation.set(0.05, -0.28, 0);
     organ.pivot.position.set(0, 0, 0);
     organ.meshes.forEach((mesh) => {
+      mesh.visible = true;
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       mats.forEach((mat) => {
         mat.transparent = false;
@@ -137,6 +161,7 @@ export class OrganAssetManager {
         mat.depthWrite = true;
         mat.clippingPlanes = null;
         mat.clipShadows = false;
+        mat.side = THREE.FrontSide;
         if (mat instanceof THREE.MeshStandardMaterial) mat.wireframe = false;
         mat.needsUpdate = true;
       });

@@ -1,40 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none" role="img" aria-label="N&amp;Mstudio Human Anatomy">
   <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#12161E"/>
-      <stop offset="100%" stop-color="#1B222D"/>
+    <!-- Nền badge chiều sâu không gian y khoa -->
+    <linearGradient id="nmBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#0c121e" />
+      <stop offset="50%" stopColor="#141c2b" />
+      <stop offset="100%" stopColor="#0a0f18" />
     </linearGradient>
-    <linearGradient id="goldGrad" x1="16" y1="16" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#F3DFB0"/>
-      <stop offset="45%" stop-color="#D4A745"/>
-      <stop offset="100%" stop-color="#9B7020"/>
+
+    <!-- Viền vàng đồng giải phẫu học cổ điển (Brass/Gold) -->
+    <linearGradient id="nmBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#f7e7c4" />
+      <stop offset="35%" stopColor="#dfb76c" />
+      <stop offset="70%" stopColor="#b88628" />
+      <stop offset="100%" stopColor="#e8c87e" />
     </linearGradient>
-    <linearGradient id="coralGrad" x1="20" y1="60" x2="60" y2="20" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#E26D5C"/>
-      <stop offset="100%" stop-color="#F2A69A"/>
+
+    <!-- Gradient dải monogram N&M -->
+    <linearGradient id="nmGoldStroke" x1="20%" y1="20%" x2="80%" y2="80%">
+      <stop offset="0%" stopColor="#fff2d6" />
+      <stop offset="25%" stopColor="#f0ca7d" />
+      <stop offset="60%" stopColor="#d49e35" />
+      <stop offset="100%" stopColor="#a06e1a" />
     </linearGradient>
-    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#D4A745" flood-opacity="0.25"/>
+
+    <!-- Điểm xung động nhịp đập sinh học (Pulse Red) -->
+    <radialGradient id="nmPulseGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#ff5252" stopOpacity="1" />
+      <stop offset="60%" stopColor="#d32f2f" stopOpacity="0.8" />
+      <stop offset="100%" stopColor="#b71c1c" stopOpacity="0" />
+    </radialGradient>
+
+    <!-- Đổ bóng viền tinh tế -->
+    <filter id="nmShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.45" />
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#dfb76c" floodOpacity="0.2" />
     </filter>
   </defs>
 
-  <!-- Container badge with premium border -->
-  <rect x="2" y="2" width="76" height="76" rx="18" fill="url(#bgGrad)" stroke="url(#goldGrad)" stroke-width="1.5"/>
-  
-  <!-- Subtle anatomical grid lines -->
-  <circle cx="40" cy="40" r="28" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
-  <circle cx="40" cy="40" r="18" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <!-- Khung Badge bo góc tinh xảo -->
+  <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#nmBg)" stroke="url(#nmBorder)" stroke-width="2.2" filter="url(#nmShadow)" />
 
-  <!-- Geometric Interlocking N & M Monogram (Anatomical Ribbon) -->
-  <g filter="url(#softGlow)">
-    <!-- Letter N Path -->
-    <path d="M22 56V24L38 48V24" stroke="url(#goldGrad)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Vòng tròn định vị giải phẫu học (Vitruvian coordinates) -->
+  <circle cx="50" cy="50" r="36" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1" stroke-dasharray="3 3" />
+  <circle cx="50" cy="50" r="24" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1" />
+  <line x1="50" y1="10" x2="50" y2="18" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+  <line x1="50" y1="82" x2="50" y2="90" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+  <line x1="10" y1="50" x2="18" y2="50" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+  <line x1="82" y1="50" x2="90" y2="50" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+
+  <!-- Monogram N & M liền mạch đan xen như chuỗi xoắn sinh học -->
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <!-- Chữ N (Trái) -->
+    <path d="M25 68 V32 L46 64 V32" stroke="url(#nmGoldStroke)" stroke-width="5.5" />
     
-    <!-- Letter M & Medical V-Cross Path -->
-    <path d="M42 56V32L50 44L58 32V56" stroke="url(#goldGrad)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
-    
-    <!-- Organic vitality pulse dot (Anatomy heart/vital energy) -->
-    <circle cx="38" cy="24" r="2.8" fill="url(#coralGrad)"/>
-    <circle cx="58" cy="24" r="2.8" fill="url(#goldGrad)"/>
+    <!-- Chữ M (Phải liên kết) -->
+    <path d="M46 64 L59 44 L72 64 V32" stroke="url(#nmGoldStroke)" stroke-width="5.5" />
+
+    <!-- Điểm nhịp đập sinh học tại đỉnh trung tâm -->
+    <circle cx="50" cy="24" r="5" fill="url(#nmPulseGlow)" />
+    <circle cx="50" cy="24" r="2.5" fill="#ffffff" opacity="0.9" />
+
+    <!-- Nút điểm vàng giải phẫu tại các đầu mút -->
+    <circle cx="25" cy="32" r="3" fill="url(#nmBorder)" />
+    <circle cx="72" cy="32" r="3" fill="url(#nmBorder)" />
   </g>
 </svg>
