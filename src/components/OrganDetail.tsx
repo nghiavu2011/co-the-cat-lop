@@ -43,6 +43,7 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const [cutAxis, setCutAxis] = useState<'coronal' | 'sagittal' | 'axial'>('coronal');
   const [cutOffset, setCutOffset] = useState(0);
   const [activeTab, setActiveTab] = useState<GalleryView>('3d');
+  const [uterus3dMode, setUterus3dMode] = useState<'cross_section' | 'dissect'>('cross_section');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
@@ -502,11 +503,59 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
               }
             }}
           >
-            {/* 3D Canvas */}
+            {/* Sketchfab 3D Coronal Cross-Section (CAHID University of Dundee) */}
+            {activeTab === '3d' && currentOrganId === 'uterus' && uterus3dMode === 'cross_section' && (
+              <div
+                className="organCrossSection3D"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: '#0a0a0c',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '8px 14px',
+                    background: 'rgba(233, 30, 99, 0.12)',
+                    borderBottom: '1px solid rgba(233, 30, 99, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: 12,
+                  }}
+                >
+                  <span style={{ color: '#f06292', fontWeight: 600 }}>
+                    🔬 Mô hình đúc mặt cắt 3D Tử cung & Buồng trứng (Coronal Cross-Section) · ĐH Dundee CAHID
+                  </span>
+                  <span style={{ color: 'var(--muted)', fontSize: 11 }}>
+                    Chuột trái: xoay 360° · Lăn chuột: zoom · Kéo chuột phải: di chuyển
+                  </span>
+                </div>
+                <iframe
+                  title="Standard Uterus Anatomy Cross-Section"
+                  src="https://sketchfab.com/models/1442e6028f894db79eb4f3820177c69e/embed?autostart=1&ui_theme=dark&ui_hint=2"
+                  style={{ width: '100%', height: 'calc(100% - 37px)', border: 'none' }}
+                  allow="autoplay; fullscreen; xr-spatial-tracking"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            {/* 3D Canvas (Three.js) */}
             <div
               className="organDetailViewer"
               ref={containerRef}
-              style={{ display: activeTab === '3d' ? 'block' : 'none' }}
+              style={{
+                display:
+                  activeTab === '3d' && (currentOrganId !== 'uterus' || uterus3dMode === 'dissect')
+                    ? 'block'
+                    : 'none',
+              }}
             >
               {loading && (
                 <div className="organDetailLoading">
@@ -582,6 +631,36 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             {activeTab === '3d' && (
               <div className="organDetailTools">
                 {currentOrganId === 'uterus' && (
+                  <div style={{ display: 'inline-flex', gap: 4, marginRight: 6, paddingRight: 6, borderRight: '1px solid var(--border)' }}>
+                    <button
+                      type="button"
+                      className={`tg${uterus3dMode === 'cross_section' ? ' active' : ''}`}
+                      onClick={() => setUterus3dMode('cross_section')}
+                      style={{
+                        borderColor: uterus3dMode === 'cross_section' ? '#e91e63' : undefined,
+                        color: uterus3dMode === 'cross_section' ? '#f06292' : undefined,
+                        fontWeight: 600,
+                      }}
+                      title="Mô hình đúc mặt cắt đứng ngang (Coronal Cross-Section) chuẩn y khoa ĐH Dundee"
+                    >
+                      🔬 Mặt cắt đúc 3D
+                    </button>
+                    <button
+                      type="button"
+                      className={`tg${uterus3dMode === 'dissect' ? ' active' : ''}`}
+                      onClick={() => setUterus3dMode('dissect')}
+                      style={{
+                        borderColor: uterus3dMode === 'dissect' ? '#e91e63' : undefined,
+                        color: uterus3dMode === 'dissect' ? '#f06292' : undefined,
+                        fontWeight: 600,
+                      }}
+                      title="Mô hình Three.js 36 chi tiết bóc tách thành trước"
+                    >
+                      🧊 Bóc tách 36 chi tiết
+                    </button>
+                  </div>
+                )}
+                {currentOrganId === 'uterus' && uterus3dMode === 'dissect' && (
                   <button
                     type="button"
                     className={`tg${cavityOpen ? ' active' : ''}`}
@@ -597,15 +676,17 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
                     🩺 {cavityOpen ? 'Đóng thành trước' : 'Mở lòng tử cung'}
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={`tg${crossSection ? ' active' : ''}`}
-                  aria-pressed={crossSection}
-                  onClick={onToggleCrossSection}
-                  title="Cắt mặt phẳng để nhìn cấu trúc bên trong"
-                >
-                  ✂️ {crossSection ? `Mặt cắt (${cutAxis === 'coronal' ? 'Đứng ngang' : cutAxis === 'sagittal' ? 'Dọc giữa' : 'Ngang'})` : 'Mặt cắt 3D'}
-                </button>
+                {(currentOrganId !== 'uterus' || uterus3dMode === 'dissect') && (
+                  <button
+                    type="button"
+                    className={`tg${crossSection ? ' active' : ''}`}
+                    aria-pressed={crossSection}
+                    onClick={onToggleCrossSection}
+                    title="Cắt mặt phẳng để nhìn cấu trúc bên trong"
+                  >
+                    ✂️ {crossSection ? `Mặt cắt (${cutAxis === 'coronal' ? 'Đứng ngang' : cutAxis === 'sagittal' ? 'Dọc giữa' : 'Ngang'})` : 'Mặt cắt 3D'}
+                  </button>
+                )}
                 {crossSection && (
                   <div className="organCutControls">
                     <button
