@@ -18,7 +18,7 @@ interface Props {
   onSelectNote?: (noteId: string) => void;
 }
 
-type GalleryView = '3d' | 'organ' | 'location' | 'microscopic' | 'compare';
+type GalleryView = '3d' | 'organ' | 'location' | 'microscopic' | 'compare' | 'simulation';
 
 export default function OrganDetail({ noteId, onSelectNote }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -448,6 +448,21 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
             >
               🧊 Mô hình 3D xoay 360°
             </button>
+            {currentOrganId === 'uterus' && (
+              <button
+                type="button"
+                className={`organViewTab${activeTab === 'simulation' ? ' active' : ''}`}
+                onClick={() => setActiveTab('simulation')}
+                style={{
+                  background: activeTab === 'simulation' ? 'rgba(233, 30, 99, 0.18)' : undefined,
+                  borderColor: activeTab === 'simulation' ? '#e91e63' : undefined,
+                  color: activeTab === 'simulation' ? '#f06292' : undefined,
+                  fontWeight: 600,
+                }}
+              >
+                👶 Mô phỏng sinh đường âm đạo (3D)
+              </button>
+            )}
             <button
               type="button"
               className={`organViewTab${activeTab === 'organ' ? ' active' : ''}`}
@@ -501,8 +516,52 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
               )}
             </div>
 
+            {/* BioDigital 3D Vaginal Delivery Simulation */}
+            {activeTab === 'simulation' && (
+              <div
+                className="organSimulationDisplay"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: '#0a0a0c',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '8px 14px',
+                    background: 'rgba(233, 30, 99, 0.12)',
+                    borderBottom: '1px solid rgba(233, 30, 99, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: 12,
+                  }}
+                >
+                  <span style={{ color: '#f06292', fontWeight: 600 }}>
+                    👶 Demo Mô phỏng 3D: Sinh đường âm đạo (Vaginal Delivery) · BioDigital Human & Cẩm nang MSD
+                  </span>
+                  <span style={{ color: 'var(--muted)', fontSize: 11 }}>
+                    Chuột trái: xoay 360° · Lăn chuột: zoom · Nút Dissect: bóc tách lớp
+                  </span>
+                </div>
+                <iframe
+                  src="https://human.biodigital.com/widget/?m=production/femaleAdult/vaginal_birth_v02.json&s=female&camera=-21.329,5.256,8.685,1.877,11.005,7.57,-0.24,0.971,0.011&initial.hand-hint=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&ui-info=true&uaid=3YgUf"
+                  title="Sinh đường âm đạo - 3D BioDigital Human"
+                  style={{ width: '100%', height: 'calc(100% - 37px)', border: 'none' }}
+                  loading="lazy"
+                  allow="fullscreen"
+                  sandbox="allow-modals allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+                />
+              </div>
+            )}
+
             {/* Medical Image Previews */}
-            {activeTab !== '3d' && (
+            {activeTab !== '3d' && activeTab !== 'simulation' && (
               <div className="organImageDisplay">
                 <img
                   src={images[activeTab]}

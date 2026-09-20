@@ -73,7 +73,7 @@ export interface OrganImages {
 
 export function getOrganImages(id: OrganId): OrganImages {
   return {
-    organ: `/organs/images/${id}/organ.webp`,
+    organ: id === 'uterus' ? `/organs/images/uterus/cross_section_coronal.png` : `/organs/images/${id}/organ.webp`,
     location: `/organs/images/${id}/location.webp`,
     microscopic: `/organs/images/${id}/microscopic.webp`,
     compare: `/organs/images/${id}/compare.webp`,
