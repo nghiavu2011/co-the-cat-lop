@@ -505,44 +505,41 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
           >
             {/* Sketchfab 3D Coronal Cross-Section (CAHID University of Dundee) */}
             {activeTab === '3d' && currentOrganId === 'uterus' && uterus3dMode === 'cross_section' && (
-              <div
-                className="organCrossSection3D"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  background: '#0a0a0c',
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '8px 14px',
-                    background: 'rgba(233, 30, 99, 0.12)',
-                    borderBottom: '1px solid rgba(233, 30, 99, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: 12,
-                  }}
-                >
-                  <span style={{ color: '#f06292', fontWeight: 600 }}>
-                    🔬 Mô hình đúc mặt cắt 3D Tử cung & Buồng trứng (Coronal Cross-Section) · ĐH Dundee CAHID
-                  </span>
-                  <span style={{ color: 'var(--muted)', fontSize: 11 }}>
-                    Chuột trái: xoay 360° · Lăn chuột: zoom · Kéo chuột phải: di chuyển
-                  </span>
-                </div>
+              <div className="organCrossSection3D">
                 <iframe
-                  title="Standard Uterus Anatomy Cross-Section"
-                  src="https://sketchfab.com/models/1442e6028f894db79eb4f3820177c69e/embed?autostart=1&ui_theme=dark&ui_hint=2"
-                  style={{ width: '100%', height: 'calc(100% - 37px)', border: 'none' }}
+                  title="Mặt cắt đứng ngang giải phẫu Tử cung & Buồng trứng - ĐH Dundee CAHID"
+                  src="https://sketchfab.com/models/1442e6028f894db79eb4f3820177c69e/embed?autostart=1&ui_theme=dark&ui_infos=0&ui_annotations=0&ui_hint=0"
+                  style={{ width: '100%', flex: 1, minHeight: '480px', border: 'none' }}
                   allow="autoplay; fullscreen; xr-spatial-tracking"
                   loading="lazy"
                 />
+                {/* Bảng chú giải giải phẫu tiếng Việt trực quan */}
+                <div className="organCrossSectionGuide">
+                  <div className="organCrossSectionChip">
+                    <span>🌸</span>
+                    <span><b>Nội mạc tử cung:</b> Niêm mạc lót trong cùng (Endometrium)</span>
+                  </div>
+                  <div className="organCrossSectionChip">
+                    <span>🥩</span>
+                    <span><b>Cơ tử cung:</b> Thành cơ trơn 3 lớp dày (Myometrium)</span>
+                  </div>
+                  <div className="organCrossSectionChip">
+                    <span>🚪</span>
+                    <span><b>Kênh cổ tử cung:</b> Kênh nối buồng tử cung - âm đạo (Cervix)</span>
+                  </div>
+                  <div className="organCrossSectionChip">
+                    <span>🌊</span>
+                    <span><b>Nếp nhăn âm đạo:</b> Niêm mạc co giãn sinh nở (Vaginal rugae)</span>
+                  </div>
+                  <div className="organCrossSectionChip">
+                    <span>🥚</span>
+                    <span><b>Buồng trứng:</b> Tuyến sinh dục & nang noãn (Ovaries)</span>
+                  </div>
+                  <div className="organCrossSectionChip">
+                    <span>🪸</span>
+                    <span><b>Loa vòi trứng:</b> Các tua đón trứng (Fimbriae)</span>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -567,19 +564,7 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
 
             {/* BioDigital 3D Vaginal Delivery Simulation */}
             {activeTab === 'simulation' && (
-              <div
-                className="organSimulationDisplay"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  background: '#0a0a0c',
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                }}
-              >
+              <div className="organSimulationDisplay">
                 <div
                   style={{
                     padding: '8px 14px',
@@ -677,80 +662,82 @@ export default function OrganDetail({ noteId, onSelectNote }: Props) {
                   </button>
                 )}
                 {(currentOrganId !== 'uterus' || uterus3dMode === 'dissect') && (
-                  <button
-                    type="button"
-                    className={`tg${crossSection ? ' active' : ''}`}
-                    aria-pressed={crossSection}
-                    onClick={onToggleCrossSection}
-                    title="Cắt mặt phẳng để nhìn cấu trúc bên trong"
-                  >
-                    ✂️ {crossSection ? `Mặt cắt (${cutAxis === 'coronal' ? 'Đứng ngang' : cutAxis === 'sagittal' ? 'Dọc giữa' : 'Ngang'})` : 'Mặt cắt 3D'}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={`tg${crossSection ? ' active' : ''}`}
+                      aria-pressed={crossSection}
+                      onClick={onToggleCrossSection}
+                      title="Cắt mặt phẳng để nhìn cấu trúc bên trong"
+                    >
+                      ✂️ {crossSection ? `Mặt cắt (${cutAxis === 'coronal' ? 'Đứng ngang' : cutAxis === 'sagittal' ? 'Dọc giữa' : 'Ngang'})` : 'Mặt cắt 3D'}
+                    </button>
+                    {crossSection && (
+                      <div className="organCutControls">
+                        <button
+                          type="button"
+                          className={`tgMini${cutAxis === 'coronal' ? ' active' : ''}`}
+                          onClick={() => onChangeCutAxis('coronal')}
+                          title="Mặt phẳng đứng ngang (Coronal) - trước/sau"
+                        >
+                          Đứng ngang
+                        </button>
+                        <button
+                          type="button"
+                          className={`tgMini${cutAxis === 'sagittal' ? ' active' : ''}`}
+                          onClick={() => onChangeCutAxis('sagittal')}
+                          title="Mặt phẳng dọc giữa (Sagittal) - trái/phải"
+                        >
+                          Dọc giữa
+                        </button>
+                        <button
+                          type="button"
+                          className={`tgMini${cutAxis === 'axial' ? ' active' : ''}`}
+                          onClick={() => onChangeCutAxis('axial')}
+                          title="Mặt phẳng cắt ngang (Axial) - trên/dưới"
+                        >
+                          Ngang
+                        </button>
+                        <input
+                          type="range"
+                          min={-1.5}
+                          max={1.5}
+                          step={0.05}
+                          value={cutOffset}
+                          onChange={(e) => onChangeCutOffset(parseFloat(e.target.value))}
+                          style={{ width: '65px', cursor: 'pointer' }}
+                          title="Độ sâu mặt phẳng cắt"
+                        />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="tg"
+                      aria-pressed={wireframe}
+                      onClick={onToggleWireframe}
+                      title="Hiển thị lưới đa giác 3D"
+                    >
+                      🕸️ Khung dây
+                    </button>
+                    <button
+                      type="button"
+                      className="tg"
+                      aria-pressed={autoRotate}
+                      onClick={onToggleAutoRotate}
+                      title="Tự động xoay quanh trục"
+                    >
+                      🔄 {autoRotate ? 'Dừng xoay' : 'Tự xoay'}
+                    </button>
+                    <button
+                      type="button"
+                      className="tg"
+                      onClick={onReset}
+                      title="Đặt lại góc nhìn ban đầu"
+                    >
+                      ↺ Đặt lại
+                    </button>
+                  </>
                 )}
-                {crossSection && (
-                  <div className="organCutControls">
-                    <button
-                      type="button"
-                      className={`tgMini${cutAxis === 'coronal' ? ' active' : ''}`}
-                      onClick={() => onChangeCutAxis('coronal')}
-                      title="Mặt phẳng đứng ngang (Coronal) - trước/sau"
-                    >
-                      Đứng ngang
-                    </button>
-                    <button
-                      type="button"
-                      className={`tgMini${cutAxis === 'sagittal' ? ' active' : ''}`}
-                      onClick={() => onChangeCutAxis('sagittal')}
-                      title="Mặt phẳng dọc giữa (Sagittal) - trái/phải"
-                    >
-                      Dọc giữa
-                    </button>
-                    <button
-                      type="button"
-                      className={`tgMini${cutAxis === 'axial' ? ' active' : ''}`}
-                      onClick={() => onChangeCutAxis('axial')}
-                      title="Mặt phẳng cắt ngang (Axial) - trên/dưới"
-                    >
-                      Ngang
-                    </button>
-                    <input
-                      type="range"
-                      min={-1.5}
-                      max={1.5}
-                      step={0.05}
-                      value={cutOffset}
-                      onChange={(e) => onChangeCutOffset(parseFloat(e.target.value))}
-                      style={{ width: '65px', cursor: 'pointer' }}
-                      title="Độ sâu mặt phẳng cắt"
-                    />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="tg"
-                  aria-pressed={wireframe}
-                  onClick={onToggleWireframe}
-                  title="Hiển thị lưới đa giác 3D"
-                >
-                  🕸️ Khung dây
-                </button>
-                <button
-                  type="button"
-                  className="tg"
-                  aria-pressed={autoRotate}
-                  onClick={onToggleAutoRotate}
-                  title="Tự động xoay quanh trục"
-                >
-                  🔄 {autoRotate ? 'Dừng xoay' : 'Tự xoay'}
-                </button>
-                <button
-                  type="button"
-                  className="tg"
-                  onClick={onReset}
-                  title="Đặt lại góc nhìn ban đầu"
-                >
-                  ↺ Đặt lại
-                </button>
                 <button
                   type="button"
                   className={`tg fsToggleBtn${isFullscreen ? ' active' : ''}`}
