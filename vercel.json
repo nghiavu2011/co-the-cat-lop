@@ -38,11 +38,20 @@
       ]
     },
     {
-      "source": "/models/(.*)",
+      "source": "/models/(.*)\\.(bin|bin\\.gz|glb|gltf|wasm)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/models/(.*)\\.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     },

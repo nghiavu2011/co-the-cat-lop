@@ -2,10 +2,12 @@ import type { AtlasJSON } from './types';
 
 const MODELS_BASE = `${import.meta.env.BASE_URL}models`;
 
+const ATLAS_VERSION = '2287';
+
 let atlasPromise: Promise<AtlasJSON> | null = null;
 export function loadAtlasJSON(): Promise<AtlasJSON> {
   if (!atlasPromise) {
-    atlasPromise = fetch(`${MODELS_BASE}/atlas.json`).then((r) => {
+    atlasPromise = fetch(`${MODELS_BASE}/atlas.json?v=${ATLAS_VERSION}`).then((r) => {
       if (!r.ok) throw new Error(`Không tải được atlas.json (HTTP ${r.status})`);
       return r.json();
     });
@@ -16,7 +18,7 @@ export function loadAtlasJSON(): Promise<AtlasJSON> {
 let atlasFemalePromise: Promise<AtlasJSON> | null = null;
 export function loadAtlasFemaleJSON(): Promise<AtlasJSON> {
   if (!atlasFemalePromise) {
-    atlasFemalePromise = fetch(`${MODELS_BASE}/atlas-female.json`).then((r) => {
+    atlasFemalePromise = fetch(`${MODELS_BASE}/atlas-female.json?v=${ATLAS_VERSION}`).then((r) => {
       if (!r.ok) throw new Error(`Không tải được atlas-female.json (HTTP ${r.status})`);
       return r.json();
     });
@@ -37,10 +39,10 @@ const chunkCache = new Map<string, Promise<ArrayBuffer>>();
 
 /** Tải và giải nén một chunk hình học theo yêu cầu, có cache. */
 export function loadChunk(atlas: AtlasJSON, chunkIndex: number): Promise<ArrayBuffer> {
-  const cacheKey = `${atlas.sex || 'male'}_${chunkIndex}`;
+  const meta = atlas.chunks[chunkIndex];
+  const cacheKey = meta.gzip;
   let p = chunkCache.get(cacheKey);
   if (p) return p;
-  const meta = atlas.chunks[chunkIndex];
   p = (async () => {
     const res = await fetch(`${import.meta.env.BASE_URL}${meta.gzip.replace(/^\//, '')}`);
     if (!res.ok) throw new Error(`Không tải được ${meta.gzip} (HTTP ${res.status})`);
