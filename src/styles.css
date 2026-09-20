@@ -41,7 +41,11 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
 .topPro{display:flex;flex-direction:column;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .topMain{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .brandGroup{display:flex;align-items:center;gap:16px;max-width:820px}
-.brandLogo{height:54px;width:auto;object-fit:contain;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.1))}
+.brandLogo{height:54px;width:auto;object-fit:contain;flex:none;filter:brightness(0.15) drop-shadow(0 1px 3px rgba(0,0,0,.15));transition:filter .2s ease}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .brandLogo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
+}
+:root[data-theme="dark"] .brandLogo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
 .brandText{display:flex;flex-direction:column;gap:3px}
 .brandMeta{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:600}
 .brandDot{color:var(--faint)}
@@ -216,7 +220,11 @@ input[type=range]{width:100%;accent-color:var(--brass);height:20px}
 .footerRefined{margin-top:40px;padding-top:28px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:20px}
 .footerHero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:760px;margin:0 auto;padding:10px 0}
 .footerHeroBrand{display:flex;align-items:center;justify-content:center;gap:14px}
-.footerHeroLogo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.12))}
+.footerHeroLogo{width:auto;height:46px;object-fit:contain;filter:brightness(0.15) drop-shadow(0 1px 3px rgba(0,0,0,.15));transition:filter .2s ease}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .footerHeroLogo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
+}
+:root[data-theme="dark"] .footerHeroLogo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
 .footerHeroText{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
 .footerHeroTitle{font-family:var(--f-disp);font-size:clamp(20px,3vw,26px);font-weight:700;line-height:1.15;color:var(--ink);margin:0}
 .footerHeroSubtitle{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600;margin:3px 0 0}

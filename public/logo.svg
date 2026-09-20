@@ -1,67 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none" role="img" aria-label="N&amp;Mstudio Human Anatomy">
-  <defs>
-    <!-- Nền badge chiều sâu không gian y khoa -->
-    <linearGradient id="nmBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#0c121e" />
-      <stop offset="50%" stopColor="#141c2b" />
-      <stop offset="100%" stopColor="#0a0f18" />
-    </linearGradient>
-
-    <!-- Viền vàng đồng giải phẫu học cổ điển (Brass/Gold) -->
-    <linearGradient id="nmBorder" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#f7e7c4" />
-      <stop offset="35%" stopColor="#dfb76c" />
-      <stop offset="70%" stopColor="#b88628" />
-      <stop offset="100%" stopColor="#e8c87e" />
-    </linearGradient>
-
-    <!-- Gradient dải monogram N&M -->
-    <linearGradient id="nmGoldStroke" x1="20%" y1="20%" x2="80%" y2="80%">
-      <stop offset="0%" stopColor="#fff2d6" />
-      <stop offset="25%" stopColor="#f0ca7d" />
-      <stop offset="60%" stopColor="#d49e35" />
-      <stop offset="100%" stopColor="#a06e1a" />
-    </linearGradient>
-
-    <!-- Điểm xung động nhịp đập sinh học (Pulse Red) -->
-    <radialGradient id="nmPulseGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#ff5252" stopOpacity="1" />
-      <stop offset="60%" stopColor="#d32f2f" stopOpacity="0.8" />
-      <stop offset="100%" stopColor="#b71c1c" stopOpacity="0" />
-    </radialGradient>
-
-    <!-- Đổ bóng viền tinh tế -->
-    <filter id="nmShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.45" />
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#dfb76c" floodOpacity="0.2" />
-    </filter>
-  </defs>
-
-  <!-- Khung Badge bo góc tinh xảo -->
-  <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#nmBg)" stroke="url(#nmBorder)" stroke-width="2.2" filter="url(#nmShadow)" />
-
-  <!-- Vòng tròn định vị giải phẫu học (Vitruvian coordinates) -->
-  <circle cx="50" cy="50" r="36" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1" stroke-dasharray="3 3" />
-  <circle cx="50" cy="50" r="24" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1" />
-  <line x1="50" y1="10" x2="50" y2="18" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
-  <line x1="50" y1="82" x2="50" y2="90" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
-  <line x1="10" y1="50" x2="18" y2="50" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
-  <line x1="82" y1="50" x2="90" y2="50" stroke="url(#nmBorder)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
-
-  <!-- Monogram N & M liền mạch đan xen như chuỗi xoắn sinh học -->
-  <g stroke-linecap="round" stroke-linejoin="round">
-    <!-- Chữ N (Trái) -->
-    <path d="M25 68 V32 L46 64 V32" stroke="url(#nmGoldStroke)" stroke-width="5.5" />
-    
-    <!-- Chữ M (Phải liên kết) -->
-    <path d="M46 64 L59 44 L72 64 V32" stroke="url(#nmGoldStroke)" stroke-width="5.5" />
-
-    <!-- Điểm nhịp đập sinh học tại đỉnh trung tâm -->
-    <circle cx="50" cy="24" r="5" fill="url(#nmPulseGlow)" />
-    <circle cx="50" cy="24" r="2.5" fill="#ffffff" opacity="0.9" />
-
-    <!-- Nút điểm vàng giải phẫu tại các đầu mút -->
-    <circle cx="25" cy="32" r="3" fill="url(#nmBorder)" />
-    <circle cx="72" cy="32" r="3" fill="url(#nmBorder)" />
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <style>
+    path { fill: #15181D; }
+    @media (prefers-color-scheme: dark) {
+      path { fill: #E0DDD2; }
+    }
+  </style>
+  <path fill-rule="evenodd" d="M 0 892 L 0 939 L 3 942 L 4 945 L 4 949 L 5 954 L 7 956 L 7 959 L 10 963 L 10 965 L 12 969 L 22 985 L 33 997 L 47 1008 L 49 1008 L 52 1011 L 54 1011 L 57 1014 L 59 1015 L 62 1015 L 67 1018 L 71 1018 L 79 1022 L 85 1023 L 134 1023 L 131 1020 L 131 1019 L 128 1016 L 127 1016 L 119 1007 L 110 998 L 106 995 L 103 991 L 99 988 L 97 985 L 78 966 L 75 964 L 71 959 L 50 938 L 47 936 L 43 931 L 33 921 L 27 916 L 22 911 L 22 910 L 5 893 L 4 893 L 2 891 Z M 0 707 L 0 746 L 5 747 L 43 786 L 46 787 L 49 792 L 281 1023 L 490 1023 L 405 967 L 368 945 L 349 931 L 339 927 L 312 907 L 270 882 L 214 844 L 208 842 L 205 838 L 198 836 L 196 833 L 172 819 L 145 801 L 143 798 L 129 791 L 125 787 L 122 787 L 116 781 L 57 745 L 7 710 Z M 0 380 L 0 561 L 31 579 L 37 585 L 48 590 L 53 595 L 96 621 L 115 635 L 129 642 L 166 668 L 211 695 L 213 698 L 223 702 L 229 708 L 284 742 L 346 785 L 357 790 L 396 818 L 400 818 L 403 821 L 414 825 L 429 825 L 432 821 L 430 809 L 405 781 L 366 745 L 3 381 Z M 400 285 L 397 289 L 397 298 L 405 312 L 1023 931 L 1023 731 L 441 292 L 416 281 Z M 14 52 L 0 85 L 0 234 L 790 1023 L 940 1023 L 965 1014 L 955 1012 L 941 1001 L 58 118 L 29 82 Z M 869 0 L 871 4 L 875 9 L 896 28 L 900 34 L 911 45 L 924 56 L 928 62 L 939 73 L 952 84 L 966 100 L 980 112 L 994 128 L 1008 140 L 1012 146 L 1023 156 L 1023 85 L 1022 80 L 1020 77 L 1020 74 L 1018 71 L 1018 67 L 1015 63 L 1014 58 L 1007 48 L 1007 46 L 999 36 L 988 25 L 979 18 L 975 17 L 972 14 L 970 14 L 965 10 L 962 10 L 958 7 L 955 7 L 953 5 L 946 3 L 940 3 L 938 0 Z M 669 0 L 669 3 L 723 74 L 746 107 L 773 141 L 790 166 L 797 173 L 1023 477 L 1023 309 L 715 2 L 715 0 Z M 229 0 L 374 110 L 418 140 L 450 167 L 455 168 L 561 246 L 564 251 L 574 256 L 824 444 L 838 450 L 852 448 L 855 433 L 848 416 L 640 135 L 544 0 Z" />
 </svg>
