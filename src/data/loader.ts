@@ -2,7 +2,7 @@ import type { AtlasJSON } from './types';
 
 const MODELS_BASE = `${import.meta.env.BASE_URL}models`;
 
-const ATLAS_VERSION = '2287';
+const ATLAS_VERSION = 'vhf-888';
 
 let atlasPromise: Promise<AtlasJSON> | null = null;
 export function loadAtlasJSON(): Promise<AtlasJSON> {
