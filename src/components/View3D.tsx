@@ -186,29 +186,25 @@ export interface View3DProps {
   onCounts?: (visible: number, total: number) => void;
 }
 
-function readCssColor(varName: string): THREE.Color {
-  const v = getComputedStyle(document.body).getPropertyValue(varName).trim();
-  return new THREE.Color(v || '#8a8a8a');
-}
-
-interface SystemMaterialProfile {
-  shininess: number;
-  specular?: number;
+interface SystemPBRProfile {
+  color: number;
+  roughness: number;
+  metalness: number;
   emissive?: number;
 }
 
-const SYSTEM_MATERIAL_PROFILES: Record<SystemId, SystemMaterialProfile> = {
-  da: { shininess: 6, specular: 0x222222 },
-  co: { shininess: 24, specular: 0x442222 },
-  xuong: { shininess: 8, specular: 0x2a2820 },
-  tuanhoan: { shininess: 42, specular: 0x662222 },
-  hohap: { shininess: 14, specular: 0x334455 },
-  tieuhoa: { shininess: 36, specular: 0x553820 },
-  tietnieu: { shininess: 32, specular: 0x443040 },
-  noitiet: { shininess: 20, specular: 0x443818 },
-  sinhduc: { shininess: 28, specular: 0x442838 },
-  lympho: { shininess: 16, specular: 0x283820 },
-  thankinh: { shininess: 28, specular: 0x554418, emissive: 0x201804 },
+const SYSTEM_PBR_PROFILES: Record<SystemId, SystemPBRProfile> = {
+  da: { color: 0xd9a07a, roughness: 0.62, metalness: 0.01 },
+  co: { color: 0xaa3832, roughness: 0.65, metalness: 0.02 },
+  xuong: { color: 0xf3ebd7, roughness: 0.60, metalness: 0.04 }, // Màu ngà voi y khoa sáng rõ, rãnh khớp nổi 3D
+  tuanhoan: { color: 0xd32f2f, roughness: 0.38, metalness: 0.06 }, // Động mạch đỏ tươi
+  hohap: { color: 0x8ba6be, roughness: 0.52, metalness: 0.02 }, // Phổi xám lam phớt hồng
+  tieuhoa: { color: 0xd87040, roughness: 0.44, metalness: 0.03 }, // Nội tạng ấm áp
+  tietnieu: { color: 0x9c5b80, roughness: 0.42, metalness: 0.03 },
+  noitiet: { color: 0xffb300, roughness: 0.45, metalness: 0.05 },
+  sinhduc: { color: 0xec407a, roughness: 0.48, metalness: 0.04 },
+  lympho: { color: 0x43a047, roughness: 0.55, metalness: 0.02 },
+  thankinh: { color: 0xffd600, roughness: 0.30, metalness: 0.05, emissive: 0x443300 }, // Vàng hoàng yến rực rỡ, phát sáng nhẹ
 };
 
 export default function View3D({
@@ -244,7 +240,7 @@ export default function View3D({
   const planeRef = useRef<THREE.Plane | null>(null);
   const skinRef = useRef<THREE.Mesh | null>(null);
   const entriesRef = useRef<MeshEntry[]>([]);
-  const selectedMatRef = useRef<THREE.MeshPhongMaterial | null>(null);
+  const selectedMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const vesselMatRef = useRef<THREE.ShaderMaterial | null>(null);
   const highlightedRef = useRef<THREE.Mesh[]>([]);
   const heartMeshesRef = useRef<THREE.Mesh[]>([]);
@@ -278,6 +274,9 @@ export default function View3D({
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.localClippingEnabled = true;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
     rendererRef.current = renderer;
 
     const scene = new THREE.Scene();
@@ -287,52 +286,62 @@ export default function View3D({
     const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), sliceValue(axis, sliceT));
     planeRef.current = plane;
 
-    // Hệ thống ánh sáng 3 điểm chuẩn Studio Y khoa:
-    // 1. Ánh sáng môi trường dịu nhẹ, giữ độ tương phản cho các hốc giải phẫu
-    scene.add(new THREE.AmbientLight(0xfff6ec, 0.38));
+    // Hệ thống chiếu sáng Studio Giải Phẫu chuẩn PBR:
+    // 1. Ánh sáng bầu trời - mặt đất (HemisphereLight) tạo chiều sâu tự nhiên cho các hốc xương và cơ
+    scene.add(new THREE.HemisphereLight(0xe8eff5, 0x3d4957, 1.8));
 
-    // 2. Key Light (Đèn chính): ánh sáng ấm nhẹ, tạo bóng khối rõ rệt
-    const keyLight = new THREE.DirectionalLight(0xfff8f0, 0.82);
-    keyLight.position.set(2.5, 4.0, 3.5);
+    // 2. Key Light (Đèn chính): ánh sáng ấm nhẹ, tạo bóng khối sắc nét
+    const keyLight = new THREE.DirectionalLight(0xfff5ea, 2.6);
+    keyLight.position.set(-2.2, 4.5, 3.2);
     scene.add(keyLight);
 
-    // 3. Fill Light (Đèn bù sáng): ánh sáng lạnh nhẹ, bù sáng các vùng khuất
-    const fillLight = new THREE.DirectionalLight(0xdce6f5, 0.36);
-    fillLight.position.set(-3.0, 1.2, -2.0);
+    // 3. Fill Light (Đèn bù sáng): ánh sáng lạnh nhẹ bù các góc khuất
+    const fillLight = new THREE.DirectionalLight(0xd5e5f5, 1.2);
+    fillLight.position.set(3.0, 2.0, 2.5);
     scene.add(fillLight);
 
-    // 4. Rim / Back Light (Đèn viền ngược): tách biệt khối cơ thể khỏi nền
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.42);
-    rimLight.position.set(0.0, 3.0, -4.2);
+    // 4. Rim / Back Light (Đèn viền sau lưng): tách biệt từng sợi thần kinh và khung xương khỏi nền tối
+    const rimLight = new THREE.DirectionalLight(0xbde0fe, 2.0);
+    rimLight.position.set(2.0, 3.5, -3.5);
     scene.add(rimLight);
 
-    const selectedMaterial = new THREE.MeshPhongMaterial({
-      color: readCssColor('--brass'),
-      emissive: new THREE.Color(0x5a4218),
-      specular: new THREE.Color(0xffe290),
-      shininess: 56,
+    const selectedMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0xffd54f),
+      emissive: new THREE.Color(0x8c6200),
+      roughness: 0.32,
+      metalness: 0.2,
       side: THREE.DoubleSide,
       clippingPlanes: [plane],
     });
     selectedMatRef.current = selectedMaterial;
 
-    const normalMat: Record<SystemId, THREE.MeshPhongMaterial> = {} as never;
+    const normalMat: Record<SystemId, THREE.MeshStandardMaterial> = {} as never;
     for (const s of Object.keys(SYSTEM_BY_ID) as SystemId[]) {
-      const profile = SYSTEM_MATERIAL_PROFILES[s] ?? { shininess: 18 };
-      normalMat[s] = new THREE.MeshPhongMaterial({
-        color: readCssColor(SYSTEM_BY_ID[s].color),
+      const profile = SYSTEM_PBR_PROFILES[s] ?? { color: 0x8a8a8a, roughness: 0.5, metalness: 0.02 };
+      normalMat[s] = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(profile.color),
         side: THREE.DoubleSide,
-        shininess: profile.shininess,
-        specular: profile.specular !== undefined ? new THREE.Color(profile.specular) : new THREE.Color(0x333333),
-        emissive: profile.emissive !== undefined ? new THREE.Color(profile.emissive) : new THREE.Color(0x000000),
+        roughness: profile.roughness,
+        metalness: profile.metalness,
+        emissive: profile.emissive ? new THREE.Color(profile.emissive) : new THREE.Color(0x000000),
         clippingPlanes: [plane],
       });
     }
+
+    // Tĩnh mạch (veins) dùng vật liệu xanh y khoa đặc trưng
+    const veinMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0x1976d2),
+      roughness: 0.38,
+      metalness: 0.08,
+      side: THREE.DoubleSide,
+      clippingPlanes: [plane],
+    });
+
     const vesselMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        uColor: { value: readCssColor(SYSTEM_BY_ID.tuanhoan.color) },
+        uColor: { value: new THREE.Color(0xd32f2f) },
         uTime: { value: 0 },
-        uLightDir: { value: new THREE.Vector3(2.5, 4.0, 3.5).normalize() },
+        uLightDir: { value: new THREE.Vector3(-2.2, 4.5, 3.2).normalize() },
       },
       vertexShader: VESSEL_VERTEX_SHADER,
       fragmentShader: VESSEL_FRAGMENT_SHADER,
@@ -356,13 +365,14 @@ export default function View3D({
             part.name = getVietnameseFemaleName(part.id);
           }
           if (isSkin) {
-            const skinMat = new THREE.MeshPhongMaterial({
-              color: readCssColor(SYSTEM_BY_ID.da.color),
+            const skinMat = new THREE.MeshStandardMaterial({
+              color: new THREE.Color(0xd9a07a),
               side: THREE.DoubleSide,
               transparent: true,
-              opacity: 0.06,
+              opacity: 0.07,
               depthWrite: false,
-              shininess: 4,
+              roughness: 0.55,
+              metalness: 0.02,
               clippingPlanes: [plane],
             });
             const mesh = new THREE.Mesh(geo, skinMat);
@@ -373,8 +383,9 @@ export default function View3D({
             skinRef.current = mesh;
             continue;
           }
-          const isVessel = system === 'tuanhoan' && !(noteId && NON_VESSEL_CIRCULATORY_IDS.has(noteId));
-          const ownMaterial: THREE.Material = isVessel ? vesselMaterial : normalMat[system];
+          const isVein = part.system === 'venous';
+          const isVessel = (system === 'tuanhoan' || part.system === 'arterial') && !(noteId && NON_VESSEL_CIRCULATORY_IDS.has(noteId));
+          const ownMaterial: THREE.Material = isVein ? veinMaterial : isVessel ? vesselMaterial : normalMat[system];
           const mesh = new THREE.Mesh(geo, ownMaterial);
           mesh.userData.partId = part.id;
           const isHeart = noteId !== null && HEART_NOTE_IDS.has(noteId);
@@ -754,22 +765,23 @@ export default function View3D({
       if (pinRef.current) {
         const pinEl = pinRef.current;
         const currentSel = selRef.current;
-        if (currentSel && showLabelsRef.current && highlightedRef.current.length > 0) {
-          const selMesh = highlightedRef.current[0];
-          const pinCenter = new THREE.Vector3();
-          if (selMesh.userData.baseCenter) {
-            pinCenter.copy(selMesh.userData.baseCenter as THREE.Vector3);
-            pinCenter.add(selMesh.position);
-          } else {
-            selMesh.getWorldPosition(pinCenter);
+        if (currentSel && showLabelsRef.current && highlightedRef.current.length > 0 && canvasRef.current) {
+          const box = new THREE.Box3();
+          for (const m of highlightedRef.current) {
+            box.expandByObject(m);
           }
+          const pinCenter = new THREE.Vector3();
+          box.getCenter(pinCenter);
+          pinCenter.y = box.max.y; // Ghim ngay mép trên đỉnh của bộ phận
+
           const projected = pinCenter.clone().project(camera);
-          if (projected.z < 1 && Math.abs(projected.x) <= 0.95 && Math.abs(projected.y) <= 0.95) {
-            const rect = canvas.getBoundingClientRect();
+          if (projected.z < 1 && Math.abs(projected.x) <= 0.94 && Math.abs(projected.y) <= 0.94) {
+            const rect = canvasRef.current.getBoundingClientRect();
             const px = (projected.x * 0.5 + 0.5) * rect.width;
             const py = (-projected.y * 0.5 + 0.5) * rect.height;
             pinEl.style.display = 'inline-flex';
-            pinEl.style.transform = `translate3d(${px}px, ${py}px, 0)`;
+            pinEl.style.left = `${px}px`;
+            pinEl.style.top = `${py}px`;
           } else {
             pinEl.style.display = 'none';
           }
@@ -838,39 +850,102 @@ export default function View3D({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSystem, onlySystem, ready, isIsolated, selection, showGhost]);
 
-  // ---------- Bóc tách / Tách lớp theo không gian (Exploded View) ----------
-  const SYS_ORDER: SystemId[] = [
-    'da',
-    'co',
-    'xuong',
-    'tuanhoan',
-    'hohap',
-    'tieuhoa',
-    'tietnieu',
-    'sinhduc',
-    'thankinh',
-    'lympho',
-    'noitiet',
-  ];
-
+  // ---------- Bóc tách / Tách lớp theo không gian (Exploded View Đa Hướng) ----------
   useEffect(() => {
     if (!ready) return;
     const t = explode / 100;
+
     for (const en of entriesRef.current) {
-      const sysIdx = SYS_ORDER.indexOf(en.system);
-      const offset = (sysIdx >= 0 ? sysIdx : 3) * 0.045; // m
       const baseCenter = (en.mesh.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
       const basePos = (en.mesh.userData.basePos as THREE.Vector3) || new THREE.Vector3();
-
       const signX = Math.sign(baseCenter.x) || (en.mesh.id % 2 === 0 ? 1 : -1);
-      const dx = signX * offset * t;
-      const dz = offset * 0.55 * t;
 
-      en.mesh.position.set(basePos.x + dx, basePos.y, basePos.z + dz);
+      let dx = 0;
+      let dy = 0;
+      let dz = 0;
+
+      // Phân tầng không gian đa hướng theo hệ giải phẫu (Anatomical Layer Separation)
+      switch (en.system) {
+        case 'xuong':
+          // Bộ xương làm trục tham chiếu ở trung tâm, chỉ nở nhẹ để các khớp háng/vai tách ra
+          dx = baseCenter.x * 0.25 * t;
+          dz = 0;
+          break;
+
+        case 'thankinh':
+          // Hệ thần kinh: dạt nhẹ ra sau (tủy sống) và lên trên (não bộ)
+          dx = baseCenter.x * 0.35 * t;
+          dz = -0.22 * t;
+          dy = 0.05 * t;
+          break;
+
+        case 'tuanhoan':
+          // Hệ tuần hoàn:
+          // Động mạch (thường ở sâu) dạt sang trái và phía trước
+          // Tĩnh mạch dạt sang phải và phía trước
+          if (en.part.system === 'venous') {
+            dx = (0.28 + Math.abs(baseCenter.x) * 0.4) * t;
+            dz = 0.32 * t;
+          } else {
+            dx = (-0.28 - Math.abs(baseCenter.x) * 0.4) * t;
+            dz = 0.32 * t;
+          }
+          if (en.noteId === 'tim') {
+            dx = -0.1 * t;
+            dz = 0.46 * t; // Tim tách hẳn ra phía trước ngực
+          }
+          break;
+
+        case 'hohap':
+          // Phổi: Tách mạnh sang 2 bên sườn và hơi tiến lên phía trước
+          dx = signX * 0.42 * t;
+          dz = 0.22 * t;
+          break;
+
+        case 'tieuhoa':
+          // Hệ tiêu hóa (dạ dày, gan, ruột): Tách mạnh về phía trước bụng
+          dx = (baseCenter.x * 0.5) * t;
+          dz = 0.52 * t;
+          dy = -0.05 * t;
+          break;
+
+        case 'tietnieu':
+          // Thận và tiết niệu: Tách về phía sau lưng và sang 2 bên
+          dx = signX * 0.32 * t;
+          dz = -0.32 * t;
+          break;
+
+        case 'sinhduc':
+          // Sinh dục: Tách về phía trước vùng chậu
+          dx = (baseCenter.x * 0.4) * t;
+          dz = 0.42 * t;
+          dy = -0.08 * t;
+          break;
+
+        case 'co':
+          // Cơ bắp: Tách rộng sang hai bên và hơi lùi về sau
+          dx = signX * 0.68 * t;
+          dz = -0.28 * t;
+          break;
+
+        case 'da':
+          // Da: Tách xa nhất ra hai bên cánh
+          dx = signX * 0.98 * t;
+          dz = 0.55 * t;
+          break;
+
+        default:
+          dx = signX * 0.38 * t;
+          dz = 0.35 * t;
+          break;
+      }
+
+      en.mesh.position.set(basePos.x + dx, basePos.y + dy, basePos.z + dz);
     }
+
     if (skinRef.current) {
       const skinBasePos = (skinRef.current.userData.basePos as THREE.Vector3) || new THREE.Vector3();
-      skinRef.current.position.set(skinBasePos.x, skinBasePos.y, skinBasePos.z + 0.35 * t);
+      skinRef.current.position.set(skinBasePos.x, skinBasePos.y, skinBasePos.z + 0.68 * t);
     }
   }, [explode, ready]);
 

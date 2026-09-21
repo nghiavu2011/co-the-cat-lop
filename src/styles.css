@@ -3,9 +3,9 @@
   --bg:#E9EAEC; --surface:#FDFDFC; --surface2:#F1F1EF; --line:#D2D5D9; --line-strong:#B6BBC2;
   --ink:#15181D; --ink2:#3D434C; --muted:#6B7280; --faint:#9AA1AB;
   --brass:#A87A22; --brass-soft:#EFE2C4; --alert:#B03A2E; --alert-soft:#F6E2DE;
-  --t-skin:#C89B7B; --t-fat:#E8D2A6; --t-muscle:#B4443C; --t-bone:#D8CDB2;
-  --t-heart:#C1272D; --t-lung:#9DB7D4; --t-gut:#C07A3E; --t-urin:#A0748F;
-  --t-endo:#C79A2E; --t-repro:#B87A93; --t-lymph:#7C9A6B; --t-nerve:#C9AE52;
+  --t-skin:#C89B7B; --t-fat:#E8D2A6; --t-muscle:#B53A32; --t-bone:#F3EBD7;
+  --t-heart:#D32F2F; --t-lung:#8BA6BE; --t-gut:#D87040; --t-urin:#9C5B80;
+  --t-endo:#FFB300; --t-repro:#EC407A; --t-lymph:#43A047; --t-nerve:#FFD600;
   --plate:#F6F5F1; --plate-line:#DCD8CE;
   --shadow:0 1px 2px rgba(20,24,30,.07),0 8px 24px -12px rgba(20,24,30,.18);
   --f-disp:"Playfair Display",Georgia,"Times New Roman",serif;
@@ -17,7 +17,7 @@
     --bg:#0D1015; --surface:#151A21; --surface2:#1B212A; --line:#28303A; --line-strong:#3A4451;
     --ink:#E7EAEE; --ink2:#BFC6CF; --muted:#8F98A4; --faint:#6B7480;
     --brass:#D8AE4E; --brass-soft:#33291240; --alert:#E5776A; --alert-soft:#3A201C80;
-    --t-bone:#E4DAC0; --t-fat:#D9C089; --t-lung:#8FA9C6;
+    --t-bone:#F3EBD7; --t-fat:#D9C089; --t-lung:#8BA6BE; --t-nerve:#FFD600;
     --plate:#111721; --plate-line:#232C38;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
   }
@@ -26,7 +26,7 @@
   --bg:#0D1015; --surface:#151A21; --surface2:#1B212A; --line:#28303A; --line-strong:#3A4451;
   --ink:#E7EAEE; --ink2:#BFC6CF; --muted:#8F98A4; --faint:#6B7480;
   --brass:#D8AE4E; --brass-soft:#33291240; --alert:#E5776A; --alert-soft:#3A201C80;
-  --t-bone:#E4DAC0; --t-fat:#D9C089; --t-lung:#8FA9C6;
+  --t-bone:#F3EBD7; --t-fat:#D9C089; --t-lung:#8BA6BE; --t-nerve:#FFD600;
   --plate:#111721; --plate-line:#232C38;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
 }
@@ -385,31 +385,32 @@ img { max-width: 100%; }
   display: none;
   align-items: center;
   gap: 6px;
-  background: rgba(var(--surface-rgb, 20, 26, 33), 0.88);
+  background: rgba(18, 24, 32, 0.94);
   backdrop-filter: blur(12px);
   border: 1px solid var(--brass);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 10px rgba(184, 134, 11, 0.2);
-  padding: 4px 10px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 12px rgba(216, 174, 78, 0.35);
+  padding: 5px 12px;
   border-radius: 20px;
-  color: var(--ink);
-  font-size: 11.5px;
+  color: #fff;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  margin-left: -50%;
-  margin-top: -32px;
-  transition: opacity 0.15s ease;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  margin-left: 0;
+  transition: none;
 }
 .floatingPin3d::after {
   content: '';
   position: absolute;
-  bottom: -5px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--brass);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--brass);
 }
 .floatingPinDot {
   width: 6px;
