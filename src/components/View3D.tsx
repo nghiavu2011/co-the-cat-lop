@@ -207,6 +207,61 @@ const SYSTEM_PBR_PROFILES: Record<SystemId, SystemPBRProfile> = {
   thankinh: { color: 0xffd600, roughness: 0.30, metalness: 0.05, emissive: 0x443300 }, // Vàng hoàng yến rực rỡ, phát sáng nhẹ
 };
 
+/**
+ * Thuật toán biến dạng lưới mô phỏng thể trạng (Body Parameters & BMI Simulation):
+ * Điều chỉnh độ cao (chiều cao), độ dày khối cơ/mỡ theo BMI, tỷ lệ hông/eo nam-nữ theo phân phối Gauss, và độ teo cơ theo tuổi.
+ */
+function deformMeshes(
+  meshes: THREE.Mesh[],
+  { height, weight, age, sex }: { height: number; weight: number; age: number; sex: 'male' | 'female' },
+): void {
+  const h = height / 175;
+  const bmi = weight / ((height / 100) ** 2);
+  // Hệ số nở khối theo BMI (chuẩn 22.86 là 1.0)
+  const bulk = THREE.MathUtils.clamp(1 + (bmi - 70 / (1.75 ** 2)) * 0.014, 0.80, 1.45);
+  const female = sex === 'female';
+  const older = Math.max(0, age - 50) / 40;
+
+  for (const m of meshes) {
+    if (!m.geometry || !m.geometry.attributes.position) continue;
+    const a = m.geometry.attributes.position.array as Float32Array;
+    const o = m.userData.original as Float32Array | undefined;
+    if (!o) continue;
+    const rigid = m.userData.sys === 'xuong';
+    const isMuscle = m.userData.sys === 'co';
+    const isPivoted = m.userData.isPivot;
+    const baseCenter = (m.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
+
+    for (let i = 0; i < a.length; i += 3) {
+      const x = o[i];
+      const y = o[i + 1];
+      const z = o[i + 2];
+      const worldY = isPivoted ? y + baseCenter.y : y;
+
+      // Phân phối hình chuông Gauss tại eo/ngực (1.29m) và hông (0.89m)
+      const torso = Math.exp(-(((worldY - 1.29) / 0.18) ** 2));
+      const hip = Math.exp(-(((worldY - 0.89) / 0.15) ** 2));
+      // Tỷ lệ nữ: eo thon hơn (-8.5%), hông nở hơn (+12%)
+      const sexWidth = female ? 1 - 0.085 * torso + 0.12 * hip : 1;
+
+      const w = sexWidth * (1 + (bulk - 1) * (rigid ? 0.2 : 1)) * (isMuscle ? 1 - older * 0.045 : 1);
+
+      if (isPivoted) {
+        a[i] = x * w * h;
+        a[i + 1] = y * h;
+        a[i + 2] = z * (1 + (bulk - 1) * 1.1) * h;
+      } else {
+        a[i] = x * w * h;
+        a[i + 1] = y * h;
+        a[i + 2] = (z * (1 + (bulk - 1) * 1.1) + older * Math.max(0, worldY - 0.93) * 0.045) * h;
+      }
+    }
+    m.geometry.attributes.position.needsUpdate = true;
+    m.geometry.computeBoundingSphere();
+    m.geometry.computeBoundingBox();
+  }
+}
+
 export default function View3D({
   atlas,
   activeSystem,
@@ -233,6 +288,26 @@ export default function View3D({
   selRef.current = selection;
   const showLabelsRef = useRef(showLabels);
   showLabelsRef.current = showLabels;
+
+  // Thể trạng & Chỉ số BMI (Body Parameters)
+  const [showBodyParams, setShowBodyParams] = useState(false);
+  const [bodyParams, setBodyParams] = useState({
+    height: 175,
+    weight: 70,
+    age: 30,
+  });
+
+  const bmi = useMemo(() => {
+    const hM = bodyParams.height / 100;
+    return +(bodyParams.weight / (hM * hM)).toFixed(1);
+  }, [bodyParams.height, bodyParams.weight]);
+
+  const bmiCategory = useMemo(() => {
+    if (bmi < 18.5) return { label: 'Gầy (Dưới chuẩn)', color: '#42a5f5' };
+    if (bmi < 24.9) return { label: 'Chuẩn y khoa', color: '#66bb6a' };
+    if (bmi < 29.9) return { label: 'Thừa cân', color: '#ffa726' };
+    return { label: 'Béo phì', color: '#ef5350' };
+  }, [bmi]);
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -379,6 +454,8 @@ export default function View3D({
             mesh.renderOrder = 2;
             mesh.visible = showGhost;
             mesh.userData.basePos = mesh.position.clone();
+            mesh.userData.sys = 'da';
+            mesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
             scene.add(mesh);
             skinRef.current = mesh;
             continue;
@@ -392,7 +469,10 @@ export default function View3D({
           const isLung = noteId !== null && LUNG_NOTE_IDS.has(noteId);
           if (isHeart || isLung) pivotAtCenter(mesh);
 
-          // Tính toán và lưu tâm hình học gốc để phục vụ Exploded View và Ghim nhãn 3D
+          // Lưu toạ độ đỉnh ban đầu để biến dạng thể trạng (BMI/Height/Weight) & tính tâm hình học
+          mesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
+          mesh.userData.sys = system;
+
           geo.computeBoundingBox();
           const bcenter = new THREE.Vector3();
           if (geo.boundingBox) {
@@ -949,6 +1029,19 @@ export default function View3D({
     }
   }, [explode, ready]);
 
+  // ---------- Mô phỏng thể trạng cơ thể (Chiều cao, Cân nặng, BMI, Tuổi, Giới tính) ----------
+  useEffect(() => {
+    if (!ready || !entriesRef.current.length) return;
+    const allMeshes = entriesRef.current.map((e) => e.mesh);
+    if (skinRef.current) allMeshes.push(skinRef.current);
+    deformMeshes(allMeshes, {
+      height: bodyParams.height,
+      weight: bodyParams.weight,
+      age: bodyParams.age,
+      sex: gender,
+    });
+  }, [bodyParams, gender, ready]);
+
   const focusOnSelection = () => {
     if (!selection || !ready) return;
     const targetIds = new Set(
@@ -1135,6 +1228,16 @@ export default function View3D({
               </button>
             )}
 
+            {/* Mô phỏng thể trạng & BMI (Body Parameters) */}
+            <button
+              type="button"
+              onClick={() => setShowBodyParams(!showBodyParams)}
+              className={showBodyParams ? 'activeBtn bodyParamsBtn' : 'bodyParamsBtn'}
+              title="Mô phỏng thể trạng: Chiều cao, Cân nặng, BMI, Tuổi"
+            >
+              ⚖ Thể trạng (BMI)
+            </button>
+
             <button
               type="button"
               onClick={() => onGenderChange?.(gender === 'male' ? 'female' : 'male')}
@@ -1156,6 +1259,85 @@ export default function View3D({
               {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
             </button>
           </div>
+
+          {/* Bảng điều khiển mô phỏng Thể trạng & BMI */}
+          {showBodyParams && (
+            <div className="bodyParamsPanel">
+              <div className="bodyParamsHeader">
+                <span>⚖ THỂ TRẠNG & BMI</span>
+                <button type="button" onClick={() => setShowBodyParams(false)} className="closeBtn" title="Đóng bảng">
+                  ✕
+                </button>
+              </div>
+
+              <div className="bmiDisplayCard">
+                <div className="bmiNumberRow">
+                  <span className="bmiLabel">Chỉ số BMI</span>
+                  <strong className="bmiValue">{bmi}</strong>
+                </div>
+                <div
+                  className="bmiCategoryBadge"
+                  style={{
+                    background: `${bmiCategory.color}22`,
+                    color: bmiCategory.color,
+                    borderColor: bmiCategory.color,
+                  }}
+                >
+                  {bmiCategory.label}
+                </div>
+              </div>
+
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Chiều cao</label>
+                  <b>{bodyParams.height} cm</b>
+                </div>
+                <input
+                  type="range"
+                  min={135}
+                  max={210}
+                  value={bodyParams.height}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, height: Number(e.target.value) }))}
+                />
+              </div>
+
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Cân nặng</label>
+                  <b>{bodyParams.weight} kg</b>
+                </div>
+                <input
+                  type="range"
+                  min={35}
+                  max={140}
+                  value={bodyParams.weight}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, weight: Number(e.target.value) }))}
+                />
+              </div>
+
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Độ tuổi</label>
+                  <b>{bodyParams.age} tuổi</b>
+                </div>
+                <input
+                  type="range"
+                  min={18}
+                  max={85}
+                  value={bodyParams.age}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, age: Number(e.target.value) }))}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="resetParamsBtn"
+                onClick={() => setBodyParams({ height: 175, weight: 70, age: 30 })}
+              >
+                ↺ Đặt lại thể trạng chuẩn
+              </button>
+            </div>
+          )}
 
           {/* Ghim nhãn 3D nổi trên bộ phận được chọn (Floating 3D Pin) */}
           <div ref={pinRef} className="floatingPin3d" style={{ display: 'none' }}>
