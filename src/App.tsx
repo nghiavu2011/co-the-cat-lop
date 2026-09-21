@@ -320,6 +320,7 @@ export default function App() {
                   activeSystem={activeSystem}
                   onlySystem={onlySystem}
                   showGhost={showGhost}
+                  showLabels={showLabels}
                   axis={axis}
                   sliceT={sliceT}
                   selection={selection}

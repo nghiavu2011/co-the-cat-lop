@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { AtlasJSON, AtlasPart, SystemId } from '../data/types';
 import { loadAllChunks, type LoadProgress } from '../data/loader';
 import { buildPartGeometry } from '../data/geometry';
 import { defaultSystemFor, SYSTEM_BY_ID } from '../data/systems';
 import { buildBinding } from '../data/bind';
+import { NOTE_BY_ID } from '../content/notes';
 import type { Selection } from '../selection';
 
 export interface AxisDef {
@@ -175,6 +176,7 @@ export interface View3DProps {
   activeSystem: SystemId | null;
   onlySystem: boolean;
   showGhost: boolean;
+  showLabels?: boolean;
   axis: number;
   sliceT: number;
   selection: Selection | null;
@@ -214,6 +216,7 @@ export default function View3D({
   activeSystem,
   onlySystem,
   showGhost,
+  showLabels = true,
   axis,
   sliceT,
   selection,
@@ -226,6 +229,14 @@ export default function View3D({
   const [progress, setProgress] = useState<LoadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+
+  const [explode, setExplode] = useState(0);
+  const [isIsolated, setIsIsolated] = useState(false);
+  const pinRef = useRef<HTMLDivElement>(null);
+  const selRef = useRef<Selection | null>(selection);
+  selRef.current = selection;
+  const showLabelsRef = useRef(showLabels);
+  showLabelsRef.current = showLabels;
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -357,6 +368,7 @@ export default function View3D({
             const mesh = new THREE.Mesh(geo, skinMat);
             mesh.renderOrder = 2;
             mesh.visible = showGhost;
+            mesh.userData.basePos = mesh.position.clone();
             scene.add(mesh);
             skinRef.current = mesh;
             continue;
@@ -368,6 +380,17 @@ export default function View3D({
           const isHeart = noteId !== null && HEART_NOTE_IDS.has(noteId);
           const isLung = noteId !== null && LUNG_NOTE_IDS.has(noteId);
           if (isHeart || isLung) pivotAtCenter(mesh);
+
+          // Tính toán và lưu tâm hình học gốc để phục vụ Exploded View và Ghim nhãn 3D
+          geo.computeBoundingBox();
+          const bcenter = new THREE.Vector3();
+          if (geo.boundingBox) {
+            geo.boundingBox.getCenter(bcenter);
+          }
+          mesh.userData.baseCenter = isHeart || isLung ? mesh.position.clone() : bcenter.clone();
+          mesh.userData.basePos = mesh.position.clone();
+          mesh.userData.isPivot = isHeart || isLung;
+
           scene.add(mesh);
           entries.push({ mesh, part, system, noteId, ownMaterial });
           if (isHeart) heartMeshesRef.current.push(mesh);
@@ -726,6 +749,34 @@ export default function View3D({
       );
       camera.lookAt(targetX, targetY, targetZ);
       renderer.render(scene, camera);
+
+      // Cập nhật vị trí Ghim nhãn 3D nổi (Floating 3D Pin)
+      if (pinRef.current) {
+        const pinEl = pinRef.current;
+        const currentSel = selRef.current;
+        if (currentSel && showLabelsRef.current && highlightedRef.current.length > 0) {
+          const selMesh = highlightedRef.current[0];
+          const pinCenter = new THREE.Vector3();
+          if (selMesh.userData.baseCenter) {
+            pinCenter.copy(selMesh.userData.baseCenter as THREE.Vector3);
+            pinCenter.add(selMesh.position);
+          } else {
+            selMesh.getWorldPosition(pinCenter);
+          }
+          const projected = pinCenter.clone().project(camera);
+          if (projected.z < 1 && Math.abs(projected.x) <= 0.95 && Math.abs(projected.y) <= 0.95) {
+            const rect = canvas.getBoundingClientRect();
+            const px = (projected.x * 0.5 + 0.5) * rect.width;
+            const py = (-projected.y * 0.5 + 0.5) * rect.height;
+            pinEl.style.display = 'inline-flex';
+            pinEl.style.transform = `translate3d(${px}px, ${py}px, 0)`;
+          } else {
+            pinEl.style.display = 'none';
+          }
+        } else {
+          pinEl.style.display = 'none';
+        }
+      }
     };
     rafId = requestAnimationFrame(loop);
 
@@ -759,19 +810,109 @@ export default function View3D({
     if (skinRef.current) skinRef.current.visible = showGhost;
   }, [showGhost]);
 
-  // ---------- hiển thị / ẩn theo hệ đang chọn ----------
+  // ---------- hiển thị / ẩn theo hệ đang chọn & chế độ cô lập (isolate) ----------
   useEffect(() => {
     const entries = entriesRef.current;
     if (!entries.length) return;
     let visible = 0;
+    const targetIds = selection
+      ? new Set(
+          selection.kind === 'part'
+            ? [selection.id]
+            : entries.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
+        )
+      : null;
+
     for (const en of entries) {
-      const show = !onlySystem || !activeSystem || en.system === activeSystem;
+      let show = !onlySystem || !activeSystem || en.system === activeSystem;
+      if (isIsolated && targetIds) {
+        show = targetIds.has(en.part.id);
+      }
       en.mesh.visible = show;
       if (show) visible += 1;
     }
+    if (skinRef.current) {
+      skinRef.current.visible = !isIsolated && showGhost;
+    }
     onCounts?.(visible, entries.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSystem, onlySystem, ready]);
+  }, [activeSystem, onlySystem, ready, isIsolated, selection, showGhost]);
+
+  // ---------- Bóc tách / Tách lớp theo không gian (Exploded View) ----------
+  const SYS_ORDER: SystemId[] = [
+    'da',
+    'co',
+    'xuong',
+    'tuanhoan',
+    'hohap',
+    'tieuhoa',
+    'tietnieu',
+    'sinhduc',
+    'thankinh',
+    'lympho',
+    'noitiet',
+  ];
+
+  useEffect(() => {
+    if (!ready) return;
+    const t = explode / 100;
+    for (const en of entriesRef.current) {
+      const sysIdx = SYS_ORDER.indexOf(en.system);
+      const offset = (sysIdx >= 0 ? sysIdx : 3) * 0.045; // m
+      const baseCenter = (en.mesh.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
+      const basePos = (en.mesh.userData.basePos as THREE.Vector3) || new THREE.Vector3();
+
+      const signX = Math.sign(baseCenter.x) || (en.mesh.id % 2 === 0 ? 1 : -1);
+      const dx = signX * offset * t;
+      const dz = offset * 0.55 * t;
+
+      en.mesh.position.set(basePos.x + dx, basePos.y, basePos.z + dz);
+    }
+    if (skinRef.current) {
+      const skinBasePos = (skinRef.current.userData.basePos as THREE.Vector3) || new THREE.Vector3();
+      skinRef.current.position.set(skinBasePos.x, skinBasePos.y, skinBasePos.z + 0.35 * t);
+    }
+  }, [explode, ready]);
+
+  const focusOnSelection = () => {
+    if (!selection || !ready) return;
+    const targetIds = new Set(
+      selection.kind === 'part'
+        ? [selection.id]
+        : entriesRef.current.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
+    );
+    const box = new THREE.Box3();
+    let found = false;
+    for (const en of entriesRef.current) {
+      if (targetIds.has(en.part.id)) {
+        box.expandByObject(en.mesh);
+        found = true;
+      }
+    }
+    if (found && !box.isEmpty()) {
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const desiredRadius = Math.max(0.25, Math.min(2.0, maxDim * 2.6));
+
+      camState.current.destTargetX = center.x;
+      camState.current.destTargetY = center.y;
+      camState.current.destTargetZ = center.z;
+      camState.current.destRadius = desiredRadius;
+      lastInteractRef.current = performance.now();
+    }
+  };
+
+  const selectedLabelText = useMemo(() => {
+    if (!selection) return '';
+    if (selection.kind === 'note') {
+      return NOTE_BY_ID[selection.id]?.n || selection.id;
+    }
+    const en = entriesRef.current.find((e) => e.part.id === selection.id);
+    return en?.part.name || selection.id;
+  }, [selection, ready]);
 
   // ---------- mặt phẳng cắt ----------
   useEffect(() => {
@@ -868,47 +1009,85 @@ export default function View3D({
       <canvas id="c3d" ref={canvasRef} style={{ touchAction: 'none' }} />
 
       {ready && (
-        <div className="view3dTools">
-          <span className="view3dToolsTitle">Góc nhìn:</span>
-          <button type="button" onClick={() => setCameraPreset('front')} title="Góc nhìn chính diện">
-            Trước
-          </button>
-          <button type="button" onClick={() => setCameraPreset('back')} title="Góc nhìn từ sau lưng">
-            Sau
-          </button>
-          <button type="button" onClick={() => setCameraPreset('left')} title="Góc nhìn nghiêng trái">
-            Trái
-          </button>
-          <button type="button" onClick={() => setCameraPreset('right')} title="Góc nhìn nghiêng phải">
-            Phải
-          </button>
-          <button type="button" onClick={() => setCameraPreset('top')} title="Góc nhìn từ đỉnh đầu">
-            Đỉnh
-          </button>
-          <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
-            ↺ Đặt lại
-          </button>
-          <button
-            type="button"
-            onClick={() => onGenderChange?.(gender === 'male' ? 'female' : 'male')}
-            title="Chuyển đổi giải phẫu cơ thể Nam / Nữ"
-            style={{
-              borderColor: gender === 'female' ? '#e91e63' : undefined,
-              color: gender === 'female' ? '#f06292' : undefined,
-              fontWeight: 600,
-            }}
-          >
-            {gender === 'female' ? '♀ Nữ' : '♂ Nam'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            title={isFullscreen ? 'Thu nhỏ lại (Esc)' : 'Xem toàn màn hình'}
-            className="fsToggleBtn"
-          >
-            {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
-          </button>
-        </div>
+        <>
+          <div className="view3dTools">
+            <span className="view3dToolsTitle">Góc nhìn:</span>
+            <button type="button" onClick={() => setCameraPreset('front')} title="Góc nhìn chính diện">
+              Trước
+            </button>
+            <button type="button" onClick={() => setCameraPreset('back')} title="Góc nhìn từ sau lưng">
+              Sau
+            </button>
+            <button type="button" onClick={() => setCameraPreset('left')} title="Góc nhìn nghiêng trái">
+              Trái
+            </button>
+            <button type="button" onClick={() => setCameraPreset('right')} title="Góc nhìn nghiêng phải">
+              Phải
+            </button>
+            <button type="button" onClick={() => setCameraPreset('top')} title="Góc nhìn từ đỉnh đầu">
+              Đỉnh
+            </button>
+            <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
+              ↺ Đặt lại
+            </button>
+
+            {/* Bóc tách / Tách lớp theo không gian (Exploded View) */}
+            <div className="explodeControl" title="Bóc tách / Tách rời các lớp cơ thể theo không gian (0 - 100%)">
+              <span>⤢ Tách lớp:</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={explode}
+                onChange={(e) => setExplode(Number(e.target.value))}
+              />
+              <b>{explode}%</b>
+            </div>
+
+            {/* Chế độ cô lập bộ phận đang chọn (Isolate / Solo) */}
+            {selection && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isIsolated;
+                  setIsIsolated(next);
+                  if (next) focusOnSelection();
+                }}
+                className={isIsolated ? 'activeBtn isolateBtn' : 'isolateBtn'}
+                title={isIsolated ? 'Hiện lại tất cả cơ quan xung quanh' : 'Chỉ hiển thị riêng cơ quan đang chọn'}
+              >
+                {isIsolated ? '✕ Thoát cô lập' : '👁 Cô lập'}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onGenderChange?.(gender === 'male' ? 'female' : 'male')}
+              title="Chuyển đổi giải phẫu cơ thể Nam / Nữ"
+              style={{
+                borderColor: gender === 'female' ? '#e91e63' : undefined,
+                color: gender === 'female' ? '#f06292' : undefined,
+                fontWeight: 600,
+              }}
+            >
+              {gender === 'female' ? '♀ Nữ' : '♂ Nam'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              title={isFullscreen ? 'Thu nhỏ lại (Esc)' : 'Xem toàn màn hình'}
+              className="fsToggleBtn"
+            >
+              {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
+            </button>
+          </div>
+
+          {/* Ghim nhãn 3D nổi trên bộ phận được chọn (Floating 3D Pin) */}
+          <div ref={pinRef} className="floatingPin3d" style={{ display: 'none' }}>
+            <span className="floatingPinDot" />
+            <span>{selectedLabelText}</span>
+          </div>
+        </>
       )}
 
       {!ready && (
