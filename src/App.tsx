@@ -56,6 +56,7 @@ export default function App() {
       return 'system';
     }
   });
+  const [showBodyParams, setShowBodyParams] = useState(false);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
@@ -326,6 +327,8 @@ export default function App() {
                   selection={selection}
                   gender={gender}
                   onGenderChange={setGender}
+                  showBodyParams={showBodyParams}
+                  onToggleBodyParams={setShowBodyParams}
                   onPick={onPick}
                   onCounts={(visible, total) => setCounts({ visible, total })}
                 />
@@ -404,18 +407,33 @@ export default function App() {
                 </button>
               )}
               {mode === '3d' && (
-                <button
-                  className="tg"
-                  style={{
-                    fontWeight: 600,
-                    borderColor: gender === 'female' ? '#e91e63' : undefined,
-                    color: gender === 'female' ? '#f06292' : undefined,
-                  }}
-                  onClick={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
-                  title="Chuyển đổi cấu trúc cơ thể Nam / Nữ (Khung chậu & Hệ sinh dục)"
-                >
-                  {gender === 'female' ? '♀ Cơ thể Nữ' : '♂ Cơ thể Nam'}
-                </button>
+                <>
+                  <button
+                    className="tg"
+                    style={{
+                      fontWeight: 600,
+                      borderColor: gender === 'female' ? '#e91e63' : undefined,
+                      color: gender === 'female' ? '#f06292' : undefined,
+                    }}
+                    onClick={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
+                    title="Chuyển đổi cấu trúc cơ thể Nam / Nữ (Khung chậu & Hệ sinh dục)"
+                  >
+                    {gender === 'female' ? '♀ Cơ thể Nữ' : '♂ Cơ thể Nam'}
+                  </button>
+                  <button
+                    className="tg"
+                    style={{
+                      fontWeight: 600,
+                      borderColor: 'var(--brass)',
+                      color: showBodyParams ? '#fff' : 'var(--brass)',
+                      background: showBodyParams ? 'var(--brass)' : undefined,
+                    }}
+                    onClick={() => setShowBodyParams((v) => !v)}
+                    title="Mở bảng điều khiển mô phỏng thể trạng & BMI (Chiều cao, Cân nặng, Tuổi cho Nam và Nữ)"
+                  >
+                    ⚖ Thể trạng (BMI)
+                  </button>
+                </>
               )}
               <button className="tg" aria-pressed={showGhost} onClick={() => setShowGhost((v) => !v)}>
                 {mode === '3d' ? 'Lớp da' : 'Bóng cơ thể'}

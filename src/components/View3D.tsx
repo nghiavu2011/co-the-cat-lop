@@ -182,6 +182,8 @@ export interface View3DProps {
   selection: Selection | null;
   gender?: 'male' | 'female';
   onGenderChange?: (gender: 'male' | 'female') => void;
+  showBodyParams?: boolean;
+  onToggleBodyParams?: (show: boolean) => void;
   onPick: (sel: Selection) => void;
   onCounts?: (visible: number, total: number) => void;
 }
@@ -209,18 +211,25 @@ const SYSTEM_PBR_PROFILES: Record<SystemId, SystemPBRProfile> = {
 
 /**
  * Thuật toán biến dạng lưới mô phỏng thể trạng (Body Parameters & BMI Simulation):
- * Điều chỉnh độ cao (chiều cao), độ dày khối cơ/mỡ theo BMI, tỷ lệ hông/eo nam-nữ theo phân phối Gauss, và độ teo cơ theo tuổi.
+ * - Tỷ lệ chiều cao dựa trên mốc chuẩn (Nam: 175cm, Nữ: 162cm)
+ * - Nở khối cơ/mỡ theo chỉ số BMI (chuẩn 22.0)
+ * - Tích tụ mỡ sinh học phân hóa rõ rệt:
+ *   + Nam (Android - Quả táo): Tập trung vùng bụng và ngực (y: 1.05m - 1.25m)
+ *   + Nữ (Gynoid - Quả lê): Tập trung vùng hông, đùi và bụng dưới (y: 0.75m - 0.98m)
+ * - Độ teo cơ và thay đổi cột sống theo tuổi tác (18 - 85 tuổi)
  */
 function deformMeshes(
   meshes: THREE.Mesh[],
   { height, weight, age, sex }: { height: number; weight: number; age: number; sex: 'male' | 'female' },
 ): void {
-  const h = height / 175;
+  const isFemale = sex === 'female';
+  const standardH = isFemale ? 162 : 175;
+  const h = height / standardH;
   const bmi = weight / ((height / 100) ** 2);
-  // Hệ số nở khối theo BMI (chuẩn 22.86 là 1.0)
-  const bulk = THREE.MathUtils.clamp(1 + (bmi - 70 / (1.75 ** 2)) * 0.014, 0.80, 1.45);
-  const female = sex === 'female';
-  const older = Math.max(0, age - 50) / 40;
+
+  // Hệ số nở khối theo BMI (chuẩn 22.0 là 1.0, độ nhạy 0.024)
+  const bulk = THREE.MathUtils.clamp(1 + (bmi - 22.0) * 0.024, 0.72, 1.58);
+  const older = Math.max(0, age - 45) / 45; // Teo cơ nhẹ từ 45 tuổi
 
   for (const m of meshes) {
     if (!m.geometry || !m.geometry.attributes.position) continue;
@@ -229,6 +238,7 @@ function deformMeshes(
     if (!o) continue;
     const rigid = m.userData.sys === 'xuong';
     const isMuscle = m.userData.sys === 'co';
+    const isSkin = m.userData.sys === 'da';
     const isPivoted = m.userData.isPivot;
     const baseCenter = (m.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
 
@@ -238,22 +248,35 @@ function deformMeshes(
       const z = o[i + 2];
       const worldY = isPivoted ? y + baseCenter.y : y;
 
-      // Phân phối hình chuông Gauss tại eo/ngực (1.29m) và hông (0.89m)
-      const torso = Math.exp(-(((worldY - 1.29) / 0.18) ** 2));
-      const hip = Math.exp(-(((worldY - 0.89) / 0.15) ** 2));
-      // Tỷ lệ nữ: eo thon hơn (-8.5%), hông nở hơn (+12%)
-      const sexWidth = female ? 1 - 0.085 * torso + 0.12 * hip : 1;
+      // Phân phối hình chuông Gauss sinh học:
+      // Bụng (y ≈ 1.12m) và Hông (y ≈ 0.88m)
+      const belly = Math.exp(-(((worldY - 1.12) / 0.16) ** 2));
+      const hips = Math.exp(-(((worldY - 0.88) / 0.16) ** 2));
 
-      const w = sexWidth * (1 + (bulk - 1) * (rigid ? 0.2 : 1)) * (isMuscle ? 1 - older * 0.045 : 1);
+      // Phân bổ mỡ: Nữ nở hông/đùi nhiều hơn, Nam nở bụng nhiều hơn
+      const fatDistribution = isFemale
+        ? 0.70 * hips + 0.30 * belly
+        : 0.85 * belly + 0.15 * hips;
+
+      // Xương (rigid) chỉ nở nhẹ 15%, da và cơ bắp nở mạnh 115%
+      const sysFactor = rigid ? 0.15 : (isSkin || isMuscle ? 1.15 : 0.85);
+      const expansion = (bulk - 1) * (1 + fatDistribution * 0.85) * sysFactor;
+
+      // Lão hoá: Teo cơ nhẹ & hơi khòm lưng về trước
+      const ageMuscleLoss = isMuscle ? 1 - older * 0.055 : 1;
+      const ageKyphosis = older * Math.max(0, worldY - 0.90) * 0.035;
+
+      const w = (1 + expansion) * ageMuscleLoss;
+      const depthScale = 1 + expansion * 1.22;
 
       if (isPivoted) {
         a[i] = x * w * h;
         a[i + 1] = y * h;
-        a[i + 2] = z * (1 + (bulk - 1) * 1.1) * h;
+        a[i + 2] = z * depthScale * h;
       } else {
         a[i] = x * w * h;
         a[i + 1] = y * h;
-        a[i + 2] = (z * (1 + (bulk - 1) * 1.1) + older * Math.max(0, worldY - 0.93) * 0.045) * h;
+        a[i + 2] = (z * depthScale + ageKyphosis) * h;
       }
     }
     m.geometry.attributes.position.needsUpdate = true;
@@ -273,6 +296,8 @@ export default function View3D({
   selection,
   gender = 'male',
   onGenderChange,
+  showBodyParams: showBodyParamsProp,
+  onToggleBodyParams,
   onPick,
   onCounts,
 }: View3DProps) {
@@ -290,12 +315,19 @@ export default function View3D({
   showLabelsRef.current = showLabels;
 
   // Thể trạng & Chỉ số BMI (Body Parameters)
-  const [showBodyParams, setShowBodyParams] = useState(false);
-  const [bodyParams, setBodyParams] = useState({
-    height: 175,
-    weight: 70,
+  const [internalShowBodyParams, setInternalShowBodyParams] = useState(false);
+  const showBodyParams = showBodyParamsProp ?? internalShowBodyParams;
+  const setShowBodyParams = (val: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof val === 'function' ? val(showBodyParams) : val;
+    setInternalShowBodyParams(next);
+    onToggleBodyParams?.(next);
+  };
+
+  const [bodyParams, setBodyParams] = useState(() => ({
+    height: gender === 'female' ? 162 : 175,
+    weight: gender === 'female' ? 52 : 70,
     age: 30,
-  });
+  }));
 
   const bmi = useMemo(() => {
     const hM = bodyParams.height / 100;
@@ -1264,26 +1296,131 @@ export default function View3D({
           {showBodyParams && (
             <div className="bodyParamsPanel">
               <div className="bodyParamsHeader">
-                <span>⚖ THỂ TRẠNG & BMI</span>
+                <span>⚖ THỂ TRẠNG & CHỈ SỐ BMI</span>
                 <button type="button" onClick={() => setShowBodyParams(false)} className="closeBtn" title="Đóng bảng">
                   ✕
                 </button>
               </div>
 
-              <div className="bmiDisplayCard">
-                <div className="bmiNumberRow">
-                  <span className="bmiLabel">Chỉ số BMI</span>
-                  <strong className="bmiValue">{bmi}</strong>
+              {/* Giới tính sinh học (Nam / Nữ) */}
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Giới tính sinh học</label>
+                  <b style={{ color: gender === 'female' ? '#f06292' : '#64b5f6' }}>
+                    {gender === 'female' ? '♀ Nữ giới' : '♂ Nam giới'}
+                  </b>
                 </div>
-                <div
-                  className="bmiCategoryBadge"
-                  style={{
-                    background: `${bmiCategory.color}22`,
-                    color: bmiCategory.color,
-                    borderColor: bmiCategory.color,
-                  }}
-                >
-                  {bmiCategory.label}
+                <div className="genderToggleGroup">
+                  <button
+                    type="button"
+                    className={`genderBtn ${gender === 'male' ? 'active male' : ''}`}
+                    onClick={() => {
+                      if (gender !== 'male') {
+                        onGenderChange?.('male');
+                        setBodyParams((p) => ({ ...p, height: 175, weight: 70 }));
+                      }
+                    }}
+                  >
+                    ♂ Nam (175cm · 70kg)
+                  </button>
+                  <button
+                    type="button"
+                    className={`genderBtn ${gender === 'female' ? 'active female' : ''}`}
+                    onClick={() => {
+                      if (gender !== 'female') {
+                        onGenderChange?.('female');
+                        setBodyParams((p) => ({ ...p, height: 162, weight: 52 }));
+                      }
+                    }}
+                  >
+                    ♀ Nữ (162cm · 52kg)
+                  </button>
+                </div>
+              </div>
+
+              {/* Thẻ hiển thị chỉ số BMI kèm thanh đo màu trực quan */}
+              <div className="bmiDisplayCard">
+                <div className="bmiCardTop">
+                  <div className="bmiNumberRow">
+                    <span className="bmiLabel">Chỉ số BMI</span>
+                    <strong className="bmiValue">{bmi}</strong>
+                  </div>
+                  <div
+                    className="bmiCategoryBadge"
+                    style={{
+                      background: `${bmiCategory.color}22`,
+                      color: bmiCategory.color,
+                      borderColor: bmiCategory.color,
+                    }}
+                  >
+                    {bmiCategory.label}
+                  </div>
+                </div>
+                <div className="bmiGaugeTrack" title={`BMI: ${bmi} (${bmiCategory.label})`}>
+                  <div className="bmiGaugeSeg underweight" title="Gầy / Thiếu cân (< 18.5)" />
+                  <div className="bmiGaugeSeg normal" title="Chuẩn y khoa (18.5 - 24.9)" />
+                  <div className="bmiGaugeSeg overweight" title="Thừa cân (25.0 - 29.9)" />
+                  <div className="bmiGaugeSeg obese" title="Béo phì (≥ 30.0)" />
+                  <div
+                    className="bmiGaugeNeedle"
+                    style={{
+                      left: `${Math.min(97, Math.max(3, ((bmi - 14) / (38 - 14)) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Mẫu thể trạng nhanh */}
+              <div className="bmiPresets">
+                <span className="bmiPresetsLabel">Mẫu thể trạng nhanh:</span>
+                <div className="bmiPresetBtns">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (gender !== 'male') onGenderChange?.('male');
+                      setBodyParams({ height: 175, weight: 70, age: 28 });
+                    }}
+                    title="Nam chuẩn y khoa: 175cm, 70kg, BMI 22.9"
+                  >
+                    ♂ Nam chuẩn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (gender !== 'female') onGenderChange?.('female');
+                      setBodyParams({ height: 162, weight: 52, age: 25 });
+                    }}
+                    title="Nữ chuẩn y khoa: 162cm, 52kg, BMI 19.8"
+                  >
+                    ♀ Nữ chuẩn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBodyParams((p) => ({ ...p, weight: Math.round(28.5 * ((p.height / 100) ** 2)) }));
+                    }}
+                    title="Thể trạng thừa cân (BMI 28.5)"
+                  >
+                    Thừa cân
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBodyParams((p) => ({ ...p, weight: Math.round(17.2 * ((p.height / 100) ** 2)) }));
+                    }}
+                    title="Thể trạng gầy / thiếu cân (BMI 17.2)"
+                  >
+                    Gầy mảnh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBodyParams({ height: 190, weight: 88, age: 30 });
+                    }}
+                    title="Thể trạng cao lớn: 190cm, 88kg"
+                  >
+                    Cao lớn
+                  </button>
                 </div>
               </div>
 
@@ -1332,9 +1469,15 @@ export default function View3D({
               <button
                 type="button"
                 className="resetParamsBtn"
-                onClick={() => setBodyParams({ height: 175, weight: 70, age: 30 })}
+                onClick={() =>
+                  setBodyParams({
+                    height: gender === 'female' ? 162 : 175,
+                    weight: gender === 'female' ? 52 : 70,
+                    age: 30,
+                  })
+                }
               >
-                ↺ Đặt lại thể trạng chuẩn
+                ↺ Đặt lại chuẩn ({gender === 'female' ? 'Nữ 162cm · 52kg' : 'Nam 175cm · 70kg'})
               </button>
             </div>
           )}
