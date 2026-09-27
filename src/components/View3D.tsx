@@ -435,6 +435,7 @@ export default function View3D({
   };
 
   const [showFatLayer, setShowFatLayer] = useState(true);
+  const [isBodyParamsCompact, setIsBodyParamsCompact] = useState(false);
 
   const [bodyParams, setBodyParams] = useState(() => ({
     height: gender === 'female' ? 162 : 175,
@@ -1454,9 +1455,19 @@ export default function View3D({
 
           {/* Bảng điều khiển mô phỏng Thể trạng & BMI */}
           {showBodyParams && (
-            <div className="bodyParamsPanel">
+            <div className={`bodyParamsPanel ${isBodyParamsCompact ? 'isCompact' : ''}`}>
               <div className="bodyParamsHeader">
-                <span>⚖ THỂ TRẠNG & CHỈ SỐ BMI</span>
+                <div className="bodyParamsHeaderLeft">
+                  <span>⚖ THỂ TRẠNG & CHỈ SỐ BMI</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsBodyParamsCompact(!isBodyParamsCompact)}
+                    className="compactToggleBtn"
+                    title={isBodyParamsCompact ? 'Mở rộng xem bài học sức khỏe và phân tích y khoa' : 'Thu gọn bảng để nhìn rõ chuyển động 3D'}
+                  >
+                    {isBodyParamsCompact ? '▼ Xem bài học y khoa' : '▲ Thu gọn'}
+                  </button>
+                </div>
                 <button type="button" onClick={() => setShowBodyParams(false)} className="closeBtn" title="Đóng bảng">
                   ✕
                 </button>
@@ -1540,49 +1551,75 @@ export default function View3D({
                 {showFatLayer ? '👁 Đang hiện: Lớp mỡ dưới da (Vàng ngà)' : '🚫 Đang ẩn: Lớp mỡ (Xem cơ bắp nạc)'}
               </button>
 
-              {/* Thẻ Bài Học Sức Khỏe & Lối Sống Lành Mạnh theo chuẩn Y Khoa */}
-              <div className="healthLessonCard" style={{ borderLeftColor: currentLesson.color }}>
-                <div className="healthLessonHeader">
-                  <span
-                    className="healthLessonBadge"
-                    style={{
-                      background: `${currentLesson.color}22`,
-                      color: currentLesson.color,
-                      borderColor: currentLesson.color,
-                    }}
-                  >
-                    💡 BÀI HỌC SỨC KHỎE · {currentLesson.badge}
-                  </span>
-                </div>
-                <p className="healthLessonSummary">{currentLesson.summary}</p>
+              {!isBodyParamsCompact && (
+                <>
+                  {/* Thẻ Bài Học Sức Khỏe & Lối Sống Lành Mạnh theo chuẩn Y Khoa */}
+                  <div className="healthLessonCard" style={{ borderLeftColor: currentLesson.color }}>
+                    <div className="healthLessonHeader">
+                      <span
+                        className="healthLessonBadge"
+                        style={{
+                          background: `${currentLesson.color}22`,
+                          color: currentLesson.color,
+                          borderColor: currentLesson.color,
+                        }}
+                      >
+                        💡 BÀI HỌC SỨC KHỎE · {currentLesson.badge}
+                      </span>
+                    </div>
+                    <p className="healthLessonSummary">{currentLesson.summary}</p>
 
-                <div className="healthSection">
-                  <strong className="healthSectionTitle">🔬 Biến đổi giải phẫu học:</strong>
-                  <p className="healthSectionText">{currentLesson.anatomyImpact}</p>
-                </div>
+                    <div className="healthSection">
+                      <strong className="healthSectionTitle">🔬 Biến đổi giải phẫu học:</strong>
+                      <p className="healthSectionText">{currentLesson.anatomyImpact}</p>
+                    </div>
 
-                <div className="healthSection">
-                  <strong className="healthSectionTitle" style={{ color: currentLesson.color }}>
-                    ⚠️ Tác hại & Nguy cơ y khoa:
-                  </strong>
-                  <ul className="healthList">
-                    {currentLesson.risks.map((r, idx) => (
-                      <li key={idx}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
+                    <div className="healthSection">
+                      <strong className="healthSectionTitle" style={{ color: currentLesson.color }}>
+                        ⚠️ Tác hại & Nguy cơ y khoa:
+                      </strong>
+                      <ul className="healthList">
+                        {currentLesson.risks.map((r, idx) => (
+                          <li key={idx}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
 
-                <div className="healthSection">
-                  <strong className="healthSectionTitle" style={{ color: '#66bb6a' }}>
-                    🥗 Lời khuyên giữ cơ thể sống lành mạnh:
-                  </strong>
-                  <ul className="healthList">
-                    {currentLesson.lifestyleTips.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+                    <div className="healthSection">
+                      <strong className="healthSectionTitle" style={{ color: '#66bb6a' }}>
+                        🥗 Lời khuyên giữ cơ thể sống lành mạnh:
+                      </strong>
+                      <ul className="healthList">
+                        {currentLesson.lifestyleTips.map((t, idx) => (
+                          <li key={idx}>{t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Khối Ghi Chú Lâm Sàng: Giới Hạn của BMI (Skinny Fat vs Cơ Bắp VĐV) */}
+                  <div className="bmiLimitationNote">
+                    <div className="bmiLimitationHeader">
+                      <span className="bmiLimitationIcon">🩺</span>
+                      <strong>Góc nhìn lâm sàng: Giới hạn của chỉ số BMI</strong>
+                    </div>
+                    <p className="bmiLimitationLead">
+                      Chỉ số BMI chỉ là thước đo gián tiếp dựa trên cân nặng và chiều cao. Hai trường hợp ngoại lệ kinh điển cần lưu ý:
+                    </p>
+                    <ul className="bmiLimitationList">
+                      <li>
+                        <b>Vận động viên / Người tập tạ:</b> BMI có thể &gt; 25 do khối cơ nạc phát triển nặng, nhưng tỷ lệ mỡ cơ thể rất thấp (8–14%) $\rightarrow$ Hoàn toàn khỏe mạnh, không phải béo phì.
+                      </li>
+                      <li>
+                        <b>Hiện tượng &quot;Gầy nhưng nhiều mỡ&quot; (Skinny Fat):</b> BMI ở ngưỡng chuẩn (18.5–24.9) nhưng ít cơ nạc, mỡ nội tạng lại cao $\rightarrow$ Vẫn đối mặt nguy cơ kháng insulin, gan nhiễm mỡ và tim mạch.
+                      </li>
+                    </ul>
+                    <div className="bmiLimitationAdvice">
+                      💡 <b>Lời khuyên chuyên môn:</b> Để đánh giá toàn diện, hãy phối hợp chỉ số BMI với <b>Tỷ lệ mỡ cơ thể (% Body Fat)</b> và <b>Tỷ số vòng eo / vòng mông (WHR)</b>.
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Mẫu thể trạng nhanh */}
               <div className="bmiPresets">

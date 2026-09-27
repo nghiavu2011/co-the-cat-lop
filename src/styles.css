@@ -1731,3 +1731,123 @@ img { max-width: 100%; }
   color: #fff;
 }
 
+/* Header & Nút Thu Gọn Bảng Thể Trạng */
+.bodyParamsHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.compactToggleBtn {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--brass);
+  color: var(--brass);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.compactToggleBtn:hover {
+  background: var(--brass);
+  color: #fff;
+}
+
+/* Khối Ghi Chú Lâm Sàng: Giới Hạn của BMI (Skinny Fat vs Cơ Bắp VĐV) */
+.bmiLimitationNote {
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-left: 3.5px solid #38bdf8;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+}
+.bmiLimitationHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.bmiLimitationIcon {
+  font-size: 14px;
+}
+.bmiLimitationLead {
+  margin: 0;
+  color: var(--ink2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.bmiLimitationList {
+  margin: 0;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+.bmiLimitationList li b {
+  color: var(--ink);
+}
+.bmiLimitationAdvice {
+  background: rgba(56, 189, 248, 0.1);
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: #e2e8f0;
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+}
+.bmiLimitationAdvice b {
+  color: #38bdf8;
+}
+
+/* Responsive & Mobile Touch Ergonomics cho Bảng BMI */
+@media (max-width: 640px) {
+  .bodyParamsPanel {
+    top: auto;
+    bottom: 12px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    max-height: 65vh;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.65);
+    z-index: 100;
+  }
+  .bodyParamsPanel.isCompact {
+    max-height: 38vh;
+  }
+  .compactToggleBtn {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 10.5px;
+  }
+  .genderBtn {
+    min-height: 40px;
+    font-size: 11.5px;
+  }
+  .fatToggleBtn {
+    min-height: 42px;
+    font-size: 11.5px;
+  }
+  .bmiPresetBtns button {
+    min-height: 34px;
+    padding: 6px 9px;
+    font-size: 10.5px;
+  }
+  .resetParamsBtn {
+    min-height: 38px;
+    font-size: 11px;
+  }
+}
+
+
