@@ -214,7 +214,6 @@ export default function App() {
         onCycleTheme={cycleTheme}
         onShare={onShare}
         shareStatus={shareStatus}
-        onOpenCoffee={() => setShowCoffee(true)}
       />
       <div className={`app${mode === 'detail' ? ' isDetailMode' : ''}`}>
         <Sidebar
@@ -267,18 +266,6 @@ export default function App() {
               title="Khám phá mô hình 3D chi tiết & vi thể 11 cơ quan nội tạng & hệ sinh dục nữ"
             >
               Chi tiết cơ quan (11 cơ quan)
-            </button>
-
-            {/* Tab Buy Me A Coffee nổi bật & tinh tế */}
-            <button
-              type="button"
-              className="tab tabCoffee"
-              onClick={() => setShowCoffee(true)}
-              title="Mời tách cà phê tiếp sức cho dự án phi lợi nhuận"
-            >
-              <span className="tabCoffeeIcon">☕</span>
-              <span className="tabCoffeeTitle">Buy Me A Coffee</span>
-              <span className="tabCoffeeBadge">Ủng hộ</span>
             </button>
             {!activeTour && (
               <div className="tourpicker" role="group" aria-label="Hành trình dẫn dắt chu trình">

@@ -13,10 +13,9 @@ export interface HeaderProps {
   onCycleTheme: () => void;
   onShare: () => void;
   shareStatus: string | null;
-  onOpenCoffee?: () => void;
 }
 
-export default function Header({ theme, onCycleTheme, onShare, shareStatus, onOpenCoffee }: HeaderProps) {
+export default function Header({ theme, onCycleTheme, onShare, shareStatus }: HeaderProps) {
   return (
     <header className="topPro">
       <div className="topMain">
@@ -50,17 +49,6 @@ export default function Header({ theme, onCycleTheme, onShare, shareStatus, onOp
             </a>
           </div>
           <div className="headerActions">
-            {onOpenCoffee && (
-              <button
-                type="button"
-                className="coffeeHdrBtn"
-                onClick={onOpenCoffee}
-                title="Mời tách cà phê tiếp sức cho dự án phi lợi nhuận"
-              >
-                <span className="coffeeHdrIcon">☕</span>
-                <span className="coffeeHdrText">Buy Me A Coffee</span>
-              </button>
-            )}
             <button className="hdrBtn" onClick={onCycleTheme} title="Chuyển đổi giao diện">
               {THEME_LABEL[theme]}
             </button>
