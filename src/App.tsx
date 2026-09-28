@@ -8,6 +8,7 @@ import InfoPanel from './components/InfoPanel';
 import OnboardingHint from './components/OnboardingHint';
 import TourBar from './components/TourBar';
 import OrganDetail from './components/OrganDetail';
+import CoffeeModal from './components/CoffeeModal';
 import { NOTE_TO_ORGAN } from './organs/organData';
 import { useAtlas } from './data/useAtlas';
 import { LAYERS, NOTE_BY_ID } from './content/notes';
@@ -66,6 +67,7 @@ export default function App() {
     }
   });
   const [activeTour, setActiveTour] = useState<ActiveTour | null>(null);
+  const [showCoffee, setShowCoffee] = useState(false);
 
   const dismissOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -207,7 +209,13 @@ export default function App() {
 
   return (
     <div className="wrap">
-      <Header theme={theme} onCycleTheme={cycleTheme} onShare={onShare} shareStatus={shareStatus} />
+      <Header
+        theme={theme}
+        onCycleTheme={cycleTheme}
+        onShare={onShare}
+        shareStatus={shareStatus}
+        onOpenCoffee={() => setShowCoffee(true)}
+      />
       <div className={`app${mode === 'detail' ? ' isDetailMode' : ''}`}>
         <Sidebar
           atlas={atlas}
@@ -259,6 +267,18 @@ export default function App() {
               title="Khám phá mô hình 3D chi tiết & vi thể 11 cơ quan nội tạng & hệ sinh dục nữ"
             >
               Chi tiết cơ quan (11 cơ quan)
+            </button>
+
+            {/* Tab Buy Me A Coffee nổi bật & tinh tế */}
+            <button
+              type="button"
+              className="tab tabCoffee"
+              onClick={() => setShowCoffee(true)}
+              title="Mời tách cà phê tiếp sức cho dự án phi lợi nhuận"
+            >
+              <span className="tabCoffeeIcon">☕</span>
+              <span className="tabCoffeeTitle">Buy Me A Coffee</span>
+              <span className="tabCoffeeBadge">Ủng hộ</span>
             </button>
             {!activeTour && (
               <div className="tourpicker" role="group" aria-label="Hành trình dẫn dắt chu trình">
@@ -468,7 +488,18 @@ export default function App() {
           </aside>
         )}
       </div>
-      <Footer />
+      <Footer onOpenCoffee={() => setShowCoffee(true)} />
+      <button
+        type="button"
+        className="floatingCoffeeTab"
+        onClick={() => setShowCoffee(true)}
+        title="Mời tách cà phê tiếp sức cho dự án"
+        aria-label="Buy Me A Coffee"
+      >
+        <span className="floatingCoffeeIcon">☕</span>
+        <span className="floatingCoffeeText">Buy Me A Coffee</span>
+      </button>
+      <CoffeeModal isOpen={showCoffee} onClose={() => setShowCoffee(false)} />
     </div>
   );
 }

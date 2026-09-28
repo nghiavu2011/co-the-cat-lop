@@ -1,6 +1,10 @@
 import BrandLogo from './BrandLogo';
 
-export default function Footer() {
+interface FooterProps {
+  onOpenCoffee?: () => void;
+}
+
+export default function Footer({ onOpenCoffee }: FooterProps) {
   return (
     <footer className="footerRefined">
       {/* KHỐI TRỌNG TÂM CHÍNH - TINH TẾ, ĐẲNG CẤP */}
@@ -29,6 +33,16 @@ export default function Footer() {
             <span className="zaloBadge">Zalo</span>
             <span className="phoneText">+84 985 578 385</span>
           </a>
+          {onOpenCoffee && (
+            <button
+              type="button"
+              className="footerCoffeeBtn"
+              onClick={onOpenCoffee}
+              title="Mời tách cà phê tiếp sức cho dự án"
+            >
+              ☕ Mời cà phê dự án
+            </button>
+          )}
         </div>
       </div>
 
