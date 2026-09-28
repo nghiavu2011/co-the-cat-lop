@@ -1,10 +1,28 @@
+import { useRef } from 'react';
 import BrandLogo from './BrandLogo';
 
 interface FooterProps {
   onOpenCoffee?: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export default function Footer({ onOpenCoffee }: FooterProps) {
+export default function Footer({ onOpenCoffee, onOpenAdmin }: FooterProps) {
+  const clickCountRef = useRef(0);
+  const lastClickRef = useRef(0);
+
+  const handleSecretAdminTrigger = () => {
+    const now = performance.now();
+    if (now - lastClickRef.current < 600) {
+      clickCountRef.current += 1;
+      if (clickCountRef.current >= 5) {
+        clickCountRef.current = 0;
+        onOpenAdmin?.();
+      }
+    } else {
+      clickCountRef.current = 1;
+    }
+    lastClickRef.current = now;
+  };
   return (
     <footer className="footerRefined">
       {/* KHỐI TRỌNG TÂM CHÍNH - TINH TẾ, ĐẲNG CẤP */}
@@ -64,7 +82,13 @@ export default function Footer({ onOpenCoffee }: FooterProps) {
 
       {/* DÒNG COPYRIGHT CUỐI */}
       <div className="footerCopyright">
-        <span>© 2026 <b>N&Mstudio Human Anatomy</b>. All rights reserved.</span>
+        <span
+          onClick={handleSecretAdminTrigger}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          title="N&Mstudio Human Anatomy"
+        >
+          © 2026 <b>N&Mstudio Human Anatomy</b>. All rights reserved.
+        </span>
         <span>
           Hotline / Zalo: <a href="https://zalo.me/0985578385" target="_blank" rel="noreferrer">+84 985 578 385</a>
         </span>

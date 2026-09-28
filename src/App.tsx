@@ -9,6 +9,15 @@ import OnboardingHint from './components/OnboardingHint';
 import TourBar from './components/TourBar';
 import OrganDetail from './components/OrganDetail';
 import CoffeeModal from './components/CoffeeModal';
+import AdminDashboard from './components/AdminDashboard';
+import DemographicsSurvey from './components/DemographicsSurvey';
+import {
+  initTelemetrySession,
+  trackGenderChoice,
+  trackMode,
+  trackOrganView,
+  trackSearch,
+} from './telemetry';
 import { NOTE_TO_ORGAN } from './organs/organData';
 import { useAtlas } from './data/useAtlas';
 import { LAYERS, NOTE_BY_ID } from './content/notes';
@@ -68,6 +77,56 @@ export default function App() {
   });
   const [activeTour, setActiveTour] = useState<ActiveTour | null>(null);
   const [showCoffee, setShowCoffee] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  // ---------- khởi tạo telemetry & lắng nghe phím tắt admin ----------
+  useEffect(() => {
+    initTelemetrySession();
+
+    const checkHash = () => {
+      if (window.location.hash.toLowerCase() === '#admin') {
+        setShowAdmin(true);
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+
+    const onKeyAdmin = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && e.key.toUpperCase() === 'A') {
+        e.preventDefault();
+        setShowAdmin((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKeyAdmin);
+
+    return () => {
+      window.removeEventListener('hashchange', checkHash);
+      window.removeEventListener('keydown', onKeyAdmin);
+    };
+  }, []);
+
+  // ---------- theo dõi tương tác người dùng ----------
+  useEffect(() => {
+    if (selection?.kind === 'note' && selection.id) {
+      trackOrganView(selection.id);
+    }
+  }, [selection]);
+
+  useEffect(() => {
+    trackMode(mode);
+  }, [mode]);
+
+  useEffect(() => {
+    trackGenderChoice(gender);
+  }, [gender]);
+
+  useEffect(() => {
+    if (!query.trim()) return;
+    const timer = setTimeout(() => {
+      trackSearch(query);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const dismissOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -475,7 +534,11 @@ export default function App() {
           </aside>
         )}
       </div>
-      <Footer onOpenCoffee={() => setShowCoffee(true)} />
+      <DemographicsSurvey />
+      <Footer
+        onOpenCoffee={() => setShowCoffee(true)}
+        onOpenAdmin={() => setShowAdmin(true)}
+      />
       <button
         type="button"
         className="floatingCoffeeTab"
@@ -487,6 +550,7 @@ export default function App() {
         <span className="floatingCoffeeText">Buy Me A Coffee</span>
       </button>
       <CoffeeModal isOpen={showCoffee} onClose={() => setShowCoffee(false)} />
+      <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
     </div>
   );
 }

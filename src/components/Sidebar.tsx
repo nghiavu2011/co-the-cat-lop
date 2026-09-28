@@ -5,6 +5,7 @@ import { SYSTEMS } from '../data/systems';
 import { buildBinding } from '../data/bind';
 import { BODY_INSIGHTS } from '../content/insights';
 import { translateAnatomyName } from '../content/anatomyDict';
+import { sanitizeInput } from '../security';
 import type { AtlasJSON, SystemId } from '../data/types';
 import type { Selection } from '../selection';
 
@@ -85,7 +86,7 @@ export default function Sidebar({
           placeholder="Tìm bộ phận hoặc hiện tượng: đau lưng, nấc, sặc, gan..."
           autoComplete="off"
           value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
+          onChange={(e) => onQueryChange(sanitizeInput(e.target.value))}
         />
       </div>
 
