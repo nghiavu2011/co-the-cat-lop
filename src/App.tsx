@@ -9,6 +9,7 @@ import OnboardingHint from './components/OnboardingHint';
 import TourBar from './components/TourBar';
 import OrganDetail from './components/OrganDetail';
 import CoffeeModal from './components/CoffeeModal';
+import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
 import DemographicsSurvey from './components/DemographicsSurvey';
 import {
@@ -539,16 +540,7 @@ export default function App() {
         onOpenCoffee={() => setShowCoffee(true)}
         onOpenAdmin={() => setShowAdmin(true)}
       />
-      <button
-        type="button"
-        className="floatingCoffeeTab"
-        onClick={() => setShowCoffee(true)}
-        title="Mời tách cà phê tiếp sức cho dự án"
-        aria-label="Buy Me A Coffee"
-      >
-        <span className="floatingCoffeeIcon">☕</span>
-        <span className="floatingCoffeeText">Buy Me A Coffee</span>
-      </button>
+      <SideDonateWidget onOpenModal={() => setShowCoffee(true)} />
       <CoffeeModal isOpen={showCoffee} onClose={() => setShowCoffee(false)} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
     </div>

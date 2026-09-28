@@ -2868,6 +2868,275 @@ input, textarea {
   border-top: 1px solid #21262d;
 }
 
+/* ==========================================================================
+   KHUNG QR TRỰC DIỆN BÊN CẠNH (SIDE DONATE WIDGET - TECHCOMBANK & MOMO)
+   ========================================================================== */
+.sideDonateContainer {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 998;
+  width: 195px;
+  background: rgba(15, 20, 28, 0.96);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(245, 158, 11, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
 
+.sideDonateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+.sideDonateTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sideDonateCoffeeIcon {
+  font-size: 15px;
+}
+.sideDonateHeaderTitle {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.03em;
+}
+.sideDonateMinBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #8b949e;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.sideDonateMinBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
 
+.sideDonatePrompt {
+  margin: 0;
+  font-size: 10px;
+  color: #8b949e;
+  line-height: 1.35;
+}
 
+/* THẺ QR TECHCOM & MOMO */
+.sideQrCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.sideQrCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.sideQrCard.tcbCard:hover {
+  border-color: #ea1d25;
+}
+.sideQrCard.momoCard:hover {
+  border-color: #a50064;
+}
+
+.sideQrCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
+  gap: 4px;
+}
+.bankBadge {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+.bankBadge.tcb {
+  background: #ea1d25;
+  color: #fff;
+}
+.bankBadge.momo {
+  background: #a50064;
+  color: #fff;
+}
+.bankName {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f0f6fc;
+}
+.napasBadge {
+  font-family: var(--f-mono);
+  font-size: 8.5px;
+  color: #8b949e;
+}
+.napasBadge.momoSub {
+  color: #d175ab;
+}
+
+/* KHUNG TRẮNG CHỨA MÃ QR ĐỂ QUÉT TỐI ƯU CAMERA */
+.sideQrImgWrapper {
+  background: #ffffff;
+  padding: 4px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sideQrImage {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  display: block;
+  border-radius: 3px;
+}
+
+/* DÒNG SỐ TÀI KHOẢN VÀ NÚT CHÉP */
+.sideQrStkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 6px;
+  gap: 4px;
+}
+.sideQrStk {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.03em;
+}
+.sideQrCopyBtn {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.sideQrCopyBtn:hover {
+  background: #f59e0b;
+  color: #111;
+}
+.sideQrCopyBtn.copied {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.sideQrSub {
+  font-size: 9px;
+  color: #6e7681;
+  margin-top: 3px;
+}
+
+/* NÚT XEM TOÀN BỘ CHI TIẾT */
+.sideDonateFullBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #c9d1d9;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  display: block;
+  width: 100%;
+}
+.sideDonateFullBtn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* GIAO DIỆN THU GỌN KHI BẤM ✕ HOẶC TRÊN THIẾT BỊ DI ĐỘNG */
+.sideDonateMinimized {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 998;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(21, 27, 34, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
+  color: #f59e0b;
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 16px rgba(245, 158, 11, 0.2);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: floatPulse 4s ease-in-out infinite;
+}
+.sideDonateMinimized:hover {
+  background: #f59e0b;
+  color: #111;
+  border-color: #f59e0b;
+  transform: translateY(-2px) scale(1.03);
+}
+.sideDonateMinBadge {
+  background: #ea1d25;
+  color: #fff;
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* RESPONSIVE TRÊN MÀN HÌNH NHỎ (TABLET / MOBILE) */
+@media (max-width: 900px) {
+  .sideDonateContainer {
+    width: 165px;
+    right: 8px;
+    bottom: 8px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .sideQrCard {
+    padding: 6px 4px;
+  }
+}
