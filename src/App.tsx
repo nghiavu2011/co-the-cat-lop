@@ -4,7 +4,7 @@ import Peel2D from './components/Peel2D';
 import View3D from './components/View3D';
 import InfoPanel from './components/InfoPanel';
 import TourBar from './components/TourBar';
-import OrganDetail from './components/OrganDetail';
+import QuickOrganDock, { type QuickOrganDef } from './components/QuickOrganDock';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
@@ -19,7 +19,6 @@ import {
   trackOrganView,
   trackSearch,
 } from './telemetry';
-import { NOTE_TO_ORGAN } from './organs/organData';
 import { useAtlas } from './data/useAtlas';
 import { NOTE_BY_ID } from './content/notes';
 import { TOURS, type Tour } from './content/tours';
@@ -30,7 +29,7 @@ import type { Selection } from './selection';
 
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 
-type Mode = '2d' | '3d' | 'detail';
+type Mode = '2d' | '3d';
 
 interface ActiveTour {
   tour: Tour;
@@ -43,7 +42,7 @@ function AppInner() {
   const { atlas, error: atlasError } = useAtlas(gender);
 
   const initialUrl = useMemo(() => readUrlState(), []);
-  const [mode, setMode] = useState<Mode>(initialUrl.mode ?? '3d');
+  const [mode, setMode] = useState<Mode>(initialUrl.mode === '2d' ? '2d' : '3d');
   const [axis, setAxis] = useState(0);
   const [sliceT, setSliceT] = useState(0);
   const [activeSystem, setActiveSystem] = useState<SystemId | null>(initialUrl.activeSystem ?? null);
@@ -65,6 +64,7 @@ function AppInner() {
   const [isolatedTargetId, setIsolatedTargetId] = useState<string | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [focusKey, setFocusKey] = useState(0);
 
   const [soundOn, setSoundOn] = useState(() => {
     try {
@@ -245,6 +245,30 @@ function AppInner() {
   };
   const tourExit = () => setActiveTour(null);
 
+  const handleSelectQuickOrgan = (organ: QuickOrganDef) => {
+    setActiveTour(null);
+    if (organ.noteId === null) {
+      // Toàn thân (Full Body Reset)
+      setSelection(null);
+      setPeelDepth(100);
+      setActiveSystem(null);
+      setIsolatedTargetId(null);
+      setHiddenPartIds(new Set());
+      setGhostPartIds(new Set());
+      setSliceT(0);
+      setIsInfoOpen(false);
+      setFocusKey((k) => k + 1);
+    } else {
+      // Chọn cơ quan cụ thể (Tim, Não, Phổi, Thận, Gan, Dạ dày...)
+      setSelection({ kind: 'note', id: organ.noteId });
+      setPeelDepth(organ.peel);
+      if (organ.system) setActiveSystem(organ.system as SystemId);
+      setIsolatedTargetId(null);
+      setIsInfoOpen(true);
+      setFocusKey((k) => k + 1);
+    }
+  };
+
   // Sound
   useEffect(() => {
     if (!soundOn || selection?.kind !== 'note') {
@@ -346,14 +370,7 @@ function AppInner() {
         gender={gender}
         onToggleGender={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
         mode={mode}
-        onChangeMode={(m) => {
-          setMode(m);
-          if (m === 'detail') {
-            if (!selection || selection.kind !== 'note' || !(selection.id in NOTE_TO_ORGAN)) {
-              setSelection({ kind: 'note', id: 'tim' });
-            }
-          }
-        }}
+        onChangeMode={(m) => setMode(m)}
         explode={explode}
         onChangeExplode={setExplode}
         axis={axis}
@@ -362,6 +379,12 @@ function AppInner() {
         onChangeSliceT={setSliceT}
         soundOn={soundOn}
         onToggleSound={toggleSound}
+      />
+
+      {/* 3. DẢI TAB CHỌN NHANH CƠ QUAN DƯỚI CÙNG BÊN TRÁI (TIM, NÃO, PHỔI, THẬN, GAN, TOÀN THÂN...) */}
+      <QuickOrganDock
+        activeNoteId={selection?.kind === 'note' ? selection.id : null}
+        onSelectOrgan={handleSelectQuickOrgan}
       />
 
       {/* 4. TOÀN BỘ KHUNG NHÌN 3D KHÔNG GIAN RỘNG THÊNH THANG */}
@@ -375,11 +398,6 @@ function AppInner() {
             showGhost={showGhost}
             selectedId={selection?.kind === 'note' ? selection.id : null}
             onPick={(id) => onPick({ kind: 'note', id })}
-          />
-        ) : mode === 'detail' ? (
-          <OrganDetail
-            noteId={selection?.kind === 'note' ? selection.id : null}
-            onSelectNote={(noteId) => onPick({ kind: 'note', id: noteId })}
           />
         ) : atlasError ? (
           <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
@@ -411,6 +429,7 @@ function AppInner() {
               ghostPartIds={ghostPartIds}
               isolatedTargetId={isolatedTargetId}
               explode={explode}
+              focusKey={focusKey}
             />
           </>
         ) : (
@@ -467,9 +486,8 @@ function AppInner() {
               setIsInfoOpen(false);
               setShowBodyParams(false);
             }}
-            onOpenDetail={() => {
-              setMode('detail');
-              setActiveTour(null);
+            onFocusOrgan={() => {
+              setFocusKey((k) => k + 1);
             }}
           />
         </aside>

@@ -215,6 +215,7 @@ export interface View3DProps {
   ghostPartIds?: Set<string>;
   isolatedTargetId?: string | null;
   explode?: number;
+  focusKey?: number;
 }
 
 interface SystemPBRProfile {
@@ -445,6 +446,7 @@ export default function View3D({
   ghostPartIds,
   isolatedTargetId,
   explode: explodeProp,
+  focusKey,
 }: View3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState<LoadProgress | null>(null);
@@ -1461,6 +1463,17 @@ export default function View3D({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isolatedTargetId, ready]);
+
+  useEffect(() => {
+    if (focusKey && focusKey > 0 && ready) {
+      if (selection) {
+        focusOnSelection();
+      } else {
+        setCameraPreset('reset');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusKey, ready]);
 
   // ---------- mặt phẳng cắt ----------
   useEffect(() => {

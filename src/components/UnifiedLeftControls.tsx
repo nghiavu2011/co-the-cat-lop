@@ -9,8 +9,8 @@ export interface UnifiedLeftControlsProps {
   onToggleGender: () => void;
 
   // 2. Merged Tools (3D/2D, Cắt lớp, Tách lớp, Âm thanh)
-  mode: '3d' | '2d' | 'detail';
-  onChangeMode: (m: '3d' | '2d' | 'detail') => void;
+  mode: '3d' | '2d';
+  onChangeMode: (m: '3d' | '2d') => void;
   axis: number;
   onChangeAxis: (axis: number) => void;
   sliceT: number;

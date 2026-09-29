@@ -4,7 +4,6 @@ import { SYSTEM_BY_ID, defaultSystemFor } from '../data/systems';
 import { buildBinding } from '../data/bind';
 import { PHYSICAL_MECHANISMS, BODY_INSIGHTS } from '../content/insights';
 import { getAnatomicalInsight } from '../content/anatomyDict';
-import { NOTE_TO_ORGAN, ORGAN_BY_ID } from '../organs/organData';
 import { useLocale } from '../locale/useLocale';
 import type { AtlasJSON } from '../data/types';
 import type { Selection } from '../selection';
@@ -13,7 +12,7 @@ export interface InfoPanelProps {
   selection: Selection | null;
   atlas: AtlasJSON | null;
   mode: '2d' | '3d';
-  onOpenDetail?: () => void;
+  onFocusOrgan?: () => void;
   onClose?: () => void;
   onOpenSidebar?: () => void;
 }
@@ -138,7 +137,7 @@ function RawPartCard({
   );
 }
 
-export default function InfoPanel({ selection, atlas, mode, onOpenDetail, onClose, onOpenSidebar }: InfoPanelProps) {
+export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onClose, onOpenSidebar }: InfoPanelProps) {
   const { t, locale } = useLocale();
 
   if (!selection) return <Intro />;
@@ -201,9 +200,9 @@ export default function InfoPanel({ selection, atlas, mode, onOpenDetail, onClos
         <h2>{locale === 'en' ? note.e : note.n}</h2>
         <div className="en">{locale === 'en' ? `VN: ${note.n}` : note.e}</div>
 
-        {onOpenDetail && note.i in NOTE_TO_ORGAN && (
-          <button type="button" className="organDetailCta" onClick={onOpenDetail}>
-            {t('info.viewOrgan')} ({ORGAN_BY_ID[NOTE_TO_ORGAN[note.i]]?.name})
+        {onFocusOrgan && (
+          <button type="button" className="organDetailCta" onClick={onFocusOrgan}>
+            🔍 {locale === 'en' ? 'Focus & Inspect Organ in 3D' : 'Phóng to & Quan sát cận cảnh 3D'}
           </button>
         )}
       </div>

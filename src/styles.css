@@ -4882,5 +4882,75 @@ input, textarea {
   color: #2563eb;
 }
 
-
-
+/* 8. TAB CHỌN NHANH CƠ QUAN DƯỚI CÙNG BÊN TRÁI (QUICK ORGAN DOCK) */
+.quickOrganDock {
+  position: absolute;
+  left: 80px;
+  bottom: 20px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(248, 246, 240, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 30px;
+  padding: 4px 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  overflow-x: auto;
+  max-width: calc(100vw - 110px);
+  animation: contextHudSlideUp 0.2s ease;
+  scrollbar-width: none;
+}
+.quickOrganDock::-webkit-scrollbar {
+  display: none;
+}
+[data-theme="dark"] .quickOrganDock {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+}
+.quickOrganBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .quickOrganBtn {
+  color: #cbd5e1;
+}
+.quickOrganBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+[data-theme="dark"] .quickOrganBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+.quickOrganBtn.active {
+  background: #2563eb;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+.quickOrganBtn .organIcon {
+  font-size: 13px;
+  line-height: 1;
+}
+@media (max-width: 768px) {
+  .quickOrganDock {
+    left: 12px;
+    bottom: 16px;
+    max-width: calc(100vw - 24px);
+  }
+}
