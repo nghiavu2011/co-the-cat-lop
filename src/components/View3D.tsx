@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { AtlasJSON, AtlasPart, SystemId } from '../data/types';
 import { loadAllChunks, type LoadProgress } from '../data/loader';
@@ -190,6 +190,7 @@ export interface View3DProps {
   hiddenPartIds?: Set<string>;
   ghostPartIds?: Set<string>;
   isolatedTargetId?: string | null;
+  explode?: number;
 }
 
 interface SystemPBRProfile {
@@ -419,14 +420,15 @@ export default function View3D({
   hiddenPartIds,
   ghostPartIds,
   isolatedTargetId,
+  explode: explodeProp,
 }: View3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState<LoadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  const [explode, setExplode] = useState(0);
-  const [isIsolated, setIsIsolated] = useState(false);
+  const explode = explodeProp ?? 0;
+  const isIsolated = Boolean(isolatedTargetId);
   const pinRef = useRef<HTMLDivElement>(null);
   const selRef = useRef<Selection | null>(selection);
   selRef.current = selection;
@@ -509,6 +511,39 @@ export default function View3D({
   const reducedMotionRef = useRef(
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
   );
+  const setCameraPreset = useCallback((view: 'front' | 'back' | 'left' | 'right' | 'top' | 'reset') => {
+    lastInteractRef.current = performance.now();
+    switch (view) {
+      case 'front':
+        camState.current.destTheta = 0;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'back':
+        camState.current.destTheta = Math.PI;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'left':
+        camState.current.destTheta = -Math.PI / 2;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'right':
+        camState.current.destTheta = Math.PI / 2;
+        camState.current.destPhi = Math.PI / 2;
+        break;
+      case 'top':
+        camState.current.destTheta = 0;
+        camState.current.destPhi = 0.25;
+        break;
+      case 'reset':
+        camState.current.destTheta = 0.34;
+        camState.current.destPhi = 1.46;
+        camState.current.destRadius = 3.0;
+        camState.current.destTargetX = 0;
+        camState.current.destTargetY = 0.92;
+        camState.current.destTargetZ = 0;
+        break;
+    }
+  }, []);
 
   // ---------- dựng cảnh một lần khi atlas sẵn sàng ----------
   useEffect(() => {
@@ -983,17 +1018,26 @@ export default function View3D({
 
     const onZygoteCamera = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail === 'zoom-in') {
+      const act = customEvent.detail;
+      lastInteractRef.current = performance.now();
+      if (act === 'zoom-in') {
         camState.current.radius = Math.max(0.6, camState.current.radius * 0.85);
-      } else if (customEvent.detail === 'zoom-out') {
+        camState.current.destRadius = camState.current.radius;
+      } else if (act === 'zoom-out') {
         camState.current.radius = Math.min(6.0, camState.current.radius * 1.18);
-      } else if (customEvent.detail === 'reset') {
-        camState.current.radius = 2.2;
-        camState.current.phi = Math.PI / 2;
-        camState.current.theta = 0;
-        camState.current.targetX = 0;
-        camState.current.targetY = 0.9;
-        camState.current.targetZ = 0;
+        camState.current.destRadius = camState.current.radius;
+      } else if (act === 'orbit-up') {
+        camState.current.destPhi = Math.max(0.15, camState.current.destPhi - 0.25);
+      } else if (act === 'orbit-down') {
+        camState.current.destPhi = Math.min(Math.PI - 0.15, camState.current.destPhi + 0.25);
+      } else if (act === 'orbit-left') {
+        camState.current.destTheta -= 0.35;
+      } else if (act === 'orbit-right') {
+        camState.current.destTheta += 0.35;
+      } else if (act === 'reset') {
+        setCameraPreset('reset');
+      } else if (['front', 'back', 'left', 'right', 'top'].includes(act)) {
+        setCameraPreset(act as any);
       }
     };
     window.addEventListener('zygote-camera-action', onZygoteCamera);
@@ -1383,6 +1427,13 @@ export default function View3D({
     }
   };
 
+  useEffect(() => {
+    if (isolatedTargetId && ready) {
+      focusOnSelection();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isolatedTargetId, ready]);
+
   const selectedLabelText = useMemo(() => {
     if (!selection) return '';
     if (selection.kind === 'note') {
@@ -1430,40 +1481,6 @@ export default function View3D({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection, ready]);
 
-  const setCameraPreset = (view: 'front' | 'back' | 'left' | 'right' | 'top' | 'reset') => {
-    lastInteractRef.current = performance.now();
-    switch (view) {
-      case 'front':
-        camState.current.destTheta = 0;
-        camState.current.destPhi = Math.PI / 2;
-        break;
-      case 'back':
-        camState.current.destTheta = Math.PI;
-        camState.current.destPhi = Math.PI / 2;
-        break;
-      case 'left':
-        camState.current.destTheta = -Math.PI / 2;
-        camState.current.destPhi = Math.PI / 2;
-        break;
-      case 'right':
-        camState.current.destTheta = Math.PI / 2;
-        camState.current.destPhi = Math.PI / 2;
-        break;
-      case 'top':
-        camState.current.destTheta = 0;
-        camState.current.destPhi = 0.25;
-        break;
-      case 'reset':
-        camState.current.destTheta = 0.34;
-        camState.current.destPhi = 1.46;
-        camState.current.destRadius = 3.0;
-        camState.current.destTargetX = 0;
-        camState.current.destTargetY = 0.92;
-        camState.current.destTargetZ = 0;
-        break;
-    }
-  };
-
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
@@ -1488,87 +1505,7 @@ export default function View3D({
 
       {ready && (
         <>
-          <div className="view3dTools">
-            <span className="view3dToolsTitle">Góc nhìn:</span>
-            <button type="button" onClick={() => setCameraPreset('front')} title="Góc nhìn chính diện">
-              Trước
-            </button>
-            <button type="button" onClick={() => setCameraPreset('back')} title="Góc nhìn từ sau lưng">
-              Sau
-            </button>
-            <button type="button" onClick={() => setCameraPreset('left')} title="Góc nhìn nghiêng trái">
-              Trái
-            </button>
-            <button type="button" onClick={() => setCameraPreset('right')} title="Góc nhìn nghiêng phải">
-              Phải
-            </button>
-            <button type="button" onClick={() => setCameraPreset('top')} title="Góc nhìn từ đỉnh đầu">
-              Đỉnh
-            </button>
-            <button type="button" onClick={() => setCameraPreset('reset')} className="resetBtn" title="Đặt lại camera & điểm nhìn">
-              ↺ Đặt lại
-            </button>
 
-            {/* Bóc tách / Tách lớp theo không gian (Exploded View) */}
-            <div className="explodeControl" title="Bóc tách / Tách rời các lớp cơ thể theo không gian (0 - 100%)">
-              <span>⤢ Tách lớp:</span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={explode}
-                onChange={(e) => setExplode(Number(e.target.value))}
-              />
-              <b>{explode}%</b>
-            </div>
-
-            {/* Chế độ cô lập bộ phận đang chọn (Isolate / Solo) */}
-            {selection && (
-              <button
-                type="button"
-                onClick={() => {
-                  const next = !isIsolated;
-                  setIsIsolated(next);
-                  if (next) focusOnSelection();
-                }}
-                className={isIsolated ? 'activeBtn isolateBtn' : 'isolateBtn'}
-                title={isIsolated ? 'Hiện lại tất cả cơ quan xung quanh' : 'Chỉ hiển thị riêng cơ quan đang chọn'}
-              >
-                {isIsolated ? '✕ Thoát cô lập' : '👁 Cô lập'}
-              </button>
-            )}
-
-            {/* Mô phỏng thể trạng & BMI (Body Parameters) */}
-            <button
-              type="button"
-              onClick={() => setShowBodyParams(!showBodyParams)}
-              className={showBodyParams ? 'activeBtn bodyParamsBtn' : 'bodyParamsBtn'}
-              title="Mô phỏng thể trạng: Chiều cao, Cân nặng, BMI, Tuổi"
-            >
-              ⚖ Thể trạng (BMI)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onGenderChange?.(gender === 'male' ? 'female' : 'male')}
-              title="Chuyển đổi giải phẫu cơ thể Nam / Nữ"
-              style={{
-                borderColor: gender === 'female' ? '#e91e63' : undefined,
-                color: gender === 'female' ? '#f06292' : undefined,
-                fontWeight: 600,
-              }}
-            >
-              {gender === 'female' ? '♀ Nữ' : '♂ Nam'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              title={isFullscreen ? 'Thu nhỏ lại (Esc)' : 'Xem toàn màn hình'}
-              className="fsToggleBtn"
-            >
-              {isFullscreen ? '✕ Thu nhỏ' : '⛶ Toàn màn hình'}
-            </button>
-          </div>
 
           {/* Bảng điều khiển mô phỏng Thể trạng & BMI */}
           {showBodyParams && (

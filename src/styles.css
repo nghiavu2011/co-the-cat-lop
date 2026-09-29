@@ -3367,26 +3367,33 @@ input, textarea {
 /* 5. CỤM CÔNG CỤ NGỮ CẢNH VISIBLE BODY (CONTEXT ACTION HUD) */
 .contextHudContainer {
   position: absolute;
-  top: 20px;
+  bottom: 84px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
+  z-index: 45;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(230, 198, 135, 0.45);
-  border-radius: 100px;
-  padding: 6px 16px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(230, 198, 135, 0.2);
-  animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-direction: row;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  animation: contextHudSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
-@keyframes slideDownFade {
+[data-theme="light"] .contextHudContainer {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+@keyframes contextHudSlideUp {
   from {
     opacity: 0;
-    transform: translate(-50%, -10px);
+    transform: translate(-50%, 14px);
   }
   to {
     opacity: 1;
@@ -3396,8 +3403,7 @@ input, textarea {
 .contextHudTarget {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-bottom: 2px;
+  gap: 7px;
 }
 .contextHudTargetDot {
   width: 7px;
@@ -3405,22 +3411,35 @@ input, textarea {
   border-radius: 50%;
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
+  flex-shrink: 0;
 }
 .contextHudTargetName {
-  font-family: var(--f-display);
-  font-size: 13.5px;
+  font-family: var(--f-display, system-ui);
+  font-size: 13px;
   font-weight: 700;
   color: #fff;
-  letter-spacing: 0.02em;
-  max-width: 280px;
+  letter-spacing: 0.01em;
+  max-width: 220px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+[data-theme="light"] .contextHudTargetName {
+  color: #0f172a;
+}
+.contextHudDivider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+[data-theme="light"] .contextHudDivider {
+  background: rgba(0, 0, 0, 0.12);
+}
 .contextHudButtons {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .contextHudBtn {
   display: inline-flex;
@@ -3431,17 +3450,27 @@ input, textarea {
   color: #e5e7eb;
   padding: 4px 10px;
   border-radius: 20px;
-  font-family: var(--f-body);
+  font-family: var(--f-body, system-ui);
   font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease;
+}
+[data-theme="light"] .contextHudBtn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #334155;
 }
 .contextHudBtn:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: #fff;
   color: #fff;
   transform: translateY(-1px);
+}
+[data-theme="light"] .contextHudBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: #0f172a;
+  color: #0f172a;
 }
 .contextHudBtn.primary {
   background: var(--brass, #e6c687);
@@ -3451,10 +3480,34 @@ input, textarea {
 }
 .contextHudBtn.primary:hover {
   background: #f3d8a0;
+  color: #111827;
 }
 .contextHudBtn.unhide {
   border-color: rgba(239, 68, 68, 0.4);
   color: #f87171;
+}
+.contextHudCloseBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.15s ease;
+  margin-left: 2px;
+}
+[data-theme="light"] .contextHudCloseBtn {
+  background: rgba(0, 0, 0, 0.06);
+  color: #64748b;
+}
+.contextHudCloseBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 /* 6. BẢNG THÔNG TIN DẠNG SLIDE-OVER SHEET (CẠNH PHẢI) */
@@ -3771,36 +3824,96 @@ input, textarea {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-/* 4. CỤM ĐIỀU HƯỚNG CAMERA (ZOOM IN/OUT / RESET HOME) DƯỚI LOGO */
+/* 4. CỤM ĐIỀU HƯỚNG CAMERA (DPAD / ZOOM / ANGLE PRESETS) DƯỚI LOGO */
 .zygoteNavControls {
   position: absolute;
-  top: 64px;
-  left: 20px;
+  top: 62px;
+  left: 18px;
   z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
 }
-.zygoteZoomCol {
+/* D-PAD Compass */
+.zygoteDpadBox {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .zygoteDpadBox {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.zygoteDpadMidRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.zygoteDpadBtn {
+  width: 26px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .zygoteDpadBtn {
+  color: #cbd5e1;
+}
+.zygoteDpadBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  transform: scale(1.08);
+}
+[data-theme="dark"] .zygoteDpadBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.zygoteDpadBtn.home {
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-theme="dark"] .zygoteDpadBtn.home {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Cặp nút Zoom */
+.zygoteZoomPair {
+  display: flex;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
-[data-theme="dark"] .zygoteZoomCol {
+[data-theme="dark"] .zygoteZoomPair {
   background: rgba(15, 23, 42, 0.92);
   border-color: rgba(255, 255, 255, 0.15);
 }
 .zygoteNavBtn {
   width: 32px;
-  height: 30px;
+  height: 26px;
   border: none;
   background: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #334155;
   cursor: pointer;
@@ -3809,8 +3922,14 @@ input, textarea {
   justify-content: center;
   transition: background 0.15s ease;
 }
+.zygoteNavBtn + .zygoteNavBtn {
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
 [data-theme="dark"] .zygoteNavBtn {
   color: #cbd5e1;
+}
+[data-theme="dark"] .zygoteNavBtn + .zygoteNavBtn {
+  border-left-color: rgba(255, 255, 255, 0.1);
 }
 .zygoteNavBtn:hover {
   background: rgba(0, 0, 0, 0.06);
@@ -3818,13 +3937,194 @@ input, textarea {
 [data-theme="dark"] .zygoteNavBtn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-.zygoteNavBtn.homeBtn {
-  font-size: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+/* Menu chọn góc nhìn chuẩn */
+.zygotePresetWrapper {
+  position: relative;
+  width: 100%;
 }
-[data-theme="dark"] .zygoteNavBtn.homeBtn {
-  border-color: rgba(255, 255, 255, 0.08);
+.zygoteAngleToggleBtn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  color: #334155;
+  font-family: var(--f-body, system-ui);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .zygoteAngleToggleBtn {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+.zygoteAngleToggleBtn:hover, .zygoteAngleToggleBtn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.zygoteAngleMenu {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 8px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 90px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+  animation: contextHudSlideUp 0.15s ease;
+}
+[data-theme="dark"] .zygoteAngleMenu {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.zygoteAngleItem {
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-family: var(--f-body, system-ui);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .zygoteAngleItem {
+  color: #cbd5e1;
+}
+.zygoteAngleItem:hover {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+[data-theme="dark"] .zygoteAngleItem:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+/* Tools Popover trong TopBar */
+.zygoteToolsWrap {
+  position: relative;
+}
+.zygoteToolsDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: contextHudSlideUp 0.18s ease;
+}
+[data-theme="dark"] .zygoteToolsDropdown {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+}
+.zygoteToolItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zygoteToolRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.zygoteToolLabel {
+  font-family: var(--f-body, system-ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+}
+[data-theme="dark"] .zygoteToolLabel {
+  color: #94a3b8;
+}
+.zygoteToolVal {
+  font-family: var(--f-mono, monospace);
+  font-size: 12px;
+  color: #2563eb;
+}
+[data-theme="dark"] .zygoteToolVal {
+  color: #60a5fa;
+}
+.zygoteToolResetBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+}
+.zygoteToolRange {
+  width: 100%;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+.zygoteToolDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 2px 0;
+}
+[data-theme="dark"] .zygoteToolDivider {
+  background: rgba(255, 255, 255, 0.1);
+}
+.zygoteToolActionBtn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  color: #1e293b;
+  font-family: var(--f-body, system-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .zygoteToolActionBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+.zygoteToolActionBtn:hover, .zygoteToolActionBtn.active {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: #2563eb;
+  color: #2563eb;
+}
+[data-theme="dark"] .zygoteToolActionBtn:hover, [data-theme="dark"] .zygoteToolActionBtn.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
 }
 
 /* 5. THANH TRƯỢT CAPSULE BÓC TÁCH ZYGOTE (MÉP TRÁI CHUẨN ZYGOTE BODY) */

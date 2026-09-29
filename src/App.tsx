@@ -138,8 +138,21 @@ function AppInner() {
     [],
   );
 
+  // Exploded view & Fullscreen
+  const [explode, setExplode] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
   // Camera Navigation trigger
-  const triggerCamera = (act: 'zoom-in' | 'zoom-out' | 'reset') => {
+  const triggerCamera = (act: string) => {
     window.dispatchEvent(new CustomEvent('zygote-camera-action', { detail: act }));
   };
 
@@ -293,13 +306,21 @@ function AppInner() {
         onOpenSidebar={() => setIsSidebarOpen((v) => !v)}
         isSidebarOpen={isSidebarOpen}
         onShare={onShare}
+        explode={explode}
+        onExplodeChange={setExplode}
+        showBodyParams={showBodyParams}
+        onToggleBodyParams={() => setShowBodyParams((v) => !v)}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
       />
 
-      {/* 2. CỤM ĐIỀU HƯỚNG CAMERA (ZOOM IN/OUT / HOME) DƯỚI LOGO */}
+      {/* 2. CỤM ĐIỀU HƯỚNG CAMERA (ZOOM IN/OUT / HOME / DPAD / GÓC NHÌN) DƯỚI LOGO */}
       <CameraControlsHUD
         onZoomIn={() => triggerCamera('zoom-in')}
         onZoomOut={() => triggerCamera('zoom-out')}
         onResetCamera={() => triggerCamera('reset')}
+        onOrbit={(dir) => triggerCamera(`orbit-${dir}`)}
+        onPresetAngle={(angle) => triggerCamera(angle)}
       />
 
       {/* 3. THANH TRƯỢT CAPSULE BÓC TÁCH ZYGOTE (MÉP TRÁI) */}
@@ -352,9 +373,10 @@ function AppInner() {
               hiddenPartIds={hiddenPartIds}
               ghostPartIds={ghostPartIds}
               isolatedTargetId={isolatedTargetId}
+              explode={explode}
             />
 
-            {/* CỤM NÚT NGỮ CẢNH VISIBLE BODY KHI CHỌN KHỐI */}
+            {/* CỤM NÚT NGỮ CẢNH VISIBLE BODY KHI CHỌN KHỐI (DOCK Ở ĐÁY) */}
             {selection && (
               <ContextActionHUD
                 selectedName={selectedDisplayName}
@@ -364,6 +386,7 @@ function AppInner() {
                 onIsolate={handleIsolateSelected}
                 onOpenInfo={() => setIsInfoOpen((v) => !v)}
                 onUnhideAll={handleUnhideAll}
+                onDeselect={() => setSelection(null)}
               />
             )}
           </>
