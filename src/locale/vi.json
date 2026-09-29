@@ -1,0 +1,96 @@
+{
+  "app": {
+    "title": "N&Mstudio Human Anatomy",
+    "subtitle": "Interactive 3D Medical Visualization Platform",
+    "tagline": "Bóc từng lớp da – cơ – xương – nội tạng, xoay cắt lát mô hình 3D thật 2.234 cấu trúc và giải mã các hiện tượng sinh lý thường nhật."
+  },
+  "nav": {
+    "mode2d": "Bóc lớp 2D",
+    "mode3d": "Cắt lát 3D thật",
+    "modeDetail": "Chi tiết vi thể",
+    "genderMale": "Nam",
+    "genderFemale": "Nữ",
+    "share": "🔗 Chia sẻ góc nhìn",
+    "copied": "✓ Đã sao chép!"
+  },
+  "theme": {
+    "system": "Giao diện: Theo máy",
+    "light": "Giao diện: Sáng",
+    "dark": "Giao diện: Tối"
+  },
+  "header": {
+    "contact": "Tư vấn & Hợp tác chuyên môn:",
+    "disclaimer": "Lưu ý y khoa & SGK: Đã bổ sung giải phẫu chi tiết hệ sinh dục và khung chậu nữ (HuBMAP HRA / NIH) song song với mô hình tham chiếu toàn thân (BodyParts3D)."
+  },
+  "slider": {
+    "title": "BÓC TÁCH LỚP",
+    "skin": "Da & Mô mỡ",
+    "muscle": "Hệ Cơ bắp",
+    "skeleton": "Khung Xương",
+    "organs": "Nội Tạng",
+    "vessels": "Mạch & Thần kinh",
+    "reset": "Khôi phục tất cả"
+  },
+  "contextAction": {
+    "hide": "Ẩn",
+    "ghost": "Làm mờ",
+    "isolate": "Cô lập",
+    "info": "Hồ sơ",
+    "unhideAll": "Hiện lại tất cả"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Tìm bộ phận hoặc hiện tượng: đau lưng, nấc, gan...",
+    "systems": "Hệ cơ quan",
+    "insights": "💡 Hiện tượng",
+    "insightsLabel": "Giải mã cảm giác",
+    "keyParts": "Bộ phận tiêu biểu",
+    "results": "Kết quả tìm kiếm",
+    "noMatch": "Không tìm thấy bộ phận phù hợp",
+    "rawParts": "Cấu trúc chi tiết (3D)"
+  },
+  "info": {
+    "introTitle": "Đọc cơ thể mình như đọc một tấm phim",
+    "location": "Vị trí giải phẫu",
+    "function": "Chức năng sinh lý học",
+    "stats": "Con số đáng nhớ",
+    "symptoms": "Dấu hiệu bất thường",
+    "advice": "Điều nên lưu ý & khi nào cần khám",
+    "mechanism": "⚙️ Cơ chế vật lý",
+    "category": "Phân loại",
+    "clinicalNote": "Lưu ý lâm sàng & sức khỏe",
+    "geoData": "Dữ liệu hình học 3D thật",
+    "insightTitle": "💡 Giải mã hiện tượng thường nhật",
+    "tip": "Lời khuyên",
+    "viewOrgan": "✨ Xem mô hình 3D chi tiết & Vi thể",
+    "noMesh": "Bộ phận này chưa có mesh trong BodyParts3D 4.0. Xem ở chế độ bóc lớp 2D.",
+    "meshCount": "cấu trúc thật được ghép vào mục này",
+    "close": "Đóng"
+  },
+  "donate": {
+    "title": "Ủng Hộ Dự Án",
+    "prompt": "Quét mã trực tiếp để tiếp sức duy trì máy chủ & phát triển mô hình 3D:",
+    "copy": "📋 Chép",
+    "copied": "✓ Đã chép",
+    "tcbSub": "Mọi App Ngân Hàng quét được",
+    "momoSub": "Quét nhanh qua App MoMo",
+    "fullBtn": "☕ Mời tách cà phê chi tiết",
+    "minText": "Ủng hộ / Mời cà phê",
+    "minTitle": "Mở mã QR ủng hộ dự án",
+    "closeTitle": "Thu gọn khung QR"
+  },
+  "tour": {
+    "step": "Bước",
+    "prev": "Quay lại",
+    "next": "Chặng tiếp theo",
+    "finish": "Hoàn tất hành trình",
+    "exit": "Thoát"
+  },
+  "footer": {
+    "desc": "Nền tảng trực quan hoá giải phẫu 3D ứng dụng WebGL và dữ liệu quét sinh học thực tế, kiến tạo trải nghiệm học tập và thấu cảm thân thể chuẩn xác cho cộng đồng.",
+    "dataTag": "Dữ liệu & Bản quyền:",
+    "medicalTag": "Khuyến cáo y khoa:",
+    "medicalText": "Mô hình giải phẫu tham chiếu phục vụ mục đích giáo dục thường thức, không thay thế chẩn đoán lâm sàng của bác sĩ chuyên khoa.",
+    "coffee": "☕ Mời cà phê dự án",
+    "contact": "Tư vấn kỹ thuật & Hợp tác chuyên môn:"
+  }
+}

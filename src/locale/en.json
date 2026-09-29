@@ -1,0 +1,96 @@
+{
+  "app": {
+    "title": "N&Mstudio Human Anatomy",
+    "subtitle": "Interactive 3D Medical Visualization Platform",
+    "tagline": "Peel layers of skin, muscle, bone and organs. Slice a real 3D model with 2,234 structures and decode everyday physiological wonders."
+  },
+  "nav": {
+    "mode2d": "2D Layer Peel",
+    "mode3d": "Real 3D Slice",
+    "modeDetail": "Microscopic Detail",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "share": "🔗 Share View",
+    "copied": "✓ Copied!"
+  },
+  "theme": {
+    "system": "Theme: Auto",
+    "light": "Theme: Light",
+    "dark": "Theme: Dark"
+  },
+  "header": {
+    "contact": "Medical & Technical Advisory:",
+    "disclaimer": "Medical & Academic Note: Female reproductive anatomy & pelvis have been fully integrated (HuBMAP HRA / NIH) alongside the full-body reference model (BodyParts3D)."
+  },
+  "slider": {
+    "title": "LAYER PEEL",
+    "skin": "Skin & Fat",
+    "muscle": "Muscular System",
+    "skeleton": "Skeletal Frame",
+    "organs": "Internal Organs",
+    "vessels": "Vessels & Nerves",
+    "reset": "Restore All"
+  },
+  "contextAction": {
+    "hide": "Hide",
+    "ghost": "Ghost",
+    "isolate": "Isolate",
+    "info": "Profile",
+    "unhideAll": "Unhide All"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Search organ or symptoms: back pain, hiccup, liver...",
+    "systems": "Systems",
+    "insights": "💡 Insights",
+    "insightsLabel": "Decoded Sensations",
+    "keyParts": "Key Structures",
+    "results": "Search Results",
+    "noMatch": "No matching structures found",
+    "rawParts": "Detailed Structures (3D)"
+  },
+  "info": {
+    "introTitle": "Read your body like an X-ray scan",
+    "location": "Anatomical Location",
+    "function": "Physiological Function",
+    "stats": "Key Facts & Numbers",
+    "symptoms": "Warning Signs",
+    "advice": "Clinical Advice & When to See a Doctor",
+    "mechanism": "⚙️ Physical Mechanism",
+    "category": "Classification",
+    "clinicalNote": "Clinical & Health Notes",
+    "geoData": "Biometric 3D Geometry",
+    "insightTitle": "💡 Everyday Phenomena Decoded",
+    "tip": "Tip",
+    "viewOrgan": "✨ View 3D High-Res & Histology",
+    "noMesh": "This structure is not yet available as a 3D mesh in BodyParts3D 4.0. Please view in 2D mode.",
+    "meshCount": "real BodyParts3D structures mapped to this item",
+    "close": "Close"
+  },
+  "donate": {
+    "title": "Support Project",
+    "prompt": "Scan directly to help fund 3D server hosting & ongoing medical research:",
+    "copy": "📋 Copy",
+    "copied": "✓ Copied",
+    "tcbSub": "Supported by all banking apps",
+    "momoSub": "Fast scan via MoMo App",
+    "fullBtn": "☕ Buy Us a Coffee (Details)",
+    "minText": "Support / Buy a Coffee",
+    "minTitle": "Open QR Donation Box",
+    "closeTitle": "Minimize QR Box"
+  },
+  "tour": {
+    "step": "Step",
+    "prev": "Previous",
+    "next": "Next Stop",
+    "finish": "Complete Tour",
+    "exit": "Exit"
+  },
+  "footer": {
+    "desc": "An interactive 3D anatomical visualization platform combining WebGL and real biometric scan data to foster bodily empathy and scientific education.",
+    "dataTag": "Data & Copyright:",
+    "medicalTag": "Medical Disclaimer:",
+    "medicalText": "Reference anatomical model for educational purposes only. Does not replace professional clinical diagnosis.",
+    "coffee": "☕ Buy Us a Coffee",
+    "contact": "Technical Advisory & Collaboration:"
+  }
+}

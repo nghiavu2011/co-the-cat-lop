@@ -186,6 +186,10 @@ export interface View3DProps {
   onToggleBodyParams?: (show: boolean) => void;
   onPick: (sel: Selection) => void;
   onCounts?: (visible: number, total: number) => void;
+  peelDepth?: number;
+  hiddenPartIds?: Set<string>;
+  ghostPartIds?: Set<string>;
+  isolatedTargetId?: string | null;
 }
 
 interface SystemPBRProfile {
@@ -411,6 +415,10 @@ export default function View3D({
   onToggleBodyParams,
   onPick,
   onCounts,
+  peelDepth = 100,
+  hiddenPartIds,
+  ghostPartIds,
+  isolatedTargetId,
 }: View3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState<LoadProgress | null>(null);
@@ -1091,36 +1099,127 @@ export default function View3D({
     if (fatRef.current) fatRef.current.visible = !isIsolated && showGhost && showFatLayer;
   }, [showGhost, showFatLayer, isIsolated]);
 
-  // ---------- hiển thị / ẩn theo hệ đang chọn & chế độ cô lập (isolate) ----------
+  // ---------- hiển thị / ẩn theo hệ đang chọn, bóc tách Zygote & thao tác ngữ cảnh ----------
   useEffect(() => {
     const entries = entriesRef.current;
     if (!entries.length) return;
     let visible = 0;
-    const targetIds = selection
-      ? new Set(
-          selection.kind === 'part'
-            ? [selection.id]
-            : entries.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
-        )
-      : null;
+
+    const effectiveIsolated = isIsolated || Boolean(isolatedTargetId);
+    let targetIds: Set<string> | null = null;
+    if (isolatedTargetId) {
+      targetIds = new Set(
+        entries
+          .filter((e) => e.part.id === isolatedTargetId || e.noteId === isolatedTargetId)
+          .map((e) => e.part.id),
+      );
+      if (targetIds.size === 0) targetIds.add(isolatedTargetId);
+    } else if (selection) {
+      targetIds = new Set(
+        selection.kind === 'part'
+          ? [selection.id]
+          : entries.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
+      );
+    }
 
     for (const en of entries) {
       let show = !onlySystem || !activeSystem || en.system === activeSystem;
-      if (isIsolated && targetIds) {
+
+      // 1. Lọc theo độ sâu bóc tách Zygote (peelDepth 0..100)
+      if (peelDepth < 85 && en.system === 'da') {
+        show = false;
+      }
+      if (peelDepth < 65 && en.system === 'co') {
+        show = false;
+      }
+      if (peelDepth < 45 && en.system === 'xuong') {
+        show = false;
+      }
+      if (
+        peelDepth < 25 &&
+        (en.system === 'hohap' ||
+          en.system === 'tieuhoa' ||
+          en.system === 'tietnieu' ||
+          en.system === 'noitiet' ||
+          en.system === 'sinhduc' ||
+          en.system === 'lympho')
+      ) {
+        show = false;
+      }
+
+      // 2. Lọc theo danh sách Ẩn (Hide)
+      if (
+        hiddenPartIds &&
+        (hiddenPartIds.has(en.part.id) || (en.noteId && hiddenPartIds.has(en.noteId)))
+      ) {
+        show = false;
+      }
+
+      // 3. Lọc theo chế độ Cô lập (Isolate)
+      if (effectiveIsolated && targetIds) {
         show = targetIds.has(en.part.id);
       }
+
+      // 4. Áp dụng hiệu ứng Mờ bóng ma (Ghost)
+      const isGhosted =
+        ghostPartIds &&
+        (ghostPartIds.has(en.part.id) || (en.noteId && ghostPartIds.has(en.noteId)));
+      const mat = en.mesh.material as THREE.Material;
+      if (mat && 'opacity' in mat) {
+        if (isGhosted) {
+          mat.transparent = true;
+          mat.opacity = 0.22;
+          mat.depthWrite = false;
+        } else {
+          // khôi phục độ mờ chuẩn
+          mat.transparent = false;
+          mat.opacity = 1.0;
+          mat.depthWrite = true;
+        }
+      }
+
       en.mesh.visible = show;
       if (show) visible += 1;
     }
+
+    // Lớp da ngoài cùng & mỡ ngoài cùng
+    const showOuterSkin = peelDepth >= 85 && !effectiveIsolated && showGhost;
+    const showOuterFat = peelDepth >= 70 && !effectiveIsolated && showGhost && showFatLayer;
+
     if (skinRef.current) {
-      skinRef.current.visible = !isIsolated && showGhost;
+      skinRef.current.visible = showOuterSkin;
+      if (skinRef.current.material && 'opacity' in skinRef.current.material) {
+        (skinRef.current.material as THREE.Material).opacity = Math.min(
+          0.38,
+          0.12 + ((peelDepth - 85) / 15) * 0.26,
+        );
+      }
     }
     if (fatRef.current) {
-      fatRef.current.visible = !isIsolated && showGhost && showFatLayer;
+      fatRef.current.visible = showOuterFat;
+      if (fatRef.current.material && 'opacity' in fatRef.current.material) {
+        (fatRef.current.material as THREE.Material).opacity = Math.min(
+          0.45,
+          0.15 + ((peelDepth - 70) / 15) * 0.3,
+        );
+      }
     }
+
     onCounts?.(visible, entries.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSystem, onlySystem, ready, isIsolated, selection, showGhost, showFatLayer]);
+  }, [
+    activeSystem,
+    onlySystem,
+    ready,
+    isIsolated,
+    isolatedTargetId,
+    selection,
+    showGhost,
+    showFatLayer,
+    peelDepth,
+    hiddenPartIds,
+    ghostPartIds,
+  ]);
 
   // ---------- Bóc tách / Tách lớp theo không gian (Exploded View Đa Hướng) ----------
   useEffect(() => {

@@ -1,4 +1,5 @@
 import type { Tour } from '../content/tours';
+import { useLocale } from '../locale/useLocale';
 
 export interface TourBarProps {
   tour: Tour;
@@ -9,8 +10,10 @@ export interface TourBarProps {
 }
 
 export default function TourBar({ tour, stepIndex, onNext, onPrev, onExit }: TourBarProps) {
+  const { t } = useLocale();
   const step = tour.steps[stepIndex];
   const isLast = stepIndex === tour.steps.length - 1;
+
   return (
     <div className="tourbar">
       <div className="tourbarHead">
@@ -25,26 +28,26 @@ export default function TourBar({ tour, stepIndex, onNext, onPrev, onExit }: Tou
             ))}
           </div>
           <span className="tourbarStep">
-            Bước {stepIndex + 1}/{tour.steps.length}
+            {t('tour.step')} {stepIndex + 1}/{tour.steps.length}
           </span>
         </div>
       </div>
       <p className="tourbarText">{step.caption}</p>
       <div className="tourbarBtns">
         <button onClick={onPrev} disabled={stepIndex === 0}>
-          Quay lại
+          {t('tour.prev')}
         </button>
         {isLast ? (
           <button className="primary" onClick={onExit}>
-            Hoàn tất hành trình
+            {t('tour.finish')}
           </button>
         ) : (
           <button className="primary" onClick={onNext}>
-            Chặng tiếp theo
+            {t('tour.next')}
           </button>
         )}
         <button className="quit" onClick={onExit}>
-          Thoát
+          {t('tour.exit')}
         </button>
       </div>
     </div>

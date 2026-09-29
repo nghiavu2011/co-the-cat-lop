@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useLocale } from '../locale/useLocale';
 
 interface SideDonateWidgetProps {
   onOpenModal: () => void;
 }
 
 export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps) {
+  const { t } = useLocale();
+
   const [minimized, setMinimized] = useState(() => {
     try {
       return localStorage.getItem('cotecatlop.side_donate_min') === '1';
@@ -47,42 +50,46 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
     }
   };
 
-  // Khi đang thu nhỏ (hoặc trên màn hình nhỏ nếu người dùng bấm thu nhỏ)
+  // Khi đang thu nhỏ
   if (minimized) {
     return (
-      <div className="sideDonateMinimized" onClick={() => toggleMinimize(false)} title="Mở mã QR ủng hộ dự án">
+      <div
+        className="sideDonateMinimized"
+        onClick={() => toggleMinimize(false)}
+        title={t('donate.minTitle')}
+        role="button"
+        tabIndex={0}
+      >
         <span className="sideDonateMinIcon">☕</span>
-        <span className="sideDonateMinText">Ủng hộ / Mời cà phê</span>
+        <span className="sideDonateMinText">{t('donate.minText')}</span>
         <span className="sideDonateMinBadge">2 QR</span>
       </div>
     );
   }
 
   return (
-    <aside className="sideDonateContainer" aria-label="Khu vực ủng hộ dự án">
+    <aside className="sideDonateContainer" aria-label={t('donate.title')}>
       {/* Nút thu nhỏ góc trên */}
       <div className="sideDonateHeader">
         <div className="sideDonateTitleRow">
           <span className="sideDonateCoffeeIcon">☕</span>
-          <span className="sideDonateHeaderTitle">Ủng Hộ Dự Án</span>
+          <span className="sideDonateHeaderTitle">{t('donate.title')}</span>
         </div>
         <button
           type="button"
           className="sideDonateMinBtn"
           onClick={() => toggleMinimize(true)}
-          title="Thu gọn khung QR"
-          aria-label="Thu gọn"
+          title={t('donate.closeTitle')}
+          aria-label={t('donate.closeTitle')}
         >
           ✕
         </button>
       </div>
 
-      <p className="sideDonatePrompt">
-        Quét mã trực tiếp để tiếp sức duy trì máy chủ & phát triển mô hình 3D:
-      </p>
+      <p className="sideDonatePrompt">{t('donate.prompt')}</p>
 
       {/* KHUNG ĐỎ 1: TECHCOMBANK QR */}
-      <div className="sideQrCard tcbCard" onClick={onOpenModal} title="Click để phóng to thông tin">
+      <div className="sideQrCard tcbCard" onClick={onOpenModal} title="Click to view details">
         <div className="sideQrCardHeader">
           <span className="bankBadge tcb">TCB</span>
           <span className="bankName">Techcombank</span>
@@ -91,7 +98,7 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
         <div className="sideQrImgWrapper">
           <img
             src="/donate/Techcom.jpg"
-            alt="Mã QR Techcombank 19077215974018"
+            alt="Techcombank QR 19077215974018"
             className="sideQrImage"
             loading="lazy"
           />
@@ -102,16 +109,16 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
             type="button"
             className={`sideQrCopyBtn ${copiedBank ? 'copied' : ''}`}
             onClick={copyBank}
-            title="Sao chép số tài khoản"
+            title={copiedBank ? t('donate.copied') : t('donate.copy')}
           >
-            {copiedBank ? '✓ Đã chép' : '📋 Chép'}
+            {copiedBank ? t('donate.copied') : t('donate.copy')}
           </button>
         </div>
-        <span className="sideQrSub">Mọi App Ngân Hàng quét được</span>
+        <span className="sideQrSub">{t('donate.tcbSub')}</span>
       </div>
 
       {/* KHUNG ĐỎ 2: MOMO QR */}
-      <div className="sideQrCard momoCard" onClick={onOpenModal} title="Click để phóng to thông tin">
+      <div className="sideQrCard momoCard" onClick={onOpenModal} title="Click to view details">
         <div className="sideQrCardHeader">
           <span className="bankBadge momo">MoMo</span>
           <span className="bankName">Ví MoMo</span>
@@ -120,7 +127,7 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
         <div className="sideQrImgWrapper">
           <img
             src="/donate/MOMO.jpg"
-            alt="Mã QR Ví MoMo 0985578385"
+            alt="MoMo QR 0985578385"
             className="sideQrImage"
             loading="lazy"
           />
@@ -131,17 +138,17 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
             type="button"
             className={`sideQrCopyBtn ${copiedMomo ? 'copied' : ''}`}
             onClick={copyMomo}
-            title="Sao chép số điện thoại MoMo"
+            title={copiedMomo ? t('donate.copied') : t('donate.copy')}
           >
-            {copiedMomo ? '✓ Đã chép' : '📋 Chép'}
+            {copiedMomo ? t('donate.copied') : t('donate.copy')}
           </button>
         </div>
-        <span className="sideQrSub">Quét nhanh qua App MoMo</span>
+        <span className="sideQrSub">{t('donate.momoSub')}</span>
       </div>
 
       {/* Nút xem chi tiết / thư gửi gắm */}
       <button type="button" className="sideDonateFullBtn" onClick={onOpenModal}>
-        ☕ Mời tách cà phê chi tiết
+        {t('donate.fullBtn')}
       </button>
     </aside>
   );

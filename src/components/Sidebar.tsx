@@ -6,6 +6,7 @@ import { buildBinding } from '../data/bind';
 import { BODY_INSIGHTS } from '../content/insights';
 import { translateAnatomyName } from '../content/anatomyDict';
 import { sanitizeInput } from '../security';
+import { useLocale } from '../locale/useLocale';
 import type { AtlasJSON, SystemId } from '../data/types';
 import type { Selection } from '../selection';
 
@@ -35,7 +36,9 @@ export default function Sidebar({
   onPick,
   onNeeds3D,
 }: SidebarProps) {
+  const { t, locale } = useLocale();
   const [railTab, setRailTab] = useState<'systems' | 'insights'>('systems');
+  const [collapsed, setCollapsed] = useState(false);
   const q = stripAccents(query.trim());
 
   const noteMatches = useMemo(() => {
@@ -64,30 +67,56 @@ export default function Sidebar({
         stripAccents(ins.question).includes(q) ||
         stripAccents(ins.tag).includes(q) ||
         stripAccents(ins.cause).includes(q) ||
-        stripAccents(ins.mechanism).includes(q)
+        stripAccents(ins.mechanism).includes(q),
     );
   }, [q]);
 
   const headText = q
-    ? `Kết quả · ${noteMatches.length + rawMatches.length}`
+    ? `${t('sidebar.results')} · ${noteMatches.length + rawMatches.length}`
     : activeSystem
       ? `${SYSTEMS.find((s) => s.id === activeSystem)?.name} · ${noteMatches.length}`
-      : `Bộ phận tiêu biểu · ${noteMatches.length}`;
+      : `${t('sidebar.keyParts')} · ${noteMatches.length}`;
+
+  if (collapsed) {
+    return (
+      <div className="railCollapsedDock">
+        <button
+          type="button"
+          className="railExpandBtn"
+          onClick={() => setCollapsed(false)}
+          title={locale === 'en' ? 'Expand Anatomy Sidebar' : 'Mở thanh danh mục giải phẫu'}
+        >
+          <span className="railExpandIcon">☰</span>
+          <span className="railExpandText">{locale === 'en' ? 'CATALOG' : 'DANH MỤC'}</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <aside className="rail">
-      <div className="searchbox">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
-          <circle cx="11" cy="11" r="7" />
-          <path d="M16.5 16.5 21 21" />
-        </svg>
-        <input
-          type="search"
-          placeholder="Tìm bộ phận hoặc hiện tượng: đau lưng, nấc, sặc, gan..."
-          autoComplete="off"
-          value={query}
-          onChange={(e) => onQueryChange(sanitizeInput(e.target.value))}
-        />
+    <aside className="rail spatialRail">
+      <div className="railTopRow">
+        <div className="searchbox">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+            <circle cx="11" cy="11" r="7" />
+            <path d="M16.5 16.5 21 21" />
+          </svg>
+          <input
+            type="search"
+            placeholder={t('sidebar.searchPlaceholder')}
+            autoComplete="off"
+            value={query}
+            onChange={(e) => onQueryChange(sanitizeInput(e.target.value))}
+          />
+        </div>
+        <button
+          type="button"
+          className="railCollapseBtn"
+          onClick={() => setCollapsed(true)}
+          title={locale === 'en' ? 'Collapse sidebar for full 3D' : 'Thu gọn sidebar để mở rộng không gian 3D'}
+        >
+          ◀
+        </button>
       </div>
 
       <div className="railtabs" role="tablist">
@@ -97,7 +126,7 @@ export default function Sidebar({
           aria-selected={railTab === 'systems'}
           onClick={() => setRailTab('systems')}
         >
-          Hệ cơ quan
+          {t('sidebar.systems')}
         </button>
         <button
           className="railtab"
@@ -105,14 +134,14 @@ export default function Sidebar({
           aria-selected={railTab === 'insights'}
           onClick={() => setRailTab('insights')}
         >
-          💡 Hiện tượng ({BODY_INSIGHTS.length})
+          {t('sidebar.insights')} ({BODY_INSIGHTS.length})
         </button>
       </div>
 
       {railTab === 'systems' ? (
         <div>
           <div className="railhead" style={{ marginBottom: 5 }}>
-            Hệ cơ quan
+            {t('sidebar.systems')}
           </div>
           <div className="syslist" role="group" aria-label="Chọn hệ cơ quan">
             {SYSTEMS.map((s) => {
@@ -135,7 +164,7 @@ export default function Sidebar({
       ) : (
         <div>
           <div className="railhead" style={{ marginBottom: 5 }}>
-            Giải mã cảm giác ({insightMatches.length})
+            {t('sidebar.insightsLabel')} ({insightMatches.length})
           </div>
           <div className="insightList">
             {insightMatches.map((ins) => {
@@ -167,7 +196,7 @@ export default function Sidebar({
         <div className="partlist">
           {noteMatches.length === 0 && rawMatches.length === 0 && q && (
             <div style={{ padding: 10, color: 'var(--faint)', fontSize: 12.5 }}>
-              Không có bộ phận nào khớp "{query}".
+              {t('sidebar.noMatch')} "{query}".
             </div>
           )}
           {noteMatches.map((n, i) => (
@@ -177,7 +206,7 @@ export default function Sidebar({
               onClick={() => onPick({ kind: 'note', id: n.i })}
             >
               <span className="idx">{String(i + 1).padStart(2, '0')}</span>
-              {n.n}
+              {locale === 'en' ? n.e : n.n}
               {(q || !activeSystem) && (
                 <span className="sysname">{SYSTEMS.find((s) => s.id === n.s)?.name}</span>
               )}
@@ -195,7 +224,7 @@ export default function Sidebar({
                 borderBottom: '1px solid var(--line)',
               }}
             >
-              Cấu trúc chi tiết (chỉ có ở 3D) · {rawMatches.length}
+              {t('sidebar.rawParts')} · {rawMatches.length}
             </div>
           )}
           {rawMatches.map((p) => {
@@ -212,9 +241,11 @@ export default function Sidebar({
               >
                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                   <span className="idx" style={{ fontSize: 9 }}>·</span>
-                  <span style={{ fontWeight: 500 }}>{vi}</span>
+                  <span style={{ fontWeight: 500 }}>{locale === 'en' ? p.name : vi}</span>
                 </div>
-                <span style={{ fontSize: 10.5, color: 'var(--faint)', marginLeft: 16 }}>{p.name}</span>
+                <span style={{ fontSize: 10.5, color: 'var(--faint)', marginLeft: 16 }}>
+                  {locale === 'en' ? (vi !== p.name ? `VN: ${vi}` : '') : p.name}
+                </span>
               </button>
             );
           })}
