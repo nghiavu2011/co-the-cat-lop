@@ -8,9 +8,8 @@ import OrganDetail from './components/OrganDetail';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
-import LayerSlider from './components/LayerSlider';
 import ContextActionHUD from './components/ContextActionHUD';
-import CameraControlsHUD from './components/CameraControlsHUD';
+import UnifiedLeftControls from './components/UnifiedLeftControls';
 import TopBarZygote from './components/TopBarZygote';
 import LocaleProvider from './locale/LocaleProvider';
 import { useLocale } from './locale/useLocale';
@@ -312,26 +311,42 @@ function AppInner() {
         onToggleBodyParams={() => setShowBodyParams((v) => !v)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        onStartTour={startTour}
       />
 
-      {/* 2. CỤM ĐIỀU HƯỚNG CAMERA (ZOOM IN/OUT / HOME / DPAD / GÓC NHÌN) DƯỚI LOGO */}
-      <CameraControlsHUD
+      {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (SÁT NHẬP CAMERA, BÓC TÁCH, CẮT LỚP, TÁCH LỚP, 3D/2D) */}
+      <UnifiedLeftControls
         onZoomIn={() => triggerCamera('zoom-in')}
         onZoomOut={() => triggerCamera('zoom-out')}
         onResetCamera={() => triggerCamera('reset')}
         onOrbit={(dir) => triggerCamera(`orbit-${dir}`)}
         onPresetAngle={(angle) => triggerCamera(angle)}
+        peelDepth={peelDepth}
+        onChangePeelDepth={setPeelDepth}
+        gender={gender}
+        onToggleGender={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
+        mode={mode}
+        onChangeMode={(m) => {
+          setMode(m);
+          if (m === 'detail') {
+            if (!selection || selection.kind !== 'note' || !(selection.id in NOTE_TO_ORGAN)) {
+              setSelection({ kind: 'note', id: 'tim' });
+            }
+          }
+        }}
+        showSlice={showSliceDock}
+        onToggleSlice={() => setShowSliceDock((v) => !v)}
+        sliceAxis={axis}
+        onCycleAxis={() => setAxis((a) => ((a + 1) % 3) as 0 | 1 | 2)}
+        sliceT={sliceT}
+        onChangeSliceT={setSliceT}
+        sliceName={sliceName}
+        sliceHeightCm={h * 100}
+        explode={explode}
+        onChangeExplode={setExplode}
+        soundOn={soundOn}
+        onToggleSound={toggleSound}
       />
-
-      {/* 3. THANH TRƯỢT CAPSULE BÓC TÁCH ZYGOTE (MÉP TRÁI) */}
-      {mode === '3d' && (
-        <LayerSlider
-          peelDepth={peelDepth}
-          onChangePeelDepth={setPeelDepth}
-          gender={gender}
-          onToggleGender={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
-        />
-      )}
 
       {/* 4. TOÀN BỘ KHUNG NHÌN 3D KHÔNG GIAN RỘNG THÊNH THANG */}
       <main className="zygoteMainCanvas">
@@ -446,112 +461,17 @@ function AppInner() {
         </aside>
       )}
 
-      {/* 8. THANH DOCK TỐI GIẢN Ở ĐÁY MÀN HÌNH */}
-      <footer className="zygoteMinimalDock">
-        <div className="zygoteDockPill">
-          {/* Nút đổi Mode (3D / 2D / Vi thể) */}
-          <button
-            type="button"
-            className={`zygoteDockBtn ${mode === '3d' ? 'active' : ''}`}
-            onClick={() => setMode('3d')}
-          >
-            3D
-          </button>
-          <button
-            type="button"
-            className={`zygoteDockBtn ${mode === '2d' ? 'active' : ''}`}
-            onClick={() => setMode('2d')}
-          >
-            2D
-          </button>
-          <button
-            type="button"
-            className={`zygoteDockBtn ${mode === 'detail' ? 'active' : ''}`}
-            onClick={() => {
-              setMode('detail');
-              if (!selection || selection.kind !== 'note' || !(selection.id in NOTE_TO_ORGAN)) {
-                setSelection({ kind: 'note', id: 'tim' });
-              }
-            }}
-          >
-            {locale === 'en' ? 'Organs' : 'Vi thể'}
-          </button>
-
-          <span className="zygoteDockSep">|</span>
-
-          {/* Nút bật/tắt thanh cắt lớp */}
-          <button
-            type="button"
-            className={`zygoteDockBtn ${showSliceDock ? 'active' : ''}`}
-            onClick={() => setShowSliceDock((v) => !v)}
-            title="Mặt phẳng cắt lớp CT/MRI"
-          >
-            ✂️ {locale === 'en' ? 'Slice' : 'Cắt lớp'}
-          </button>
-
-          {/* Âm thanh */}
-          <button
-            type="button"
-            className={`zygoteDockBtn ${soundOn ? 'active' : ''}`}
-            onClick={toggleSound}
-            title="Âm thanh nhịp tim / hơi thở"
-          >
-            {soundOn ? '🔊' : '🔇'}
-          </button>
-
-          {/* Tours menu rút gọn */}
-          <div className="zygoteMiniTourList">
-            {TOURS.slice(0, 3).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="zygoteMiniTourBtn"
-                onClick={() => startTour(item.id)}
-                title={item.title}
-              >
-                ▶ {item.id === 'tuanhoan' ? 'Máu' : item.id === 'tho' ? 'Thở' : 'Ăn'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Thanh trượt cắt lớp hiện ra khi bấm nút Cắt lớp */}
-        {showSliceDock && mode === '3d' && (
-          <div className="zygoteSliceControlPop">
-            <div className="zygoteSliceHead">
-              <span>{sliceName}: <b>{(h * 100).toFixed(0)} cm</b></span>
-              <button
-                type="button"
-                className="zygoteAxisBtn"
-                onClick={() => setAxis((a) => ((a + 1) % 3) as 0 | 1 | 2)}
-              >
-                Đổi trục
-              </button>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={sliceT}
-              onChange={(e) => setSliceT(Number(e.target.value))}
-              className="zygoteSliceRange"
-            />
-          </div>
-        )}
-
-        {/* Dòng copyright mờ phong cách Zygote */}
-        <div className="zygoteFineCopyright">
-          <span>N&amp;M Human Anatomy &copy; 2026</span>
-          <span className="sep">&middot;</span>
-          <button type="button" className="zygoteLinkBtn" onClick={() => setShowCoffee(true)}>
-            ☕ Mời cà phê
-          </button>
-          <span className="sep">&middot;</span>
-          <a href="https://zalo.me/0985578385" target="_blank" rel="noreferrer" className="zygoteLink">
-            Zalo: 0985 578 385
-          </a>
-        </div>
+      {/* Dòng chữ bản quyền nhỏ gọn ở góc đáy */}
+      <footer className="zygoteFineCorner" role="contentinfo">
+        <span>N&amp;M Anatomy &copy; 2026</span>
+        <span className="sep">&middot;</span>
+        <button type="button" className="zygoteLinkBtn" onClick={() => setShowCoffee(true)}>
+          ☕ Mời cà phê
+        </button>
+        <span className="sep">&middot;</span>
+        <a href="https://zalo.me/0985578385" target="_blank" rel="noreferrer" className="zygoteLink">
+          Zalo: 0985 578 385
+        </a>
       </footer>
 
       {/* 9. WIDGET ỦNG HỘ DỰ ÁN BÊN HÔNG (2 MÃ QR) */}

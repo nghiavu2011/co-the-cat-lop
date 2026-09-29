@@ -1297,75 +1297,78 @@ export default function View3D({
       let dy = 0;
       let dz = 0;
 
-      // Phân tầng không gian đa hướng theo hệ giải phẫu (Anatomical Layer Separation)
+      // Phân tầng không gian đa hướng rõ rệt theo hệ giải phẫu (Distinct Museum Exploded Layering)
       switch (en.system) {
         case 'xuong':
-          // Bộ xương làm trục tham chiếu ở trung tâm, chỉ nở nhẹ để các khớp háng/vai tách ra
-          dx = baseCenter.x * 0.25 * t;
+          // Bộ xương làm trục tham chiếu ở trung tâm:
+          // Xương cột sống giữ nguyên trục trung tâm, tay chân & xương chậu tách sang 2 bên
+          dx = baseCenter.x * 0.45 * t;
           dz = 0;
           break;
 
         case 'thankinh':
-          // Hệ thần kinh: dạt nhẹ ra sau (tủy sống) và lên trên (não bộ)
-          dx = baseCenter.x * 0.35 * t;
-          dz = -0.22 * t;
-          dy = 0.05 * t;
+          // Hệ thần kinh: Não bay bổng lên trên (+Y), tủy sống lùi hẳn ra phía sau (-Z)
+          if (baseCenter.y > 1.35) {
+            dy = 0.55 * t;
+            dz = -0.35 * t;
+          } else {
+            dz = -0.85 * t;
+            dx = baseCenter.x * 0.4 * t;
+          }
           break;
 
         case 'tuanhoan':
-          // Hệ tuần hoàn:
-          // Động mạch (thường ở sâu) dạt sang trái và phía trước
-          // Tĩnh mạch dạt sang phải và phía trước
-          if (en.part.system === 'venous') {
-            dx = (0.28 + Math.abs(baseCenter.x) * 0.4) * t;
-            dz = 0.32 * t;
+          // Hệ tuần hoàn: Tim & mạch máu bay thẳng về phía trước (+Z) và tách động mạch (trái) / tĩnh mạch (phải)
+          if (en.part.system === 'venous' || en.part.name.toLowerCase().includes('vein')) {
+            dx = (0.55 + Math.abs(baseCenter.x) * 0.4) * t;
+            dz = 0.65 * t;
           } else {
-            dx = (-0.28 - Math.abs(baseCenter.x) * 0.4) * t;
-            dz = 0.28 * t;
+            dx = (-0.55 - Math.abs(baseCenter.x) * 0.4) * t;
+            dz = 0.65 * t;
           }
           break;
 
         case 'hohap':
-          // Phổi: Dạt đều sang hai bên mạn sườn
-          dx = signX * 0.45 * t;
-          dz = 0.12 * t;
+          // Phổi & phế quản: Tách rộng ra hai bên mạn sườn và hơi lùi về trước
+          dx = signX * (0.85 + Math.abs(baseCenter.x) * 0.3) * t;
+          dz = 0.40 * t;
           break;
 
         case 'tieuhoa':
-          // Nội tạng: Dạt ra phía trước và hơi trĩu xuống
-          dx = (baseCenter.x * 0.3) * t;
-          dz = 0.58 * t;
-          dy = -0.06 * t;
+          // Nội tạng tiêu hóa (Dạ dày, gan, ruột): Bay thẳng ra phía trước tạo thành một tầng nội tạng độc lập
+          dx = baseCenter.x * 0.35 * t;
+          dz = (0.95 + Math.max(0, baseCenter.z) * 0.5) * t;
+          dy = -0.12 * t;
           break;
 
         case 'tietnieu':
-          // Thận và bàng quang: Thận dạt ra sau, bàng quang dạt xuống trước
-          dx = signX * 0.35 * t;
-          dz = -0.25 * t;
+          // Thận và bàng quang: Thận dạt ra phía sau hai bên hông (-Z)
+          dx = signX * (0.65 + Math.abs(baseCenter.x) * 0.3) * t;
+          dz = -0.75 * t;
           break;
 
         case 'sinhduc':
-          // Sinh dục: Tách về phía trước vùng chậu
-          dx = (baseCenter.x * 0.4) * t;
-          dz = 0.42 * t;
-          dy = -0.08 * t;
+          // Sinh dục: Tách hẳn ra phía trước vùng đáy chậu
+          dx = baseCenter.x * 0.35 * t;
+          dz = 0.75 * t;
+          dy = -0.16 * t;
           break;
 
         case 'co':
-          // Cơ bắp: Tách rộng sang hai bên và hơi lùi về sau
-          dx = signX * 0.68 * t;
-          dz = -0.28 * t;
+          // Hệ cơ bắp: Tách rộng hẳn sang 2 bên cánh
+          dx = signX * (1.10 + Math.abs(baseCenter.x) * 0.4) * t;
+          dz = -0.35 * t;
           break;
 
         case 'da':
-          // Da: Tách xa nhất ra hai bên cánh
-          dx = signX * 0.98 * t;
-          dz = 0.55 * t;
+          // Lớp da ngoài cùng: Tách xa nhất ra 2 bên và bao quanh
+          dx = signX * (1.60 + Math.abs(baseCenter.x) * 0.5) * t;
+          dz = 0.85 * t;
           break;
 
         default:
-          dx = signX * 0.38 * t;
-          dz = 0.35 * t;
+          dx = signX * 0.75 * t;
+          dz = 0.50 * t;
           break;
       }
 
@@ -1567,8 +1570,8 @@ export default function View3D({
               <div className="bmiDisplayCard">
                 <div className="bmiCardTop">
                   <div className="bmiNumberRow">
-                    <span className="bmiLabel">Chỉ số BMI</span>
-                    <strong className="bmiValue">{bmi}</strong>
+                    <span className="bmiLabel">Chỉ số BMI:</span>
+                    <strong className="bmiValue" style={{ color: bmiCategory.color }}>{bmi}</strong>
                   </div>
                   <div
                     className="bmiCategoryBadge"
@@ -1581,18 +1584,73 @@ export default function View3D({
                     {bmiCategory.label}
                   </div>
                 </div>
-                <div className="bmiGaugeTrack" title={`BMI: ${bmi} (${bmiCategory.label})`}>
-                  <div className="bmiGaugeSeg underweight" title="Gầy / Thiếu cân (< 18.5)" />
-                  <div className="bmiGaugeSeg normal" title="Chuẩn y khoa (18.5 - 24.9)" />
-                  <div className="bmiGaugeSeg overweight" title="Thừa cân (25.0 - 29.9)" />
-                  <div className="bmiGaugeSeg obese" title="Béo phì (≥ 30.0)" />
-                  <div
-                    className="bmiGaugeNeedle"
-                    style={{
-                      left: `${Math.min(97, Math.max(3, ((bmi - 14) / (38 - 14)) * 100))}%`,
+
+                {/* Thanh trượt điều chỉnh BMI trực tiếp */}
+                <div style={{ marginTop: 8 }}>
+                  <div className="paramLabelRow">
+                    <label style={{ fontSize: 11, color: 'var(--muted)' }}>Kéo nhanh chỉ số BMI (16.0 - 36.0):</label>
+                  </div>
+                  <input
+                    type="range"
+                    min={16}
+                    max={36}
+                    step={0.5}
+                    value={bmi}
+                    onChange={(e) => {
+                      const targetBmi = Number(e.target.value);
+                      const hM = bodyParams.height / 100;
+                      const nextW = Math.round(targetBmi * (hM * hM));
+                      setBodyParams((p) => ({ ...p, weight: Math.max(35, Math.min(140, nextW)) }));
                     }}
+                    style={{ width: '100%', accentColor: bmiCategory.color }}
                   />
                 </div>
+              </div>
+
+              {/* Các thanh trượt điều chỉnh Chiều cao, Cân nặng, Tuổi */}
+              <div className="bodyParamItem" style={{ marginTop: 8 }}>
+                <div className="paramLabelRow">
+                  <label>Chiều cao</label>
+                  <b>{bodyParams.height} cm</b>
+                </div>
+                <input
+                  type="range"
+                  min={135}
+                  max={210}
+                  value={bodyParams.height}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, height: Number(e.target.value) }))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Cân nặng</label>
+                  <b>{bodyParams.weight} kg</b>
+                </div>
+                <input
+                  type="range"
+                  min={35}
+                  max={140}
+                  value={bodyParams.weight}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, weight: Number(e.target.value) }))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div className="bodyParamItem">
+                <div className="paramLabelRow">
+                  <label>Độ tuổi</label>
+                  <b>{bodyParams.age} tuổi</b>
+                </div>
+                <input
+                  type="range"
+                  min={18}
+                  max={85}
+                  value={bodyParams.age}
+                  onChange={(e) => setBodyParams((p) => ({ ...p, age: Number(e.target.value) }))}
+                  style={{ width: '100%' }}
+                />
               </div>
 
               {/* Nút bật/tắt Lớp mô mỡ dưới da để so sánh trực quan với cơ nạc */}
@@ -1729,47 +1787,7 @@ export default function View3D({
                 </div>
               </div>
 
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Chiều cao</label>
-                  <b>{bodyParams.height} cm</b>
-                </div>
-                <input
-                  type="range"
-                  min={135}
-                  max={210}
-                  value={bodyParams.height}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, height: Number(e.target.value) }))}
-                />
-              </div>
 
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Cân nặng</label>
-                  <b>{bodyParams.weight} kg</b>
-                </div>
-                <input
-                  type="range"
-                  min={35}
-                  max={140}
-                  value={bodyParams.weight}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, weight: Number(e.target.value) }))}
-                />
-              </div>
-
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Độ tuổi</label>
-                  <b>{bodyParams.age} tuổi</b>
-                </div>
-                <input
-                  type="range"
-                  min={18}
-                  max={85}
-                  value={bodyParams.age}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, age: Number(e.target.value) }))}
-                />
-              </div>
 
               <button
                 type="button"

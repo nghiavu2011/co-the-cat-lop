@@ -20,6 +20,7 @@ export interface TopBarZygoteProps {
   onToggleBodyParams: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  onStartTour?: (tourId: string) => void;
 }
 
 export default function TopBarZygote({
@@ -38,6 +39,7 @@ export default function TopBarZygote({
   onToggleBodyParams,
   isFullscreen,
   onToggleFullscreen,
+  onStartTour,
 }: TopBarZygoteProps) {
   const { t, locale } = useLocale();
   const [showTools, setShowTools] = useState(false);
@@ -168,6 +170,46 @@ export default function TopBarZygote({
                   ? (locale === 'en' ? '✕ Exit Fullscreen' : '✕ Thu nhỏ màn hình')
                   : (locale === 'en' ? '⛶ Fullscreen Mode' : '⛶ Toàn màn hình')}
               </button>
+
+              {/* Các tour giải phẫu dẫn dắt */}
+              {onStartTour && (
+                <>
+                  <div className="zygoteToolDivider" />
+                  <div style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--zygote-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {locale === 'en' ? 'Interactive Tours' : 'Tour học tập tương tác'}
+                  </div>
+                  <button
+                    type="button"
+                    className="zygoteToolActionBtn"
+                    onClick={() => {
+                      onStartTour('tuanhoan');
+                      setShowTools(false);
+                    }}
+                  >
+                    ▶ {locale === 'en' ? 'Circulatory System' : 'Hệ tuần hoàn máu'}
+                  </button>
+                  <button
+                    type="button"
+                    className="zygoteToolActionBtn"
+                    onClick={() => {
+                      onStartTour('tho');
+                      setShowTools(false);
+                    }}
+                  >
+                    ▶ {locale === 'en' ? 'Respiratory System' : 'Hệ hô hấp & Phổi'}
+                  </button>
+                  <button
+                    type="button"
+                    className="zygoteToolActionBtn"
+                    onClick={() => {
+                      onStartTour('tieuhoa');
+                      setShowTools(false);
+                    }}
+                  >
+                    ▶ {locale === 'en' ? 'Digestive System' : 'Hệ tiêu hóa & Dạ dày'}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

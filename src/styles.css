@@ -1391,22 +1391,44 @@ img { max-width: 100%; }
   position: absolute;
   top: 60px;
   right: 14px;
-  width: 315px;
+  width: 320px;
   max-width: calc(100vw - 28px);
   max-height: calc(100% - 74px);
   overflow-y: auto;
-  background: rgba(21, 27, 34, 0.96);
-  backdrop-filter: blur(18px);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   padding: 14px 16px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+  z-index: 75;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 11px;
-  color: var(--ink);
+  color: #f8fafc;
   animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bmiPresetRow {
+  display: flex;
+  gap: 4px;
+}
+.bmiPresetRow button {
+  flex: 1;
+  padding: 5px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.bmiPresetRow button:hover, .bmiPresetRow button.active {
+  background: var(--brass, #e6c687);
+  color: #0f172a;
+  border-color: var(--brass, #e6c687);
 }
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(10px); }
@@ -3824,182 +3846,159 @@ input, textarea {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-/* 4. CỤM ĐIỀU HƯỚNG CAMERA (DPAD / ZOOM / ANGLE PRESETS) DƯỚI LOGO */
-.zygoteNavControls {
+/* ==========================================================================
+   THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (UNIFIED LEFT RAIL - KHÔNG CHỒNG LẤN)
+   ========================================================================== */
+.unifiedLeftRail {
   position: absolute;
-  top: 62px;
+  top: 66px;
   left: 18px;
-  z-index: 40;
+  z-index: 45;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 52px;
+  pointer-events: none;
 }
-/* D-PAD Compass */
-.zygoteDpadBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+
+/* Các thẻ con trong thanh rail */
+.railCard {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
-[data-theme="dark"] .zygoteDpadBox {
-  background: rgba(15, 23, 42, 0.92);
+[data-theme="dark"] .railCard {
+  background: rgba(15, 23, 42, 0.94);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
-.zygoteDpadMidRow {
+
+/* 1. Camera Card */
+.cameraCard {
+  padding: 6px 4px;
+  gap: 4px;
+}
+.railDpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.railDpadRow {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
-.zygoteDpadBtn {
-  width: 26px;
-  height: 24px;
+.railDpadBtn {
+  width: 22px;
+  height: 20px;
   border: none;
   background: transparent;
   color: #334155;
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .railDpadBtn {
+  color: #cbd5e1;
+}
+.railDpadBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+[data-theme="dark"] .railDpadBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.railDpadBtn.home {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-theme="dark"] .railDpadBtn.home {
+  background: rgba(255, 255, 255, 0.06);
+}
+.railZoomRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 4px;
+}
+[data-theme="dark"] .railZoomRow {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+.railZoomBtn, .railAngleBtn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
-[data-theme="dark"] .zygoteDpadBtn {
+[data-theme="dark"] .railZoomBtn, [data-theme="dark"] .railAngleBtn {
   color: #cbd5e1;
 }
-.zygoteDpadBtn:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: #0f172a;
-  transform: scale(1.08);
-}
-[data-theme="dark"] .zygoteDpadBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-}
-.zygoteDpadBtn.home {
-  font-size: 13px;
-  background: rgba(0, 0, 0, 0.04);
-}
-[data-theme="dark"] .zygoteDpadBtn.home {
-  background: rgba(255, 255, 255, 0.06);
+.railZoomBtn:hover, .railAngleBtn:hover, .railAngleBtn.active {
+  background: rgba(37, 99, 235, 0.15);
+  color: #2563eb;
 }
 
-/* Cặp nút Zoom */
-.zygoteZoomPair {
-  display: flex;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-[data-theme="dark"] .zygoteZoomPair {
-  background: rgba(15, 23, 42, 0.92);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-.zygoteNavBtn {
-  width: 32px;
-  height: 26px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 700;
-  color: #334155;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s ease;
-}
-.zygoteNavBtn + .zygoteNavBtn {
-  border-left: 1px solid rgba(0, 0, 0, 0.08);
-}
-[data-theme="dark"] .zygoteNavBtn {
-  color: #cbd5e1;
-}
-[data-theme="dark"] .zygoteNavBtn + .zygoteNavBtn {
-  border-left-color: rgba(255, 255, 255, 0.1);
-}
-.zygoteNavBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-[data-theme="dark"] .zygoteNavBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Menu chọn góc nhìn chuẩn */
-.zygotePresetWrapper {
-  position: relative;
-  width: 100%;
-}
-.zygoteAngleToggleBtn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 8px;
-  color: #334155;
-  font-family: var(--f-body, system-ui);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.15s ease;
-}
-[data-theme="dark"] .zygoteAngleToggleBtn {
-  background: rgba(15, 23, 42, 0.92);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #cbd5e1;
-}
-.zygoteAngleToggleBtn:hover, .zygoteAngleToggleBtn.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
-}
-.zygoteAngleMenu {
+/* Flyout Menu Góc nhìn */
+.railFlyoutMenu {
   position: absolute;
   top: 0;
-  left: calc(100% + 8px);
+  left: calc(100% + 10px);
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 10px;
   padding: 6px;
+  min-width: 90px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+  z-index: 50;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  min-width: 90px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
-  z-index: 50;
   animation: contextHudSlideUp 0.15s ease;
 }
-[data-theme="dark"] .zygoteAngleMenu {
+[data-theme="dark"] .railFlyoutMenu {
   background: rgba(15, 23, 42, 0.96);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
-.zygoteAngleItem {
-  padding: 5px 10px;
+.railFlyoutTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 2px 6px;
+  letter-spacing: 0.05em;
+}
+.railFlyoutItem {
+  padding: 5px 8px;
   border: none;
   background: transparent;
   color: #334155;
-  font-family: var(--f-body, system-ui);
   font-size: 11.5px;
   font-weight: 500;
   text-align: left;
@@ -4007,160 +4006,40 @@ input, textarea {
   cursor: pointer;
   transition: all 0.12s ease;
 }
-[data-theme="dark"] .zygoteAngleItem {
+[data-theme="dark"] .railFlyoutItem {
   color: #cbd5e1;
 }
-.zygoteAngleItem:hover {
-  background: rgba(37, 99, 235, 0.12);
+.railFlyoutItem:hover {
+  background: rgba(37, 99, 235, 0.15);
   color: #2563eb;
 }
-[data-theme="dark"] .zygoteAngleItem:hover {
+[data-theme="dark"] .railFlyoutItem:hover {
   background: rgba(59, 130, 246, 0.2);
   color: #93c5fd;
 }
 
-/* Tools Popover trong TopBar */
-.zygoteToolsWrap {
-  position: relative;
+/* 2. Layer Capsule Card */
+.layerCard {
+  padding: 8px 4px;
 }
-.zygoteToolsDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 240px;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16);
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: contextHudSlideUp 0.18s ease;
-}
-[data-theme="dark"] .zygoteToolsDropdown {
-  background: rgba(15, 23, 42, 0.96);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
-}
-.zygoteToolItem {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.zygoteToolRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.zygoteToolLabel {
-  font-family: var(--f-body, system-ui);
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #475569;
-}
-[data-theme="dark"] .zygoteToolLabel {
-  color: #94a3b8;
-}
-.zygoteToolVal {
-  font-family: var(--f-mono, monospace);
-  font-size: 12px;
-  color: #2563eb;
-}
-[data-theme="dark"] .zygoteToolVal {
-  color: #60a5fa;
-}
-.zygoteToolResetBtn {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 0 4px;
-}
-.zygoteToolRange {
-  width: 100%;
-  accent-color: #2563eb;
-  cursor: pointer;
-}
-.zygoteToolDivider {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 2px 0;
-}
-[data-theme="dark"] .zygoteToolDivider {
-  background: rgba(255, 255, 255, 0.1);
-}
-.zygoteToolActionBtn {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.03);
-  color: #1e293b;
-  font-family: var(--f-body, system-ui);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
+.railCapsuleInner {
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s ease;
 }
-[data-theme="dark"] .zygoteToolActionBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-}
-.zygoteToolActionBtn:hover, .zygoteToolActionBtn.active {
-  background: rgba(37, 99, 235, 0.12);
-  border-color: #2563eb;
-  color: #2563eb;
-}
-[data-theme="dark"] .zygoteToolActionBtn:hover, [data-theme="dark"] .zygoteToolActionBtn.active {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: #3b82f6;
-  color: #93c5fd;
-}
-
-/* 5. THANH TRƯỢT CAPSULE BÓC TÁCH ZYGOTE (MÉP TRÁI CHUẨN ZYGOTE BODY) */
-.zygoteCapsuleSlider {
-  position: absolute;
-  top: 180px;
-  left: 20px;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 40px;
-  padding: 10px 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
-}
-[data-theme="dark"] .zygoteCapsuleSlider {
-  background: rgba(15, 23, 42, 0.88);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-.zygoteCapsuleTrack {
+.railCapsuleTrack {
   position: relative;
-  width: 14px;
-  height: 240px;
+  width: 10px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 2px;
 }
-.zygoteVerticalInput {
+.railVerticalRange {
   writing-mode: vertical-lr;
   direction: rtl;
   width: 4px;
-  height: 230px;
+  height: 215px;
   appearance: none;
   background: rgba(0, 0, 0, 0.12);
   border-radius: 4px;
@@ -4169,10 +4048,10 @@ input, textarea {
   position: absolute;
   z-index: 2;
 }
-[data-theme="dark"] .zygoteVerticalInput {
+[data-theme="dark"] .railVerticalRange {
   background: rgba(255, 255, 255, 0.18);
 }
-.zygoteVerticalInput::-webkit-slider-thumb {
+.railVerticalRange::-webkit-slider-thumb {
   appearance: none;
   width: 14px;
   height: 14px;
@@ -4182,21 +4061,243 @@ input, textarea {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
-.zygoteTrackProgress {
+.railTrackFill {
   position: absolute;
-  bottom: 5px;
+  bottom: 3px;
   width: 4px;
   background: #2563eb;
   border-radius: 4px;
   pointer-events: none;
   z-index: 1;
 }
-.zygoteIconColumn {
+.railIconCol {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 240px;
-  padding: 0 2px;
+  height: 220px;
+  padding: 0 1px;
+}
+.railLayerBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .railLayerBtn {
+  color: #94a3b8;
+}
+.railLayerBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #0f172a;
+}
+[data-theme="dark"] .railLayerBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.railLayerBtn.active {
+  background: rgba(37, 99, 235, 0.15);
+  color: #2563eb;
+  transform: scale(1.1);
+}
+[data-theme="dark"] .railLayerBtn.active {
+  background: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+}
+.railGenderBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(0, 0, 0, 0.2);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .railGenderBtn {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.railGenderBtn:hover {
+  transform: scale(1.12);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 3. Tools Card */
+.toolsCard {
+  padding: 6px 4px;
+  gap: 5px;
+}
+.railModeGroup {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+[data-theme="dark"] .railModeGroup {
+  background: rgba(255, 255, 255, 0.08);
+}
+.railModeBtn {
+  padding: 3px 6px;
+  border: none;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .railModeBtn {
+  color: #cbd5e1;
+}
+.railModeBtn.active {
+  background: #2563eb;
+  color: #fff;
+}
+.railActionPill {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: transparent;
+  color: #334155;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .railActionPill {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+.railActionPill:hover, .railActionPill.active {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: #2563eb;
+  color: #2563eb;
+}
+[data-theme="dark"] .railActionPill:hover, [data-theme="dark"] .railActionPill.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+.pillText {
+  font-size: 9.5px;
+}
+.pillBadge {
+  font-size: 9px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1px 4px;
+  margin-left: 2px;
+}
+
+/* Flyout Panels cho Cắt lớp & Tách lớp */
+.railFlyoutPanel {
+  position: absolute;
+  left: calc(100% + 10px);
+  bottom: 0;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: contextHudSlideUp 0.15s ease;
+}
+[data-theme="dark"] .railFlyoutPanel {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+.railFlyoutHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+}
+[data-theme="dark"] .railFlyoutHead {
+  color: #e2e8f0;
+}
+.railMiniBtn {
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+[data-theme="dark"] .railMiniBtn {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+.railRangeInput {
+  width: 100%;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+.railExplodePresets {
+  display: flex;
+  gap: 4px;
+}
+.railExplodePresets button {
+  flex: 1;
+  padding: 3px 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+[data-theme="dark"] .railExplodePresets button {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+.railExplodePresets button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* Footer góc kín đáo */
+.zygoteFineCorner {
+  position: absolute;
+  bottom: 8px;
+  right: 14px;
+  z-index: 20;
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+}
+.zygoteFineCorner:hover {
+  opacity: 1;
 }
 .zygoteIconBtn {
   width: 28px;
