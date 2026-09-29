@@ -219,7 +219,7 @@ function AppInner() {
     const note = NOTE_BY_ID[step.noteId];
     setSelection({ kind: 'note', id: step.noteId });
     if (note) setActiveSystem(note.s);
-    setIsInfoOpen(true);
+    setIsInfoOpen(false); // Ưu tiên thẻ Tour Card nổi tinh gọn, không mở tràn bảng hồ sơ
   }, []);
 
   const startTour = (tourId: string) => {
@@ -356,6 +356,10 @@ function AppInner() {
         }}
         explode={explode}
         onChangeExplode={setExplode}
+        axis={axis}
+        onChangeAxis={setAxis}
+        sliceT={sliceT}
+        onChangeSliceT={setSliceT}
         soundOn={soundOn}
         onToggleSound={toggleSound}
       />

@@ -8,9 +8,13 @@ export interface UnifiedLeftControlsProps {
   gender: 'male' | 'female';
   onToggleGender: () => void;
 
-  // 2. Merged Tools (3D/2D, Tách lớp Exploded, Âm thanh)
+  // 2. Merged Tools (3D/2D, Cắt lớp, Tách lớp, Âm thanh)
   mode: '3d' | '2d' | 'detail';
   onChangeMode: (m: '3d' | '2d' | 'detail') => void;
+  axis: number;
+  onChangeAxis: (axis: number) => void;
+  sliceT: number;
+  onChangeSliceT: (sliceT: number) => void;
   explode: number;
   onChangeExplode: (exp: number) => void;
   soundOn: boolean;
@@ -24,6 +28,10 @@ export default function UnifiedLeftControls({
   onToggleGender,
   mode,
   onChangeMode,
+  axis,
+  onChangeAxis,
+  sliceT,
+  onChangeSliceT,
   explode,
   onChangeExplode,
   soundOn,
@@ -31,6 +39,7 @@ export default function UnifiedLeftControls({
 }: UnifiedLeftControlsProps) {
   const { t, locale } = useLocale();
   const [showExplodePop, setShowExplodePop] = useState(false);
+  const [showSlicePop, setShowSlicePop] = useState(false);
 
   const layers = [
     {
@@ -185,12 +194,31 @@ export default function UnifiedLeftControls({
             </button>
           </div>
 
+          {/* Nút Cắt lớp giải phẫu 3D (Mặt phẳng cắt) - Đặt TRÊN tính năng Tách */}
+          {mode === '3d' && (
+            <button
+              type="button"
+              className={`railActionPill ${sliceT > 0 || showSlicePop ? 'active' : ''}`}
+              onClick={() => {
+                setShowSlicePop((v) => !v);
+                setShowExplodePop(false);
+              }}
+              title="Cắt lớp giải phẫu 3D (Mặt phẳng cắt)"
+            >
+              ✂ <span className="pillText">{locale === 'en' ? 'Slice' : 'Cắt'}</span>
+              {sliceT > 0 && <span className="pillBadge">{sliceT}%</span>}
+            </button>
+          )}
+
           {/* Nút Tách lớp không gian (Exploded View) */}
           {mode === '3d' && (
             <button
               type="button"
               className={`railActionPill ${explode > 0 || showExplodePop ? 'active' : ''}`}
-              onClick={() => setShowExplodePop((v) => !v)}
+              onClick={() => {
+                setShowExplodePop((v) => !v);
+                setShowSlicePop(false);
+              }}
               title="Tách rời không gian các hệ"
             >
               ⤢ <span className="pillText">{locale === 'en' ? 'Explode' : 'Tách'}</span>
@@ -207,6 +235,63 @@ export default function UnifiedLeftControls({
           >
             {soundOn ? '🔊' : '🔇'}
           </button>
+
+          {/* Popover Cắt lớp */}
+          {showSlicePop && mode === '3d' && (
+            <div className="railFlyoutPanel slicePanel">
+              <div className="railFlyoutHead">
+                <span>Cắt lớp 3D: <b>{sliceT}%</b></span>
+                {sliceT > 0 && (
+                  <button type="button" className="railMiniBtn" onClick={() => onChangeSliceT(0)}>
+                    0% (Tắt)
+                  </button>
+                )}
+              </div>
+              {/* Chọn mặt phẳng cắt */}
+              <div className="railSliceAxes">
+                <button
+                  type="button"
+                  className={axis === 0 ? 'active' : ''}
+                  onClick={() => onChangeAxis(0)}
+                  title="Cắt lát ngang từ đỉnh đầu xuống chân"
+                >
+                  Ngang
+                </button>
+                <button
+                  type="button"
+                  className={axis === 1 ? 'active' : ''}
+                  onClick={() => onChangeAxis(1)}
+                  title="Cắt lát dọc giữa trái - phải"
+                >
+                  Dọc
+                </button>
+                <button
+                  type="button"
+                  className={axis === 2 ? 'active' : ''}
+                  onClick={() => onChangeAxis(2)}
+                  title="Cắt lát đứng trước - sau"
+                >
+                  Đứng
+                </button>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={sliceT}
+                onChange={(e) => onChangeSliceT(Number(e.target.value))}
+                className="railRangeInput"
+                aria-label="Vị trí mặt phẳng cắt"
+              />
+              <div className="railExplodePresets">
+                <button type="button" onClick={() => onChangeSliceT(0)} className={sliceT === 0 ? 'active' : ''}>0%</button>
+                <button type="button" onClick={() => onChangeSliceT(25)} className={sliceT === 25 ? 'active' : ''}>25%</button>
+                <button type="button" onClick={() => onChangeSliceT(50)} className={sliceT === 50 ? 'active' : ''}>50%</button>
+                <button type="button" onClick={() => onChangeSliceT(75)} className={sliceT === 75 ? 'active' : ''}>75%</button>
+              </div>
+            </div>
+          )}
 
           {/* Popover Tách lớp */}
           {showExplodePop && mode === '3d' && (

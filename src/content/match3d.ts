@@ -25,7 +25,7 @@ export const MATCH_3D: Record<string, PartSpec> = {
   khopgoi: { rx: '^(left|right) (patella|tibia|fibula)$' },
   bantay: { rx: HAND, systems: ['skeletal'] },
   tim: {
-    concept: 'heart',
+    rx: '^(wall of (ventricle|left atrium|right atrium)|interventricular septum|.*cardiac atrium|heart (left|right) ventricle|.*papillary muscle.*)$',
     systems: ['cardiac', 'muscular'],
     exclude: 'cavity of|lateral ventricle|third ventricle|fourth ventricle|interventricular foramen|valve|cusp|leaflet',
   },

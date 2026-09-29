@@ -23,12 +23,15 @@ export const AXES: AxisDef[] = [
 ];
 
 export function sliceValue(axis: number, sliceT: number): number {
+  if (sliceT <= 0) return 999.0;
   const a = AXES[axis];
-  if (axis !== 0 || !a.stops) return a.lo + (sliceT / 100) * (a.hi - a.lo);
-  const t = (sliceT / 100) * 4;
-  const i = Math.min(3, Math.floor(t));
-  const f = t - i;
-  return a.stops[i] + (a.stops[i + 1] - a.stops[i]) * f;
+  if (axis === 0 && a.stops) {
+    const t = (sliceT / 100) * 4;
+    const i = Math.min(3, Math.floor(t));
+    const f = t - i;
+    return a.stops[i] + (a.stops[i + 1] - a.stops[i]) * f;
+  }
+  return a.hi - (sliceT / 100) * (a.hi - a.lo);
 }
 
 interface MeshEntry {
@@ -107,6 +110,28 @@ function getVietnameseFemaleName(nodeName: string): string {
     VH_F_descending_aorta_b: 'Động mạch chủ bụng',
     VH_F_inferior_vena_cava_a: 'Tĩnh mạch chủ dưới (ngực)',
     VH_F_inferior_vena_cava_b: 'Tĩnh mạch chủ dưới (bụng)',
+    // Tim mạch & mạch máu lớn
+    VH_F_left_ventricle: 'Tâm thất trái',
+    VH_F_right_ventricle: 'Tâm thất phải',
+    VH_F_left_cardiac_atrium: 'Tâm nhĩ trái',
+    VH_F_right_cardiac_atrium: 'Tâm nhĩ phải',
+    VH_F_interventricular_septum: 'Vách liên thất',
+    VH_F_papillary_muscle_of_heart_ant: 'Cơ nhú trước tâm thất trái',
+    VH_F_papillary_muscle_of_heart_antlat: 'Cơ nhú trước-bên tâm thất trái',
+    VH_F_papillary_muscle_of_heart_med: 'Cơ nhú vách tâm thất phải',
+    VH_F_papillary_muscle_of_heart_pos: 'Cơ nhú sau tâm thất phải',
+    VH_F_papillary_muscle_of_heart_posmed: 'Cơ nhú sau-trong tâm thất trái',
+    VH_F_aortic_valve: 'Van động mạch chủ',
+    VH_F_pulmonary_valve: 'Van động mạch phổi',
+    VH_F_mitral_valve: 'Van hai lá',
+    VH_F_tricuspid_valve: 'Van ba lá',
+    VH_F_aortic_arch: 'Quai động mạch chủ',
+    VH_F_ascending_aorta: 'Động mạch chủ lên',
+    VH_F_pulmonary_trunk: 'Thân động mạch phổi',
+    VH_F_pulmonary_artery_L: 'Động mạch phổi trái',
+    VH_F_pulmonary_artery_R: 'Động mạch phổi phải',
+    VH_F_left_coronary_artery: 'Động mạch vành trái',
+    VH_F_right_coronary_artery: 'Động mạch vành phải',
   };
 
   if (nameMap[nodeName]) return nameMap[nodeName];
@@ -615,6 +640,15 @@ export default function View3D({
       clippingPlanes: [plane],
     });
 
+    // Cơ tim (myocardium) dùng vật liệu cơ màu đỏ sẫm y học riêng biệt, tách bạch hoàn toàn với mạch máu
+    const heartMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0xb91c1c),
+      roughness: 0.46,
+      metalness: 0.03,
+      side: THREE.DoubleSide,
+      clippingPlanes: [plane],
+    });
+
     const vesselMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uColor: { value: new THREE.Color(0xd32f2f) },
@@ -684,14 +718,14 @@ export default function View3D({
             fatRef.current = fatMesh;
             continue;
           }
+          const isHeart = (noteId !== null && HEART_NOTE_IDS.has(noteId)) || part.id === 'FJ2428';
           const isVein = part.system === 'venous';
-          const isVessel = (system === 'tuanhoan' || part.system === 'arterial') && !(noteId && NON_VESSEL_CIRCULATORY_IDS.has(noteId));
-          const ownMaterial: THREE.Material = isVein ? veinMaterial : isVessel ? vesselMaterial : normalMat[system];
+          const isVessel = !isHeart && (system === 'tuanhoan' || part.system === 'arterial') && !(noteId && NON_VESSEL_CIRCULATORY_IDS.has(noteId));
+          const ownMaterial: THREE.Material = isHeart ? heartMaterial : isVein ? veinMaterial : isVessel ? vesselMaterial : normalMat[system];
           const mesh = new THREE.Mesh(geo, ownMaterial);
           mesh.userData.partId = part.id;
-          const isHeart = noteId !== null && HEART_NOTE_IDS.has(noteId);
           const isLung = noteId !== null && LUNG_NOTE_IDS.has(noteId);
-          if (isHeart || isLung) pivotAtCenter(mesh);
+          if (isLung) pivotAtCenter(mesh);
 
           // Lưu toạ độ đỉnh ban đầu để biến dạng thể trạng (BMI/Height/Weight) & tính tâm hình học
           mesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
@@ -702,14 +736,36 @@ export default function View3D({
           if (geo.boundingBox) {
             geo.boundingBox.getCenter(bcenter);
           }
-          mesh.userData.baseCenter = isHeart || isLung ? mesh.position.clone() : bcenter.clone();
+          mesh.userData.baseCenter = isLung ? mesh.position.clone() : bcenter.clone();
           mesh.userData.basePos = mesh.position.clone();
-          mesh.userData.isPivot = isHeart || isLung;
+          mesh.userData.isPivot = isLung;
 
           scene.add(mesh);
           entries.push({ mesh, part, system, noteId, ownMaterial });
           if (isHeart) heartMeshesRef.current.push(mesh);
           if (isLung) lungMeshesRef.current.push(mesh);
+        }
+
+        // Chuẩn hoá tâm co bóp chung cho toàn bộ khối tim (tâm thất, tâm nhĩ, cơ nhú) để đập đồng tâm liền mạch
+        if (heartMeshesRef.current.length > 0) {
+          const heartUnionBox = new THREE.Box3();
+          for (const m of heartMeshesRef.current) {
+            m.geometry.computeBoundingBox();
+            if (m.geometry.boundingBox) {
+              heartUnionBox.union(m.geometry.boundingBox);
+            }
+          }
+          const heartCenter = new THREE.Vector3();
+          heartUnionBox.getCenter(heartCenter);
+          for (const m of heartMeshesRef.current) {
+            m.geometry.translate(-heartCenter.x, -heartCenter.y, -heartCenter.z);
+            m.position.copy(heartCenter);
+            m.userData.baseCenter = heartCenter.clone();
+            m.userData.basePos = heartCenter.clone();
+            m.userData.isPivot = true;
+            m.geometry.computeBoundingBox();
+            m.geometry.computeBoundingSphere();
+          }
         }
 
         entriesRef.current = entries;
@@ -1472,7 +1528,11 @@ export default function View3D({
 
           {/* Bảng điều khiển mô phỏng Thể trạng & BMI */}
           {showBodyParams && (
-            <div className={`bodyParamsPanel ${isBodyParamsCompact ? 'isCompact' : ''}`}>
+            <div
+              className={`bodyParamsPanel ${isBodyParamsCompact ? 'isCompact' : ''}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <div className="bodyParamsHeader">
                 <div className="bodyParamsHeaderLeft">
                   <span>⚖ THỂ TRẠNG & CHỈ SỐ BMI</span>

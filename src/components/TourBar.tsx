@@ -15,40 +15,48 @@ export default function TourBar({ tour, stepIndex, onNext, onPrev, onExit }: Tou
   const isLast = stepIndex === tour.steps.length - 1;
 
   return (
-    <div className="tourbar">
+    <div
+      className="tourbar"
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      role="region"
+      aria-label="Khám phá hành trình giải phẫu"
+    >
       <div className="tourbarHead">
         <span className="tourbarTitle">{tour.title}</span>
-        <div className="tourbarProgress">
-          <div className="tourbarDots" aria-hidden="true">
-            {tour.steps.map((_, i) => (
-              <span
-                key={i}
-                className={`tourbarDot${i === stepIndex ? ' isCurrent' : i < stepIndex ? ' isDone' : ''}`}
-              />
-            ))}
+        <div className="tourbarHeaderRight">
+          <div className="tourbarProgress">
+            <div className="tourbarDots" aria-hidden="true">
+              {tour.steps.map((_, i) => (
+                <span
+                  key={i}
+                  className={`tourbarDot${i === stepIndex ? ' isCurrent' : i < stepIndex ? ' isDone' : ''}`}
+                />
+              ))}
+            </div>
+            <span className="tourbarStep">
+              {t('tour.step')} {stepIndex + 1}/{tour.steps.length}
+            </span>
           </div>
-          <span className="tourbarStep">
-            {t('tour.step')} {stepIndex + 1}/{tour.steps.length}
-          </span>
+          <button type="button" className="tourbarCloseBtn" onClick={onExit} title={t('tour.exit')}>
+            ✕
+          </button>
         </div>
       </div>
       <p className="tourbarText">{step.caption}</p>
       <div className="tourbarBtns">
-        <button onClick={onPrev} disabled={stepIndex === 0}>
-          {t('tour.prev')}
+        <button type="button" onClick={onPrev} disabled={stepIndex === 0} className="tourbarBtn">
+          ‹ {t('tour.prev')}
         </button>
         {isLast ? (
-          <button className="primary" onClick={onExit}>
-            {t('tour.finish')}
+          <button type="button" className="tourbarBtn primary" onClick={onExit}>
+            {t('tour.finish')} ✓
           </button>
         ) : (
-          <button className="primary" onClick={onNext}>
-            {t('tour.next')}
+          <button type="button" className="tourbarBtn primary" onClick={onNext}>
+            {t('tour.next')} ›
           </button>
         )}
-        <button className="quit" onClick={onExit}>
-          {t('tour.exit')}
-        </button>
       </div>
     </div>
   );
