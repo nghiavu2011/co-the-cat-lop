@@ -10,9 +10,11 @@ export default function SideDonateWidget({ onOpenModal }: SideDonateWidgetProps)
 
   const [minimized, setMinimized] = useState(() => {
     try {
-      return localStorage.getItem('cotecatlop.side_donate_min') === '1';
+      const stored = localStorage.getItem('cotecatlop.side_donate_min');
+      if (stored !== null) return stored === '1';
+      return true; // Mặc định thu nhỏ thành pill badge tinh tế
     } catch {
-      return false;
+      return true;
     }
   });
 

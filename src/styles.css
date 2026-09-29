@@ -3608,4 +3608,510 @@ input, textarea {
   writing-mode: vertical-lr;
 }
 
+/* ==========================================================================
+   ZYGOTE PURE ULTRA-CLEAN SPATIAL INTERFACE (TIÊU CHUẨN ZYGOTE BODY CHÍNH GỐC)
+   ========================================================================== */
+
+/* 1. KHUNG NHÌN TOÀN MÀN HÌNH KHÔNG CUỘN (PURE 100VW x 100VH) */
+.zygotePureViewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: var(--f-body, system-ui, sans-serif);
+  user-select: none;
+}
+[data-theme="dark"] .zygotePureViewport {
+  background: #090d16;
+  color: #f1f5f9;
+}
+
+/* 2. MAIN 3D CANVAS FULL TOÀN DIỆN */
+.zygoteMainCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+.zygoteMainCanvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* 3. TOP BAR NỔI TỐI GIẢN (CHỈ LOGO & CÔNG CỤ NHẸ NHÀNG) */
+.zygoteTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: none;
+}
+.zygoteBrandGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.zygoteBrandTitle {
+  font-family: var(--f-display, serif);
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+[data-theme="dark"] .zygoteBrandTitle {
+  color: #f8fafc;
+}
+.zygoteBrandSub {
+  font-size: 10px;
+  font-family: var(--f-mono);
+  color: #64748b;
+  margin-left: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.zygoteToolsGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+/* Ô tìm kiếm Capsule giống hệt Zygote */
+.zygoteSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 30px;
+  padding: 4px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+[data-theme="dark"] .zygoteSearchBox {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.zygoteSearchInput {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  outline: none;
+  color: inherit;
+  width: 150px;
+  transition: width 0.2s ease;
+}
+.zygoteSearchInput:focus {
+  width: 220px;
+}
+.zygoteSearchIcon {
+  color: #64748b;
+}
+.zygoteSearchClear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 11px;
+}
+.zygotePillBtn {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+[data-theme="dark"] .zygotePillBtn {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+}
+.zygotePillBtn:hover, .zygotePillBtn.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.zygotePillBtn.alert {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.zygoteIconBtnTop {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+[data-theme="dark"] .zygoteIconBtnTop {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 4. CỤM ĐIỀU HƯỚNG CAMERA (ZOOM IN/OUT / RESET HOME) DƯỚI LOGO */
+.zygoteNavControls {
+  position: absolute;
+  top: 64px;
+  left: 20px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.zygoteZoomCol {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .zygoteZoomCol {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.zygoteNavBtn {
+  width: 32px;
+  height: 30px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+[data-theme="dark"] .zygoteNavBtn {
+  color: #cbd5e1;
+}
+.zygoteNavBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .zygoteNavBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.zygoteNavBtn.homeBtn {
+  font-size: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .zygoteNavBtn.homeBtn {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 5. THANH TRƯỢT CAPSULE BÓC TÁCH ZYGOTE (MÉP TRÁI CHUẨN ZYGOTE BODY) */
+.zygoteCapsuleSlider {
+  position: absolute;
+  top: 180px;
+  left: 20px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 40px;
+  padding: 10px 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+}
+[data-theme="dark"] .zygoteCapsuleSlider {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+.zygoteCapsuleTrack {
+  position: relative;
+  width: 14px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+}
+.zygoteVerticalInput {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 230px;
+  appearance: none;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: absolute;
+  z-index: 2;
+}
+[data-theme="dark"] .zygoteVerticalInput {
+  background: rgba(255, 255, 255, 0.18);
+}
+.zygoteVerticalInput::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.zygoteTrackProgress {
+  position: absolute;
+  bottom: 5px;
+  width: 4px;
+  background: #2563eb;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+.zygoteIconColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 240px;
+  padding: 0 2px;
+}
+.zygoteIconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.zygoteIconBtn:hover {
+  color: #0f172a;
+  background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="dark"] .zygoteIconBtn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+}
+.zygoteIconBtn.active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+}
+.zygoteGenderToggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-theme="dark"] .zygoteGenderToggle {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+}
+.zygoteGenderToggle:hover {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+  border-color: #ec4899;
+}
+
+/* 6. DRAWER SIDEBAR (TRƯỢT BÊN PHẢI KHI CẦN XEM DANH MỤC CƠ QUAN) */
+.zygoteDrawerSidebar {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  bottom: 60px;
+  width: 320px;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  animation: slideInRight 0.25s ease;
+}
+[data-theme="dark"] .zygoteDrawerSidebar {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6);
+}
+
+/* 7. THANH DOCK TỐI GIẢN Ở ĐÁY MÀN HÌNH */
+.zygoteMinimalDock {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.zygoteDockPill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 30px;
+  padding: 4px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .zygoteDockPill {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.zygoteDockBtn {
+  border: none;
+  background: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+[data-theme="dark"] .zygoteDockBtn {
+  color: #cbd5e1;
+}
+.zygoteDockBtn:hover, .zygoteDockBtn.active {
+  background: #2563eb;
+  color: #fff;
+}
+.zygoteDockSep {
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 11px;
+}
+[data-theme="dark"] .zygoteDockSep {
+  color: rgba(255, 255, 255, 0.2);
+}
+.zygoteMiniTourList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.zygoteMiniTourBtn {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #334155;
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+[data-theme="dark"] .zygoteMiniTourBtn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+.zygoteMiniTourBtn:hover {
+  background: var(--brass, #e6c687);
+  color: #0f172a;
+}
+
+/* Thanh trượt cắt lớp mini bung lên từ dock */
+.zygoteSliceControlPop {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 12px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 240px;
+  margin-bottom: 4px;
+}
+[data-theme="dark"] .zygoteSliceControlPop {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.zygoteSliceHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: var(--f-mono);
+}
+.zygoteAxisBtn {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: none;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+[data-theme="dark"] .zygoteAxisBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.zygoteSliceRange {
+  width: 100%;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+/* Copyright mờ thanh tao */
+.zygoteFineCopyright {
+  font-size: 10px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+.zygoteLinkBtn, .zygoteLink {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 10px;
+}
+.zygoteLinkBtn:hover, .zygoteLink:hover {
+  color: #2563eb;
+}
+
+
 

@@ -981,6 +981,23 @@ export default function View3D({
     window.addEventListener('resize', resize);
     resize();
 
+    const onZygoteCamera = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail === 'zoom-in') {
+        camState.current.radius = Math.max(0.6, camState.current.radius * 0.85);
+      } else if (customEvent.detail === 'zoom-out') {
+        camState.current.radius = Math.min(6.0, camState.current.radius * 1.18);
+      } else if (customEvent.detail === 'reset') {
+        camState.current.radius = 2.2;
+        camState.current.phi = Math.PI / 2;
+        camState.current.theta = 0;
+        camState.current.targetX = 0;
+        camState.current.targetY = 0.9;
+        camState.current.targetZ = 0;
+      }
+    };
+    window.addEventListener('zygote-camera-action', onZygoteCamera);
+
     const IDLE_DELAY_MS = 4000;
     const IDLE_ROTATE_SPEED = 0.045; // rad/giây
 
@@ -1067,6 +1084,7 @@ export default function View3D({
       cancelled = true;
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('zygote-camera-action', onZygoteCamera);
       canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
