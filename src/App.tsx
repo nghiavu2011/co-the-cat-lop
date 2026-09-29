@@ -8,7 +8,6 @@ import OrganDetail from './components/OrganDetail';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
-import ContextActionHUD from './components/ContextActionHUD';
 import UnifiedLeftControls from './components/UnifiedLeftControls';
 import TopBarZygote from './components/TopBarZygote';
 import LocaleProvider from './locale/LocaleProvider';
@@ -149,11 +148,6 @@ function AppInner() {
       document.exitFullscreen().catch(() => {});
       setIsFullscreen(false);
     }
-  };
-
-  // Camera Navigation trigger
-  const triggerCamera = (act: string) => {
-    window.dispatchEvent(new CustomEvent('zygote-camera-action', { detail: act }));
   };
 
   // Context Actions: Hide, Ghost, Isolate, Unhide
@@ -328,15 +322,25 @@ function AppInner() {
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         onStartTour={startTour}
+        selectedName={selectedDisplayName}
+        onHideSelected={handleHideSelected}
+        onGhostSelected={handleGhostSelected}
+        onIsolateSelected={handleIsolateSelected}
+        onOpenInfoSelected={() => {
+          setIsInfoOpen((v) => {
+            const next = !v;
+            if (next) {
+              setIsSidebarOpen(false);
+              setShowBodyParams(false);
+            }
+            return next;
+          });
+        }}
+        onDeselect={() => setSelection(null)}
       />
 
-      {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (SÁT NHẬP CAMERA, BÓC TÁCH, TÁCH LỚP, 3D/2D TRONG 1 KHỐI LIỀN MẠCH) */}
+      {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (CAPSULE BÓC TÁCH & CÔNG CỤ LIỀN MẠCH, KHÔNG CÒN CỤM CAMERA) */}
       <UnifiedLeftControls
-        onZoomIn={() => triggerCamera('zoom-in')}
-        onZoomOut={() => triggerCamera('zoom-out')}
-        onResetCamera={() => triggerCamera('reset')}
-        onOrbit={(dir) => triggerCamera(`orbit-${dir}`)}
-        onPresetAngle={(angle) => triggerCamera(angle)}
         peelDepth={peelDepth}
         onChangePeelDepth={setPeelDepth}
         gender={gender}
@@ -404,29 +408,6 @@ function AppInner() {
               isolatedTargetId={isolatedTargetId}
               explode={explode}
             />
-
-            {/* CỤM NÚT NGỮ CẢNH VISIBLE BODY KHI CHỌN KHỐI (DOCK Ở ĐÁY) */}
-            {selection && (
-              <ContextActionHUD
-                selectedName={selectedDisplayName}
-                hasHiddenObjects={hiddenPartIds.size > 0 || ghostPartIds.size > 0 || isolatedTargetId !== null}
-                onHide={handleHideSelected}
-                onGhost={handleGhostSelected}
-                onIsolate={handleIsolateSelected}
-                onOpenInfo={() => {
-                  setIsInfoOpen((v) => {
-                    const next = !v;
-                    if (next) {
-                      setIsSidebarOpen(false);
-                      setShowBodyParams(false);
-                    }
-                    return next;
-                  });
-                }}
-                onUnhideAll={handleUnhideAll}
-                onDeselect={() => setSelection(null)}
-              />
-            )}
           </>
         ) : (
           <div className="loading3d">

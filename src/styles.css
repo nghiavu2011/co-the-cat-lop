@@ -3532,7 +3532,7 @@ input, textarea {
   color: #ef4444;
 }
 
-/* 6. BẢNG THÔNG TIN DẠNG SLIDE-OVER SHEET (CẠNH PHẢI - KHÔNG CHỒNG LẤN HEADER) */
+/* 6. BẢNG THÔNG TIN DẠNG SLIDE-OVER SHEET (CẠNH PHẢI - MÀU BE ĐỒNG NHẤT LIGHT THEME) */
 .slideOverPanel {
   position: absolute;
   right: 16px;
@@ -3541,25 +3541,23 @@ input, textarea {
   width: 380px;
   max-width: calc(100vw - 32px);
   z-index: 85;
-  background: rgba(15, 23, 42, 0.94);
+  background: rgba(248, 246, 240, 0.96); /* Màu be đồng nhất cho light theme */
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #0f172a;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+[data-theme="dark"] .slideOverPanel {
+  background: rgba(15, 23, 42, 0.95); /* Đen chỉ dành riêng cho dark theme */
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.65);
+  color: #f8fafc;
 }
 .pcapTopRow {
   display: flex;
@@ -3568,9 +3566,9 @@ input, textarea {
   width: 100%;
 }
 .pcapCloseBtn {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: #475569;
   font-size: 13px;
   width: 26px;
   height: 26px;
@@ -3581,9 +3579,83 @@ input, textarea {
   justify-content: center;
   transition: all 0.15s ease;
 }
+[data-theme="dark"] .pcapCloseBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
 .pcapCloseBtn:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
+}
+
+/* Thích ứng màu sắc các trường thông tin trong slideOverPanel */
+.slideOverPanel .pcap {
+  background: rgba(240, 236, 226, 0.85);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+[data-theme="dark"] .slideOverPanel .pcap {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+.slideOverPanel .pcap h2 {
+  color: #0f172a;
+}
+[data-theme="dark"] .slideOverPanel .pcap h2 {
+  color: #f8fafc;
+}
+.slideOverPanel .pcap .en {
+  color: #64748b;
+}
+[data-theme="dark"] .slideOverPanel .pcap .en {
+  color: #94a3b8;
+}
+.slideOverPanel .pbody {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 16px 20px;
+  color: #1e293b;
+}
+[data-theme="dark"] .slideOverPanel .pbody {
+  color: #f1f5f9;
+}
+.slideOverPanel .fld {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+}
+[data-theme="dark"] .slideOverPanel .fld {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+.slideOverPanel .fld h3 {
+  color: var(--brass, #b8860b);
+}
+.slideOverPanel .fld p {
+  color: #334155;
+}
+[data-theme="dark"] .slideOverPanel .fld p {
+  color: #cbd5e1;
+}
+.slideOverPanel .fld.mech {
+  background: rgba(240, 236, 226, 0.65);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 10px 12px;
+  margin: 6px 0;
+}
+[data-theme="dark"] .slideOverPanel .fld.mech {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.slideOverPanel .fld.care {
+  background: rgba(254, 243, 199, 0.5);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 6px 0;
+}
+[data-theme="dark"] .slideOverPanel .fld.care {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
 }
 
 /* 7. FLOATING BOTTOM DOCK & TABS */
@@ -3762,6 +3834,100 @@ input, textarea {
   align-items: center;
   gap: 8px;
   pointer-events: auto;
+}
+
+/* Cụm tác vụ ngữ cảnh bộ phận chọn trên thanh TopBar (Tối giản đưa lên khung trên) */
+.zygoteTopContextPill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 30px;
+  padding: 3px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  pointer-events: auto;
+  animation: contextHudSlideUp 0.18s ease;
+  margin: 0 auto;
+}
+[data-theme="dark"] .zygoteTopContextPill {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+}
+.contextPillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  flex-shrink: 0;
+}
+.contextPillName {
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #0f172a;
+}
+[data-theme="dark"] .contextPillName {
+  color: #f8fafc;
+}
+.contextPillSep {
+  color: rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+}
+[data-theme="dark"] .contextPillSep {
+  color: rgba(255, 255, 255, 0.2);
+}
+.contextPillBtn {
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .contextPillBtn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+.contextPillBtn:hover {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  border-color: #2563eb;
+}
+[data-theme="dark"] .contextPillBtn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+.contextPillBtn.info {
+  background: #b8860b;
+  color: #fff;
+  border-color: #b8860b;
+}
+.contextPillBtn.info:hover {
+  background: #996f08;
+  color: #fff;
+}
+.contextPillBtn.close {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 1px 4px;
+}
+.contextPillBtn.close:hover {
+  color: #ef4444;
 }
 
 /* Ô tìm kiếm Capsule giống hệt Zygote */

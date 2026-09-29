@@ -21,6 +21,13 @@ export interface TopBarZygoteProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onStartTour?: (tourId: string) => void;
+  // Tác vụ ngữ cảnh khi chọn bộ phận (Đưa lên khung trên)
+  selectedName?: string | null;
+  onHideSelected?: () => void;
+  onGhostSelected?: () => void;
+  onIsolateSelected?: () => void;
+  onOpenInfoSelected?: () => void;
+  onDeselect?: () => void;
 }
 
 export default function TopBarZygote({
@@ -40,6 +47,12 @@ export default function TopBarZygote({
   isFullscreen,
   onToggleFullscreen,
   onStartTour,
+  selectedName,
+  onHideSelected,
+  onGhostSelected,
+  onIsolateSelected,
+  onOpenInfoSelected,
+  onDeselect,
 }: TopBarZygoteProps) {
   const { t, locale } = useLocale();
   const [showTools, setShowTools] = useState(false);
@@ -55,7 +68,33 @@ export default function TopBarZygote({
         </div>
       </div>
 
-      {/* 2. GÓC PHẢI: TÌM KIẾM + CÔNG CỤ TỐI GIẢN CHUẨN ZYGOTE */}
+      {/* 2. CỤM TÁC VỤ NGỮ CẢNH CƠ QUAN ĐƯỢC CHỌN (TỐI GIẢN TRÊN KHUNG TRÊN) */}
+      {selectedName && (
+        <div className="zygoteTopContextPill">
+          <span className="contextPillDot" />
+          <span className="contextPillName" title={selectedName}>
+            {selectedName}
+          </span>
+          <span className="contextPillSep">|</span>
+          <button type="button" className="contextPillBtn" onClick={onHideSelected} title="Ẩn bộ phận này">
+            Ẩn
+          </button>
+          <button type="button" className="contextPillBtn" onClick={onGhostSelected} title="Làm mờ bộ phận này">
+            Mờ
+          </button>
+          <button type="button" className="contextPillBtn" onClick={onIsolateSelected} title="Cô lập chỉ xem bộ phận này">
+            Cô lập
+          </button>
+          <button type="button" className="contextPillBtn info" onClick={onOpenInfoSelected} title="Xem hồ sơ giải phẫu">
+            Hồ sơ
+          </button>
+          <button type="button" className="contextPillBtn close" onClick={onDeselect} title="Bỏ chọn">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* 3. GÓC PHẢI: TÌM KIẾM + CÔNG CỤ TỐI GIẢN CHUẨN ZYGOTE */}
       <div className="zygoteToolsGroup">
         {/* Ô tìm kiếm Capsule giống hệt Zygote */}
         <div className="zygoteSearchBox">

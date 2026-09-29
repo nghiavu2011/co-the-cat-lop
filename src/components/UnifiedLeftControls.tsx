@@ -2,20 +2,13 @@ import { useState } from 'react';
 import { useLocale } from '../locale/useLocale';
 
 export interface UnifiedLeftControlsProps {
-  // 1. Camera Navigation
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onResetCamera: () => void;
-  onOrbit: (dir: 'up' | 'down' | 'left' | 'right') => void;
-  onPresetAngle: (angle: 'front' | 'back' | 'left' | 'right' | 'top') => void;
-
-  // 2. Tall Layer Peeling Slider (Bóc tách tầng cơ thể)
+  // 1. Tall Layer Peeling Slider (Bóc tách tầng cơ thể)
   peelDepth: number; // 0..100
   onChangePeelDepth: (val: number) => void;
   gender: 'male' | 'female';
   onToggleGender: () => void;
 
-  // 3. Merged Tools (3D/2D, Tách lớp Exploded, Âm thanh)
+  // 2. Merged Tools (3D/2D, Tách lớp Exploded, Âm thanh)
   mode: '3d' | '2d' | 'detail';
   onChangeMode: (m: '3d' | '2d' | 'detail') => void;
   explode: number;
@@ -25,11 +18,6 @@ export interface UnifiedLeftControlsProps {
 }
 
 export default function UnifiedLeftControls({
-  onZoomIn,
-  onZoomOut,
-  onResetCamera,
-  onOrbit,
-  onPresetAngle,
   peelDepth,
   onChangePeelDepth,
   gender,
@@ -42,16 +30,7 @@ export default function UnifiedLeftControls({
   onToggleSound,
 }: UnifiedLeftControlsProps) {
   const { t, locale } = useLocale();
-  const [showAngles, setShowAngles] = useState(false);
   const [showExplodePop, setShowExplodePop] = useState(false);
-
-  const angles = [
-    { id: 'front' as const, label: locale === 'en' ? 'Front' : 'Trước' },
-    { id: 'back' as const, label: locale === 'en' ? 'Back' : 'Sau' },
-    { id: 'left' as const, label: locale === 'en' ? 'Left' : 'Trái' },
-    { id: 'right' as const, label: locale === 'en' ? 'Right' : 'Phải' },
-    { id: 'top' as const, label: locale === 'en' ? 'Top' : 'Đỉnh' },
-  ];
 
   const layers = [
     {
@@ -128,99 +107,25 @@ export default function UnifiedLeftControls({
   return (
     <aside className="unifiedLeftRail" aria-label="Anatomical Workspace Navigation">
       <div className="unifiedRailCapsule">
-        {/* PHẦN 1: ĐIỀU HƯỚNG CAMERA (D-PAD & ZOOM) */}
-        <div className="railSection cameraSection">
-          <div className="railDpad">
-            <button
-              type="button"
-              className="railDpadBtn up"
-              onClick={() => onOrbit('up')}
-              title="Nghiêng lên"
-            >
-              ▲
-            </button>
-            <div className="railDpadRow">
-              <button
-                type="button"
-                className="railDpadBtn left"
-                onClick={() => onOrbit('left')}
-                title="Xoay trái"
-              >
-                ◀
-              </button>
-              <button
-                type="button"
-                className="railDpadBtn home"
-                onClick={onResetCamera}
-                title="Góc nhìn chuẩn (Home)"
-              >
-                ⌂
-              </button>
-              <button
-                type="button"
-                className="railDpadBtn right"
-                onClick={() => onOrbit('right')}
-                title="Xoay phải"
-              >
-                ▶
-              </button>
-            </div>
-            <button
-              type="button"
-              className="railDpadBtn down"
-              onClick={() => onOrbit('down')}
-              title="Nghiêng xuống"
-            >
-              ▼
-            </button>
-          </div>
+        {/* NÚT ĐỔI GIỚI TÍNH Ở ĐỈNH KHỐI CAPSULE */}
+        <button
+          type="button"
+          className="railGenderBtn"
+          onClick={onToggleGender}
+          title={gender === 'female' ? 'Chuyển sang Cơ thể Nam' : 'Chuyển sang Cơ thể Nữ'}
+        >
+          <span style={{ color: gender === 'female' ? '#ec4899' : '#3b82f6', fontWeight: 800 }}>
+            {gender === 'female' ? '♀' : '♂'}
+          </span>
+        </button>
 
-          <div className="railZoomRow">
-            <button type="button" className="railZoomBtn" onClick={onZoomIn} title="Phóng to (+)">
-              +
-            </button>
-            <button type="button" className="railZoomBtn" onClick={onZoomOut} title="Thu nhỏ (−)">
-              −
-            </button>
-            <button
-              type="button"
-              className={`railAngleBtn ${showAngles ? 'active' : ''}`}
-              onClick={() => setShowAngles((v) => !v)}
-              title="Góc nhìn chuẩn y khoa"
-            >
-              📐
-            </button>
-          </div>
-
-          {/* Menu góc nhìn thả sang phải */}
-          {showAngles && (
-            <div className="railFlyoutMenu">
-              <div className="railFlyoutTitle">Góc nhìn</div>
-              {angles.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  className="railFlyoutItem"
-                  onClick={() => {
-                    onPresetAngle(a.id);
-                    setShowAngles(false);
-                  }}
-                >
-                  {a.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ĐƯỜNG KẺ NGĂN CÁCH THANH LỊCH */}
         <div className="railSectionDivider" />
 
-        {/* PHẦN 2: THANH BÓC TÁCH TẦNG CƠ THỂ DÀI (TALL LAYER SLIDER) */}
+        {/* PHẦN BÓC TÁCH TẦNG CƠ THỂ DÀI (TALL LAYER SLIDER) */}
         {mode === '3d' && (
           <div className="railSection layerSection" aria-label={t('slider.title')}>
             <div className="railCapsuleInner">
-              {/* Track trượt kéo dài (270px) tạo không gian lựa chọn điểm cắt chính xác */}
+              {/* Track trượt kéo dài 270px */}
               <div className="railCapsuleTrack">
                 <input
                   type="range"
@@ -235,7 +140,7 @@ export default function UnifiedLeftControls({
                 <div className="railTrackFill" style={{ height: `${peelDepth}%` }} />
               </div>
 
-              {/* Cột Icon các tầng tương ứng */}
+              {/* Cột Icon các tầng */}
               <div className="railIconCol">
                 {layers.map((layer) => {
                   const isActive = peelDepth >= layer.val - 8;
@@ -251,35 +156,22 @@ export default function UnifiedLeftControls({
                     </button>
                   );
                 })}
-
-                {/* Nút đổi Giới tính Nam / Nữ */}
-                <button
-                  type="button"
-                  className="railGenderBtn"
-                  onClick={onToggleGender}
-                  title={gender === 'female' ? 'Chuyển sang Cơ thể Nam' : 'Chuyển sang Cơ thể Nữ'}
-                >
-                  <span style={{ color: gender === 'female' ? '#ec4899' : '#3b82f6', fontWeight: 800 }}>
-                    {gender === 'female' ? '♀' : '♂'}
-                  </span>
-                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ĐƯỜNG KẺ NGĂN CÁCH */}
         <div className="railSectionDivider" />
 
-        {/* PHẦN 3: SÁT NHẬP CÔNG CỤ (3D/2D, TÁCH LỚP, ÂM THANH - KHÔNG CÒN TAB RỜI NỮA) */}
+        {/* PHẦN CÔNG CỤ TÍCH HỢP TRỰC TIẾP TRONG CAPSULE DUY NHẤT */}
         <div className="railSection toolsSection">
-          {/* Nhóm chọn View Mode 3D / 2D */}
+          {/* Chế độ 3D / 2D */}
           <div className="railModeGroup">
             <button
               type="button"
               className={`railModeBtn ${mode === '3d' ? 'active' : ''}`}
               onClick={() => onChangeMode('3d')}
-              title="Chế độ giải phẫu không gian 3D"
+              title="Chế độ 3D"
             >
               3D
             </button>
@@ -287,43 +179,43 @@ export default function UnifiedLeftControls({
               type="button"
               className={`railModeBtn ${mode === '2d' ? 'active' : ''}`}
               onClick={() => onChangeMode('2d')}
-              title="Chế độ sơ đồ mặt phẳng 2D"
+              title="Chế độ 2D"
             >
               2D
             </button>
           </div>
 
-          {/* Nút Bóc tách không gian (Exploded View) */}
+          {/* Nút Tách lớp không gian (Exploded View) */}
           {mode === '3d' && (
             <button
               type="button"
               className={`railActionPill ${explode > 0 || showExplodePop ? 'active' : ''}`}
               onClick={() => setShowExplodePop((v) => !v)}
-              title="Bóc tách / Tách rời các hệ cơ quan ra xa nhau theo không gian"
+              title="Tách rời không gian các hệ"
             >
               ⤢ <span className="pillText">{locale === 'en' ? 'Explode' : 'Tách'}</span>
               {explode > 0 && <span className="pillBadge">{explode}%</span>}
             </button>
           )}
 
-          {/* Nút Âm thanh sinh học */}
+          {/* Âm thanh */}
           <button
             type="button"
             className={`railActionPill ${soundOn ? 'active' : ''}`}
             onClick={onToggleSound}
-            title="Âm thanh nhịp tim & hơi thở sinh học"
+            title="Âm thanh nhịp tim & hơi thở"
           >
             {soundOn ? '🔊' : '🔇'}
           </button>
 
-          {/* Popover điều khiển Tách lớp không gian (Exploded View) */}
+          {/* Popover Tách lớp */}
           {showExplodePop && mode === '3d' && (
             <div className="railFlyoutPanel explodePanel">
               <div className="railFlyoutHead">
-                <span>Tách rời không gian: <b>{explode}%</b></span>
+                <span>Tách không gian: <b>{explode}%</b></span>
                 {explode > 0 && (
                   <button type="button" className="railMiniBtn" onClick={() => onChangeExplode(0)}>
-                    0% (Gom lại)
+                    0%
                   </button>
                 )}
               </div>

@@ -5,7 +5,6 @@ import { loadAllChunks, type LoadProgress } from '../data/loader';
 import { buildPartGeometry } from '../data/geometry';
 import { defaultSystemFor, SYSTEM_BY_ID } from '../data/systems';
 import { buildBinding } from '../data/bind';
-import { NOTE_BY_ID } from '../content/notes';
 import type { Selection } from '../selection';
 
 export interface AxisDef {
@@ -429,7 +428,6 @@ export default function View3D({
 
   const explode = explodeProp ?? 0;
   const isIsolated = Boolean(isolatedTargetId);
-  const pinRef = useRef<HTMLDivElement>(null);
   const selRef = useRef<Selection | null>(selection);
   selRef.current = selection;
   const showLabelsRef = useRef(showLabels);
@@ -1092,35 +1090,6 @@ export default function View3D({
       );
       camera.lookAt(targetX, targetY, targetZ);
       renderer.render(scene, camera);
-
-      // Cập nhật vị trí Ghim nhãn 3D nổi (Floating 3D Pin)
-      if (pinRef.current) {
-        const pinEl = pinRef.current;
-        const currentSel = selRef.current;
-        if (currentSel && showLabelsRef.current && highlightedRef.current.length > 0 && canvasRef.current) {
-          const box = new THREE.Box3();
-          for (const m of highlightedRef.current) {
-            box.expandByObject(m);
-          }
-          const pinCenter = new THREE.Vector3();
-          box.getCenter(pinCenter);
-          pinCenter.y = box.max.y; // Ghim ngay mép trên đỉnh của bộ phận
-
-          const projected = pinCenter.clone().project(camera);
-          if (projected.z < 1 && Math.abs(projected.x) <= 0.94 && Math.abs(projected.y) <= 0.94) {
-            const rect = canvasRef.current.getBoundingClientRect();
-            const px = (projected.x * 0.5 + 0.5) * rect.width;
-            const py = (-projected.y * 0.5 + 0.5) * rect.height;
-            pinEl.style.display = 'inline-flex';
-            pinEl.style.left = `${px}px`;
-            pinEl.style.top = `${py}px`;
-          } else {
-            pinEl.style.display = 'none';
-          }
-        } else {
-          pinEl.style.display = 'none';
-        }
-      }
     };
     rafId = requestAnimationFrame(loop);
 
@@ -1436,15 +1405,6 @@ export default function View3D({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isolatedTargetId, ready]);
-
-  const selectedLabelText = useMemo(() => {
-    if (!selection) return '';
-    if (selection.kind === 'note') {
-      return NOTE_BY_ID[selection.id]?.n || selection.id;
-    }
-    const en = entriesRef.current.find((e) => e.part.id === selection.id);
-    return en?.part.name || selection.id;
-  }, [selection, ready]);
 
   // ---------- mặt phẳng cắt ----------
   useEffect(() => {
@@ -1804,12 +1764,6 @@ export default function View3D({
               </button>
             </div>
           )}
-
-          {/* Ghim nhãn 3D nổi trên bộ phận được chọn (Floating 3D Pin) */}
-          <div ref={pinRef} className="floatingPin3d" style={{ display: 'none' }}>
-            <span className="floatingPinDot" />
-            <span>{selectedLabelText}</span>
-          </div>
         </>
       )}
 
