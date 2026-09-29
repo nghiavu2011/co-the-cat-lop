@@ -1389,10 +1389,10 @@ img { max-width: 100%; }
 
 .bodyParamsPanel {
   position: absolute;
-  top: 60px;
-  right: 14px;
-  width: 320px;
-  max-width: calc(100vw - 28px);
+  top: 56px;
+  right: 16px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
   max-height: calc(100% - 74px);
   overflow-y: auto;
   background: rgba(15, 23, 42, 0.96);
@@ -1401,7 +1401,7 @@ img { max-width: 100%; }
   border-radius: 12px;
   padding: 14px 16px;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
-  z-index: 75;
+  z-index: 85;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
@@ -3532,15 +3532,15 @@ input, textarea {
   color: #ef4444;
 }
 
-/* 6. BẢNG THÔNG TIN DẠNG SLIDE-OVER SHEET (CẠNH PHẢI) */
+/* 6. BẢNG THÔNG TIN DẠNG SLIDE-OVER SHEET (CẠNH PHẢI - KHÔNG CHỒNG LẤN HEADER) */
 .slideOverPanel {
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: 16px;
+  top: 56px;
   bottom: 20px;
-  width: 400px;
-  max-width: calc(100vw - 40px);
-  z-index: 35;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  z-index: 85;
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -3847,43 +3847,59 @@ input, textarea {
 }
 
 /* ==========================================================================
-   THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (UNIFIED LEFT RAIL - KHÔNG CHỒNG LẤN)
+   THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (UNIFIED CAPSULE RAIL - 1 KHỐI LIỀN MẠCH)
    ========================================================================== */
 .unifiedLeftRail {
   position: absolute;
-  top: 66px;
+  top: 60px;
   left: 18px;
-  z-index: 45;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 52px;
+  z-index: 55;
   pointer-events: none;
 }
 
-/* Các thẻ con trong thanh rail */
-.railCard {
+/* Khối Capsule duy nhất liền mạch */
+.unifiedRailCapsule {
   pointer-events: auto;
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 6px 4px;
+  gap: 4px;
+  width: 52px;
   position: relative;
 }
-[data-theme="dark"] .railCard {
+[data-theme="dark"] .unifiedRailCapsule {
   background: rgba(15, 23, 42, 0.94);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
 }
 
-/* 1. Camera Card */
-.cameraCard {
-  padding: 6px 4px;
+.railSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.railSectionDivider {
+  width: 32px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 3px 0;
+}
+[data-theme="dark"] .railSectionDivider {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 1. Camera Section */
+.cameraSection {
+  padding: 2px 0 4px 0;
   gap: 4px;
 }
 .railDpad {
@@ -4018,9 +4034,9 @@ input, textarea {
   color: #93c5fd;
 }
 
-/* 2. Layer Capsule Card */
-.layerCard {
-  padding: 8px 4px;
+/* 2. Layer Capsule Section (KÉO DÀI 270px ĐỂ DỄ ĐIỀU CHỈNH ĐIỂM CẮT) */
+.layerSection {
+  padding: 4px 0;
 }
 .railCapsuleInner {
   display: flex;
@@ -4029,8 +4045,8 @@ input, textarea {
 }
 .railCapsuleTrack {
   position: relative;
-  width: 10px;
-  height: 220px;
+  width: 12px;
+  height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4038,35 +4054,39 @@ input, textarea {
 .railVerticalRange {
   writing-mode: vertical-lr;
   direction: rtl;
-  width: 4px;
-  height: 215px;
+  width: 6px;
+  height: 265px;
   appearance: none;
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
   outline: none;
   cursor: pointer;
   position: absolute;
   z-index: 2;
 }
 [data-theme="dark"] .railVerticalRange {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.16);
 }
 .railVerticalRange::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #2563eb;
-  border: 2px solid #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.railVerticalRange::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
 }
 .railTrackFill {
   position: absolute;
   bottom: 3px;
-  width: 4px;
-  background: #2563eb;
-  border-radius: 4px;
+  width: 6px;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 6px;
   pointer-events: none;
   z-index: 1;
 }
@@ -4074,7 +4094,7 @@ input, textarea {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 220px;
+  height: 270px;
   padding: 0 1px;
 }
 .railLayerBtn {
@@ -4131,10 +4151,10 @@ input, textarea {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* 3. Tools Card */
-.toolsCard {
-  padding: 6px 4px;
-  gap: 5px;
+/* 3. Merged Tools Section (SÁT NHẬP CÙNG KHỐI, KHÔNG CÒN TAB RỜI Ở DƯỚI) */
+.toolsSection {
+  padding: 2px 0 2px 0;
+  gap: 4px;
 }
 .railModeGroup {
   display: flex;
@@ -4142,12 +4162,14 @@ input, textarea {
   border-radius: 6px;
   padding: 2px;
   gap: 2px;
+  width: 100%;
 }
 [data-theme="dark"] .railModeGroup {
   background: rgba(255, 255, 255, 0.08);
 }
 .railModeBtn {
-  padding: 3px 6px;
+  flex: 1;
+  padding: 3px 0;
   border: none;
   background: transparent;
   font-size: 10px;
@@ -4156,6 +4178,7 @@ input, textarea {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.12s ease;
+  text-align: center;
 }
 [data-theme="dark"] .railModeBtn {
   color: #cbd5e1;
@@ -4166,18 +4189,18 @@ input, textarea {
 }
 .railActionPill {
   width: 100%;
-  padding: 4px 6px;
+  padding: 4px 2px;
   border-radius: 6px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: transparent;
   color: #334155;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   transition: all 0.12s ease;
 }
 [data-theme="dark"] .railActionPill {
@@ -4195,18 +4218,18 @@ input, textarea {
   color: #93c5fd;
 }
 .pillText {
-  font-size: 9.5px;
+  font-size: 9px;
 }
 .pillBadge {
-  font-size: 9px;
+  font-size: 8.5px;
   background: #2563eb;
   color: #fff;
   border-radius: 8px;
-  padding: 1px 4px;
-  margin-left: 2px;
+  padding: 1px 3px;
+  margin-left: 1px;
 }
 
-/* Flyout Panels cho Cắt lớp & Tách lớp */
+/* Popover Tách lớp không gian */
 .railFlyoutPanel {
   position: absolute;
   left: calc(100% + 10px);
@@ -4249,8 +4272,8 @@ input, textarea {
   cursor: pointer;
 }
 [data-theme="dark"] .railMiniBtn {
-  border-color: rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
   color: #cbd5e1;
 }
 .railRangeInput {
@@ -4265,15 +4288,16 @@ input, textarea {
 .railExplodePresets button {
   flex: 1;
   padding: 3px 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(0, 0, 0, 0.03);
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
   border-radius: 4px;
-  font-size: 10.5px;
   cursor: pointer;
+  color: #475569;
 }
 [data-theme="dark"] .railExplodePresets button {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
 }
 .railExplodePresets button.active {
@@ -4351,11 +4375,12 @@ input, textarea {
 /* 6. DRAWER SIDEBAR (TRƯỢT BÊN PHẢI KHI CẦN XEM DANH MỤC CƠ QUAN) */
 .zygoteDrawerSidebar {
   position: absolute;
-  top: 60px;
-  right: 20px;
-  bottom: 60px;
-  width: 320px;
-  z-index: 60;
+  top: 56px;
+  right: 16px;
+  bottom: 20px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  z-index: 85;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.12);

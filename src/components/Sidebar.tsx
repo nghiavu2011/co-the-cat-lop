@@ -24,6 +24,7 @@ export interface SidebarProps {
   onPick: (sel: Selection) => void;
   /** Bắt buộc chuyển sang tab 3D khi người dùng chọn một cấu trúc thật chưa có chú thích. */
   onNeeds3D: () => void;
+  onClose?: () => void;
 }
 
 export default function Sidebar({
@@ -35,6 +36,7 @@ export default function Sidebar({
   selection,
   onPick,
   onNeeds3D,
+  onClose,
 }: SidebarProps) {
   const { t, locale } = useLocale();
   const [railTab, setRailTab] = useState<'systems' | 'insights'>('systems');
@@ -112,10 +114,10 @@ export default function Sidebar({
         <button
           type="button"
           className="railCollapseBtn"
-          onClick={() => setCollapsed(true)}
-          title={locale === 'en' ? 'Collapse sidebar for full 3D' : 'Thu gọn sidebar để mở rộng không gian 3D'}
+          onClick={() => (onClose ? onClose() : setCollapsed(true))}
+          title={locale === 'en' ? 'Close sidebar for full 3D' : 'Đóng danh mục để mở rộng không gian 3D'}
         >
-          ◀
+          ✕
         </button>
       </div>
 

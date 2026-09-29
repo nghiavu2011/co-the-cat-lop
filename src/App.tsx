@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Peel2D from './components/Peel2D';
-import View3D, { AXES, sliceValue } from './components/View3D';
+import View3D from './components/View3D';
 import InfoPanel from './components/InfoPanel';
 import TourBar from './components/TourBar';
 import OrganDetail from './components/OrganDetail';
@@ -66,7 +66,6 @@ function AppInner() {
   const [isolatedTargetId, setIsolatedTargetId] = useState<string | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showSliceDock, setShowSliceDock] = useState(false);
 
   const [soundOn, setSoundOn] = useState(() => {
     try {
@@ -132,6 +131,8 @@ function AppInner() {
     (sel: Selection) => {
       setSelection(sel);
       setActiveTour(null);
+      setIsSidebarOpen(false);
+      setShowBodyParams(false);
       setIsInfoOpen(true);
     },
     [],
@@ -278,9 +279,6 @@ function AppInner() {
     });
   };
 
-  const h = sliceValue(axis, sliceT);
-  const sliceName = AXES[axis].label;
-
   const selectedDisplayName = useMemo(() => {
     if (!selection) return '';
     if (selection.kind === 'note') {
@@ -302,19 +300,37 @@ function AppInner() {
         onUnhideAll={handleUnhideAll}
         theme={theme}
         onCycleTheme={cycleTheme}
-        onOpenSidebar={() => setIsSidebarOpen((v) => !v)}
+        onOpenSidebar={() => {
+          setIsSidebarOpen((v) => {
+            const next = !v;
+            if (next) {
+              setIsInfoOpen(false);
+              setShowBodyParams(false);
+            }
+            return next;
+          });
+        }}
         isSidebarOpen={isSidebarOpen}
         onShare={onShare}
         explode={explode}
         onExplodeChange={setExplode}
         showBodyParams={showBodyParams}
-        onToggleBodyParams={() => setShowBodyParams((v) => !v)}
+        onToggleBodyParams={() => {
+          setShowBodyParams((v) => {
+            const next = !v;
+            if (next) {
+              setIsSidebarOpen(false);
+              setIsInfoOpen(false);
+            }
+            return next;
+          });
+        }}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         onStartTour={startTour}
       />
 
-      {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (SÁT NHẬP CAMERA, BÓC TÁCH, CẮT LỚP, TÁCH LỚP, 3D/2D) */}
+      {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (SÁT NHẬP CAMERA, BÓC TÁCH, TÁCH LỚP, 3D/2D TRONG 1 KHỐI LIỀN MẠCH) */}
       <UnifiedLeftControls
         onZoomIn={() => triggerCamera('zoom-in')}
         onZoomOut={() => triggerCamera('zoom-out')}
@@ -334,14 +350,6 @@ function AppInner() {
             }
           }
         }}
-        showSlice={showSliceDock}
-        onToggleSlice={() => setShowSliceDock((v) => !v)}
-        sliceAxis={axis}
-        onCycleAxis={() => setAxis((a) => ((a + 1) % 3) as 0 | 1 | 2)}
-        sliceT={sliceT}
-        onChangeSliceT={setSliceT}
-        sliceName={sliceName}
-        sliceHeightCm={h * 100}
         explode={explode}
         onChangeExplode={setExplode}
         soundOn={soundOn}
@@ -381,7 +389,13 @@ function AppInner() {
               gender={gender}
               onGenderChange={setGender}
               showBodyParams={showBodyParams}
-              onToggleBodyParams={setShowBodyParams}
+              onToggleBodyParams={(show) => {
+                setShowBodyParams(show);
+                if (show) {
+                  setIsSidebarOpen(false);
+                  setIsInfoOpen(false);
+                }
+              }}
               onPick={onPick}
               onCounts={(visible, total) => setCounts({ visible, total })}
               peelDepth={peelDepth}
@@ -399,7 +413,16 @@ function AppInner() {
                 onHide={handleHideSelected}
                 onGhost={handleGhostSelected}
                 onIsolate={handleIsolateSelected}
-                onOpenInfo={() => setIsInfoOpen((v) => !v)}
+                onOpenInfo={() => {
+                  setIsInfoOpen((v) => {
+                    const next = !v;
+                    if (next) {
+                      setIsSidebarOpen(false);
+                      setShowBodyParams(false);
+                    }
+                    return next;
+                  });
+                }}
                 onUnhideAll={handleUnhideAll}
                 onDeselect={() => setSelection(null)}
               />
@@ -425,7 +448,7 @@ function AppInner() {
         />
       )}
 
-      {/* 6. SIDEBAR DANH MỤC DẠNG DRAWER (CHỈ MỞ KHI BẤM 'HIERARCHY') */}
+      {/* 6. SIDEBAR DANH MỤC DẠNG DRAWER (CHỈ MỞ KHI BẤM 'HIERARCHY' VÀ TỰ ĐÓNG KHI MỞ BẢNG KHÁC) */}
       {isSidebarOpen && (
         <aside className="zygoteDrawerSidebar">
           <Sidebar
@@ -441,11 +464,12 @@ function AppInner() {
             selection={selection}
             onPick={onPick}
             onNeeds3D={() => setMode('3d')}
+            onClose={() => setIsSidebarOpen(false)}
           />
         </aside>
       )}
 
-      {/* 7. BẢNG HỒ SƠ GIẢI PHẪU TRƯỢT NỔI (SLIDE-OVER SHEET) */}
+      {/* 7. BẢNG HỒ SƠ GIẢI PHẪU TRƯỢT NỔI (SLIDE-OVER SHEET - KHÔNG CHỒNG LẤN VỚI SIDEBAR) */}
       {isInfoOpen && (
         <aside className="slideOverPanel isOpen" aria-label="Anatomical Profile">
           <InfoPanel
@@ -453,6 +477,11 @@ function AppInner() {
             atlas={atlas}
             mode={mode === '2d' ? '2d' : '3d'}
             onClose={() => setIsInfoOpen(false)}
+            onOpenSidebar={() => {
+              setIsSidebarOpen(true);
+              setIsInfoOpen(false);
+              setShowBodyParams(false);
+            }}
             onOpenDetail={() => {
               setMode('detail');
               setActiveTour(null);

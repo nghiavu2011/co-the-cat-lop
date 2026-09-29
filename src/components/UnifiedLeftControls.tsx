@@ -9,29 +9,17 @@ export interface UnifiedLeftControlsProps {
   onOrbit: (dir: 'up' | 'down' | 'left' | 'right') => void;
   onPresetAngle: (angle: 'front' | 'back' | 'left' | 'right' | 'top') => void;
 
-  // 2. Layer Slider
+  // 2. Tall Layer Peeling Slider (Bóc tách tầng cơ thể)
   peelDepth: number; // 0..100
   onChangePeelDepth: (val: number) => void;
   gender: 'male' | 'female';
   onToggleGender: () => void;
 
-  // 3. Consolidated Mode & Tools (Sát nhập từ thanh đáy cũ)
+  // 3. Merged Tools (3D/2D, Tách lớp Exploded, Âm thanh)
   mode: '3d' | '2d' | 'detail';
   onChangeMode: (m: '3d' | '2d' | 'detail') => void;
-  showSlice: boolean;
-  onToggleSlice: () => void;
-  sliceAxis: number;
-  onCycleAxis: () => void;
-  sliceT: number;
-  onChangeSliceT: (t: number) => void;
-  sliceName: string;
-  sliceHeightCm: number;
-
-  // 4. Exploded View (Tách lớp không gian)
   explode: number;
   onChangeExplode: (exp: number) => void;
-
-  // 5. Sound
   soundOn: boolean;
   onToggleSound: () => void;
 }
@@ -48,14 +36,6 @@ export default function UnifiedLeftControls({
   onToggleGender,
   mode,
   onChangeMode,
-  showSlice,
-  onToggleSlice,
-  sliceAxis,
-  onCycleAxis,
-  sliceT,
-  onChangeSliceT,
-  sliceName,
-  sliceHeightCm,
   explode,
   onChangeExplode,
   soundOn,
@@ -147,247 +127,224 @@ export default function UnifiedLeftControls({
 
   return (
     <aside className="unifiedLeftRail" aria-label="Anatomical Workspace Navigation">
-      {/* KHỐI 1: ĐIỀU HƯỚNG CAMERA (D-PAD & ZOOM) */}
-      <div className="railCard cameraCard">
-        <div className="railDpad">
-          <button
-            type="button"
-            className="railDpadBtn up"
-            onClick={() => onOrbit('up')}
-            title="Nghiêng lên"
-          >
-            ▲
-          </button>
-          <div className="railDpadRow">
+      <div className="unifiedRailCapsule">
+        {/* PHẦN 1: ĐIỀU HƯỚNG CAMERA (D-PAD & ZOOM) */}
+        <div className="railSection cameraSection">
+          <div className="railDpad">
             <button
               type="button"
-              className="railDpadBtn left"
-              onClick={() => onOrbit('left')}
-              title="Xoay trái"
+              className="railDpadBtn up"
+              onClick={() => onOrbit('up')}
+              title="Nghiêng lên"
             >
-              ◀
+              ▲
             </button>
+            <div className="railDpadRow">
+              <button
+                type="button"
+                className="railDpadBtn left"
+                onClick={() => onOrbit('left')}
+                title="Xoay trái"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                className="railDpadBtn home"
+                onClick={onResetCamera}
+                title="Góc nhìn chuẩn (Home)"
+              >
+                ⌂
+              </button>
+              <button
+                type="button"
+                className="railDpadBtn right"
+                onClick={() => onOrbit('right')}
+                title="Xoay phải"
+              >
+                ▶
+              </button>
+            </div>
             <button
               type="button"
-              className="railDpadBtn home"
-              onClick={onResetCamera}
-              title="Đặt lại góc nhìn chuẩn (Home)"
+              className="railDpadBtn down"
+              onClick={() => onOrbit('down')}
+              title="Nghiêng xuống"
             >
-              ⌂
-            </button>
-            <button
-              type="button"
-              className="railDpadBtn right"
-              onClick={() => onOrbit('right')}
-              title="Xoay phải"
-            >
-              ▶
+              ▼
             </button>
           </div>
-          <button
-            type="button"
-            className="railDpadBtn down"
-            onClick={() => onOrbit('down')}
-            title="Nghiêng xuống"
-          >
-            ▼
-          </button>
+
+          <div className="railZoomRow">
+            <button type="button" className="railZoomBtn" onClick={onZoomIn} title="Phóng to (+)">
+              +
+            </button>
+            <button type="button" className="railZoomBtn" onClick={onZoomOut} title="Thu nhỏ (−)">
+              −
+            </button>
+            <button
+              type="button"
+              className={`railAngleBtn ${showAngles ? 'active' : ''}`}
+              onClick={() => setShowAngles((v) => !v)}
+              title="Góc nhìn chuẩn y khoa"
+            >
+              📐
+            </button>
+          </div>
+
+          {/* Menu góc nhìn thả sang phải */}
+          {showAngles && (
+            <div className="railFlyoutMenu">
+              <div className="railFlyoutTitle">Góc nhìn</div>
+              {angles.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  className="railFlyoutItem"
+                  onClick={() => {
+                    onPresetAngle(a.id);
+                    setShowAngles(false);
+                  }}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="railZoomRow">
-          <button type="button" className="railZoomBtn" onClick={onZoomIn} title="Phóng to (+)">
-            +
-          </button>
-          <button type="button" className="railZoomBtn" onClick={onZoomOut} title="Thu nhỏ (−)">
-            −
-          </button>
-          <button
-            type="button"
-            className={`railAngleBtn ${showAngles ? 'active' : ''}`}
-            onClick={() => setShowAngles((v) => !v)}
-            title="Góc nhìn chuẩn y khoa"
-          >
-            📐
-          </button>
-        </div>
+        {/* ĐƯỜNG KẺ NGĂN CÁCH THANH LỊCH */}
+        <div className="railSectionDivider" />
 
-        {/* Menu góc nhìn thả sang phải */}
-        {showAngles && (
-          <div className="railFlyoutMenu">
-            <div className="railFlyoutTitle">Góc nhìn</div>
-            {angles.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                className="railFlyoutItem"
-                onClick={() => {
-                  onPresetAngle(a.id);
-                  setShowAngles(false);
-                }}
-              >
-                {a.label}
-              </button>
-            ))}
+        {/* PHẦN 2: THANH BÓC TÁCH TẦNG CƠ THỂ DÀI (TALL LAYER SLIDER) */}
+        {mode === '3d' && (
+          <div className="railSection layerSection" aria-label={t('slider.title')}>
+            <div className="railCapsuleInner">
+              {/* Track trượt kéo dài (270px) tạo không gian lựa chọn điểm cắt chính xác */}
+              <div className="railCapsuleTrack">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={peelDepth}
+                  onChange={(e) => onChangePeelDepth(Number(e.target.value))}
+                  className="railVerticalRange"
+                  aria-label={t('slider.title')}
+                />
+                <div className="railTrackFill" style={{ height: `${peelDepth}%` }} />
+              </div>
+
+              {/* Cột Icon các tầng tương ứng */}
+              <div className="railIconCol">
+                {layers.map((layer) => {
+                  const isActive = peelDepth >= layer.val - 8;
+                  return (
+                    <button
+                      key={layer.id}
+                      type="button"
+                      className={`railLayerBtn ${isActive ? 'active' : ''}`}
+                      onClick={() => onChangePeelDepth(layer.val)}
+                      title={`${layer.label} (${layer.val}%)`}
+                    >
+                      {layer.svg}
+                    </button>
+                  );
+                })}
+
+                {/* Nút đổi Giới tính Nam / Nữ */}
+                <button
+                  type="button"
+                  className="railGenderBtn"
+                  onClick={onToggleGender}
+                  title={gender === 'female' ? 'Chuyển sang Cơ thể Nam' : 'Chuyển sang Cơ thể Nữ'}
+                >
+                  <span style={{ color: gender === 'female' ? '#ec4899' : '#3b82f6', fontWeight: 800 }}>
+                    {gender === 'female' ? '♀' : '♂'}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* KHỐI 2: THANH BÓC TÁCH TẦNG CƠ THỂ ZYGOTE CAPSULE */}
-      {mode === '3d' && (
-        <div className="railCard layerCard" aria-label={t('slider.title')}>
-          <div className="railCapsuleInner">
-            {/* Track trượt mượt mà */}
-            <div className="railCapsuleTrack">
+        {/* ĐƯỜNG KẺ NGĂN CÁCH */}
+        <div className="railSectionDivider" />
+
+        {/* PHẦN 3: SÁT NHẬP CÔNG CỤ (3D/2D, TÁCH LỚP, ÂM THANH - KHÔNG CÒN TAB RỜI NỮA) */}
+        <div className="railSection toolsSection">
+          {/* Nhóm chọn View Mode 3D / 2D */}
+          <div className="railModeGroup">
+            <button
+              type="button"
+              className={`railModeBtn ${mode === '3d' ? 'active' : ''}`}
+              onClick={() => onChangeMode('3d')}
+              title="Chế độ giải phẫu không gian 3D"
+            >
+              3D
+            </button>
+            <button
+              type="button"
+              className={`railModeBtn ${mode === '2d' ? 'active' : ''}`}
+              onClick={() => onChangeMode('2d')}
+              title="Chế độ sơ đồ mặt phẳng 2D"
+            >
+              2D
+            </button>
+          </div>
+
+          {/* Nút Bóc tách không gian (Exploded View) */}
+          {mode === '3d' && (
+            <button
+              type="button"
+              className={`railActionPill ${explode > 0 || showExplodePop ? 'active' : ''}`}
+              onClick={() => setShowExplodePop((v) => !v)}
+              title="Bóc tách / Tách rời các hệ cơ quan ra xa nhau theo không gian"
+            >
+              ⤢ <span className="pillText">{locale === 'en' ? 'Explode' : 'Tách'}</span>
+              {explode > 0 && <span className="pillBadge">{explode}%</span>}
+            </button>
+          )}
+
+          {/* Nút Âm thanh sinh học */}
+          <button
+            type="button"
+            className={`railActionPill ${soundOn ? 'active' : ''}`}
+            onClick={onToggleSound}
+            title="Âm thanh nhịp tim & hơi thở sinh học"
+          >
+            {soundOn ? '🔊' : '🔇'}
+          </button>
+
+          {/* Popover điều khiển Tách lớp không gian (Exploded View) */}
+          {showExplodePop && mode === '3d' && (
+            <div className="railFlyoutPanel explodePanel">
+              <div className="railFlyoutHead">
+                <span>Tách rời không gian: <b>{explode}%</b></span>
+                {explode > 0 && (
+                  <button type="button" className="railMiniBtn" onClick={() => onChangeExplode(0)}>
+                    0% (Gom lại)
+                  </button>
+                )}
+              </div>
               <input
                 type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={peelDepth}
-                onChange={(e) => onChangePeelDepth(Number(e.target.value))}
-                className="railVerticalRange"
-                aria-label={t('slider.title')}
+                min={0}
+                max={100}
+                step={1}
+                value={explode}
+                onChange={(e) => onChangeExplode(Number(e.target.value))}
+                className="railRangeInput"
               />
-              <div className="railTrackFill" style={{ height: `${peelDepth}%` }} />
+              <div className="railExplodePresets">
+                <button type="button" onClick={() => onChangeExplode(0)} className={explode === 0 ? 'active' : ''}>0%</button>
+                <button type="button" onClick={() => onChangeExplode(35)} className={explode === 35 ? 'active' : ''}>35%</button>
+                <button type="button" onClick={() => onChangeExplode(70)} className={explode === 70 ? 'active' : ''}>70%</button>
+                <button type="button" onClick={() => onChangeExplode(100)} className={explode === 100 ? 'active' : ''}>100%</button>
+              </div>
             </div>
-
-            {/* Cột Icon các tầng */}
-            <div className="railIconCol">
-              {layers.map((layer) => {
-                const isActive = peelDepth >= layer.val - 8;
-                return (
-                  <button
-                    key={layer.id}
-                    type="button"
-                    className={`railLayerBtn ${isActive ? 'active' : ''}`}
-                    onClick={() => onChangePeelDepth(layer.val)}
-                    title={`${layer.label} (${layer.val}%)`}
-                  >
-                    {layer.svg}
-                  </button>
-                );
-              })}
-
-              {/* Nút đổi Giới tính Nam / Nữ */}
-              <button
-                type="button"
-                className="railGenderBtn"
-                onClick={onToggleGender}
-                title={gender === 'female' ? 'Chuyển sang Cơ thể Nam' : 'Chuyển sang Cơ thể Nữ'}
-              >
-                <span style={{ color: gender === 'female' ? '#ec4899' : '#3b82f6', fontWeight: 800 }}>
-                  {gender === 'female' ? '♀' : '♂'}
-                </span>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* KHỐI 3: THANH CÔNG CỤ TÍCH HỢP (SÁT NHẬP TỪ ĐÁY: 3D/2D, CẮT LỚP, TÁCH LỚP, ÂM THANH) */}
-      <div className="railCard toolsCard">
-        {/* Nhóm chọn View Mode */}
-        <div className="railModeGroup">
-          <button
-            type="button"
-            className={`railModeBtn ${mode === '3d' ? 'active' : ''}`}
-            onClick={() => onChangeMode('3d')}
-            title="Chế độ giải phẫu không gian 3D"
-          >
-            3D
-          </button>
-          <button
-            type="button"
-            className={`railModeBtn ${mode === '2d' ? 'active' : ''}`}
-            onClick={() => onChangeMode('2d')}
-            title="Chế độ sơ đồ mặt phẳng 2D"
-          >
-            2D
-          </button>
-        </div>
-
-        {/* Nút Cắt lớp CT/MRI */}
-        <button
-          type="button"
-          className={`railActionPill ${showSlice ? 'active' : ''}`}
-          onClick={onToggleSlice}
-          title="Mặt phẳng cắt lớp CT/MRI không gian"
-        >
-          ✂️ <span className="pillText">{locale === 'en' ? 'Slice' : 'Cắt lớp'}</span>
-        </button>
-
-        {/* Nút Bóc tách không gian (Exploded View) */}
-        {mode === '3d' && (
-          <button
-            type="button"
-            className={`railActionPill ${explode > 0 || showExplodePop ? 'active' : ''}`}
-            onClick={() => setShowExplodePop((v) => !v)}
-            title="Bóc tách / Tách rời các hệ cơ quan ra xa nhau theo không gian"
-          >
-            ⤢ <span className="pillText">{locale === 'en' ? 'Explode' : 'Tách lớp'}</span>
-            {explode > 0 && <span className="pillBadge">{explode}%</span>}
-          </button>
-        )}
-
-        {/* Nút Âm thanh sinh học */}
-        <button
-          type="button"
-          className={`railActionPill ${soundOn ? 'active' : ''}`}
-          onClick={onToggleSound}
-          title="Âm thanh nhịp tim & hơi thở sinh học"
-        >
-          {soundOn ? '🔊' : '🔇'}
-        </button>
-
-        {/* Popover điều khiển thanh trượt Cắt lớp (hiển thị bay ra cạnh phải) */}
-        {showSlice && mode === '3d' && (
-          <div className="railFlyoutPanel slicePanel">
-            <div className="railFlyoutHead">
-              <span>{sliceName}: <b>{sliceHeightCm.toFixed(0)} cm</b></span>
-              <button type="button" className="railMiniBtn" onClick={onCycleAxis}>
-                Trục ({sliceAxis === 0 ? 'Z' : sliceAxis === 1 ? 'Y' : 'X'})
-              </button>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={sliceT}
-              onChange={(e) => onChangeSliceT(Number(e.target.value))}
-              className="railRangeInput"
-            />
-          </div>
-        )}
-
-        {/* Popover điều khiển Tách lớp không gian (Exploded View) */}
-        {showExplodePop && mode === '3d' && (
-          <div className="railFlyoutPanel explodePanel">
-            <div className="railFlyoutHead">
-              <span>Tách rời không gian: <b>{explode}%</b></span>
-              {explode > 0 && (
-                <button type="button" className="railMiniBtn" onClick={() => onChangeExplode(0)}>
-                  0% (Gom lại)
-                </button>
-              )}
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={explode}
-              onChange={(e) => onChangeExplode(Number(e.target.value))}
-              className="railRangeInput"
-            />
-            <div className="railExplodePresets">
-              <button type="button" onClick={() => onChangeExplode(0)} className={explode === 0 ? 'active' : ''}>0%</button>
-              <button type="button" onClick={() => onChangeExplode(35)} className={explode === 35 ? 'active' : ''}>35%</button>
-              <button type="button" onClick={() => onChangeExplode(70)} className={explode === 70 ? 'active' : ''}>70%</button>
-              <button type="button" onClick={() => onChangeExplode(100)} className={explode === 100 ? 'active' : ''}>100%</button>
-            </div>
-          </div>
-        )}
       </div>
     </aside>
   );

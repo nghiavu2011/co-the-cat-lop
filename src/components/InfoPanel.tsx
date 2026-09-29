@@ -15,6 +15,7 @@ export interface InfoPanelProps {
   mode: '2d' | '3d';
   onOpenDetail?: () => void;
   onClose?: () => void;
+  onOpenSidebar?: () => void;
 }
 
 function Intro() {
@@ -40,10 +41,12 @@ function RawPartCard({
   partId,
   atlas,
   onClose,
+  onOpenSidebar,
 }: {
   partId: string;
   atlas: AtlasJSON | null;
   onClose?: () => void;
+  onOpenSidebar?: () => void;
 }) {
   const { t, locale } = useLocale();
   const part = atlas?.parts.find((p) => p.id === partId);
@@ -69,17 +72,30 @@ function RawPartCard({
             />
             {sys.name} · {locale === 'en' ? 'Biometric 3D Mesh' : 'Cấu trúc giải phẫu 3D thật'}
           </span>
-          {onClose && (
-            <button
-              type="button"
-              className="pcapCloseBtn"
-              onClick={onClose}
-              title={t('info.close')}
-              aria-label={t('info.close')}
-            >
-              ✕
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {onOpenSidebar && (
+              <button
+                type="button"
+                className="pcapCloseBtn"
+                onClick={onOpenSidebar}
+                title={locale === 'en' ? 'Anatomy Hierarchy' : 'Danh mục hệ cơ quan'}
+                aria-label="Hierarchy"
+              >
+                ☰
+              </button>
+            )}
+            {onClose && (
+              <button
+                type="button"
+                className="pcapCloseBtn"
+                onClick={onClose}
+                title={t('info.close')}
+                aria-label={t('info.close')}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
         <h2>{locale === 'en' ? part.name : insight.viName || part.name}</h2>
         <div className="en">
@@ -122,11 +138,11 @@ function RawPartCard({
   );
 }
 
-export default function InfoPanel({ selection, atlas, mode, onOpenDetail, onClose }: InfoPanelProps) {
+export default function InfoPanel({ selection, atlas, mode, onOpenDetail, onClose, onOpenSidebar }: InfoPanelProps) {
   const { t, locale } = useLocale();
 
   if (!selection) return <Intro />;
-  if (selection.kind === 'part') return <RawPartCard partId={selection.id} atlas={atlas} onClose={onClose} />;
+  if (selection.kind === 'part') return <RawPartCard partId={selection.id} atlas={atlas} onClose={onClose} onOpenSidebar={onOpenSidebar} />;
 
   const note = NOTE_BY_ID[selection.id];
   if (!note) return <Intro />;
@@ -156,17 +172,30 @@ export default function InfoPanel({ selection, atlas, mode, onOpenDetail, onClos
             />
             {sys.name} · {locale === 'en' ? `Layer: ${layerName}` : `Lớp: ${layerName}`}
           </span>
-          {onClose && (
-            <button
-              type="button"
-              className="pcapCloseBtn"
-              onClick={onClose}
-              title={t('info.close')}
-              aria-label={t('info.close')}
-            >
-              ✕
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {onOpenSidebar && (
+              <button
+                type="button"
+                className="pcapCloseBtn"
+                onClick={onOpenSidebar}
+                title={locale === 'en' ? 'Anatomy Hierarchy' : 'Danh mục hệ cơ quan'}
+                aria-label="Hierarchy"
+              >
+                ☰
+              </button>
+            )}
+            {onClose && (
+              <button
+                type="button"
+                className="pcapCloseBtn"
+                onClick={onClose}
+                title={t('info.close')}
+                aria-label={t('info.close')}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         <h2>{locale === 'en' ? note.e : note.n}</h2>
