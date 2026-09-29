@@ -100,6 +100,17 @@ export class OrganAssetManager {
 
     const meshes: THREE.Mesh[] = [];
     model.traverse((child) => {
+      const childName = (child.name || '').toLowerCase();
+      if (
+        childName.includes('text') ||
+        childName.includes('label') ||
+        childName.includes('annotation') ||
+        childName.includes('pin') ||
+        childName.includes('watermark')
+      ) {
+        child.visible = false;
+        return;
+      }
       if (!(child instanceof THREE.Mesh)) return;
       meshes.push(child);
       child.frustumCulled = false;

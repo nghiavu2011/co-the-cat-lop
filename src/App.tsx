@@ -5,6 +5,8 @@ import View3D from './components/View3D';
 import InfoPanel from './components/InfoPanel';
 import TourBar from './components/TourBar';
 import QuickOrganDock, { type QuickOrganDef } from './components/QuickOrganDock';
+import FullOrganViewport from './components/FullOrganViewport';
+import { NOTE_TO_ORGAN, type OrganId } from './organs/organData';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
@@ -65,6 +67,14 @@ function AppInner() {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [focusKey, setFocusKey] = useState(0);
+  const [viewScope, setViewScope] = useState<'fullbody' | 'organ'>('fullbody');
+
+  const activeOrganId = useMemo<OrganId | null>(() => {
+    if (selection?.kind === 'note' && selection.id in NOTE_TO_ORGAN) {
+      return NOTE_TO_ORGAN[selection.id];
+    }
+    return null;
+  }, [selection]);
 
   const [soundOn, setSoundOn] = useState(() => {
     try {
@@ -249,6 +259,7 @@ function AppInner() {
     setActiveTour(null);
     if (organ.noteId === null) {
       // Toàn thân (Full Body Reset)
+      setViewScope('fullbody');
       setSelection(null);
       setPeelDepth(100);
       setActiveSystem(null);
@@ -259,11 +270,16 @@ function AppInner() {
       setIsInfoOpen(false);
       setFocusKey((k) => k + 1);
     } else {
-      // Chọn cơ quan cụ thể (Tim, Não, Phổi, Thận, Gan, Dạ dày...)
+      // Chọn cơ quan cụ thể (Tim, Não, Phổi, Thận, Gan, Dạ dày, Tử cung...)
       setSelection({ kind: 'note', id: organ.noteId });
       setPeelDepth(organ.peel);
       if (organ.system) setActiveSystem(organ.system as SystemId);
       setIsolatedTargetId(null);
+      if (organ.noteId in NOTE_TO_ORGAN) {
+        setViewScope('organ');
+      } else {
+        setViewScope('fullbody');
+      }
       setIsInfoOpen(true);
       setFocusKey((k) => k + 1);
     }
@@ -403,34 +419,67 @@ function AppInner() {
           <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
         ) : atlas ? (
           <>
-            <View3D
-              atlas={atlas}
-              activeSystem={activeSystem}
-              onlySystem={onlySystem}
-              showGhost={showGhost}
-              showLabels={showLabels}
-              axis={axis}
-              sliceT={sliceT}
-              selection={selection}
-              gender={gender}
-              onGenderChange={setGender}
-              showBodyParams={showBodyParams}
-              onToggleBodyParams={(show) => {
-                setShowBodyParams(show);
-                if (show) {
-                  setIsSidebarOpen(false);
-                  setIsInfoOpen(false);
-                }
-              }}
-              onPick={onPick}
-              onCounts={(visible, total) => setCounts({ visible, total })}
-              peelDepth={peelDepth}
-              hiddenPartIds={hiddenPartIds}
-              ghostPartIds={ghostPartIds}
-              isolatedTargetId={isolatedTargetId}
-              explode={explode}
-              focusKey={focusKey}
-            />
+            {/* Thanh chuyển chế độ xem: Toàn thân ⇄ Mô hình vi thể 3D */}
+            {activeOrganId && (
+              <div className="zygoteViewModeCapsule" role="tablist" aria-label="Phạm vi hiển thị">
+                <button
+                  type="button"
+                  className={`zygoteViewModeBtn ${viewScope === 'fullbody' ? 'active' : ''}`}
+                  onClick={() => setViewScope('fullbody')}
+                  title={locale === 'en' ? 'View in Full Body Context' : 'Xem trong giải phẫu cơ thể'}
+                >
+                  🧍 {locale === 'en' ? 'Full Body' : 'Toàn cơ thể'}
+                </button>
+                <button
+                  type="button"
+                  className={`zygoteViewModeBtn ${viewScope === 'organ' ? 'active' : ''}`}
+                  onClick={() => setViewScope('organ')}
+                  title={locale === 'en' ? 'Inspect High-Resolution 3D Organ' : 'Mô hình vi thể 3D siêu nét'}
+                >
+                  🔬 {locale === 'en' ? 'Detailed Organ 3D' : 'Mô hình vi thể 3D'}
+                </button>
+              </div>
+            )}
+
+            {viewScope === 'organ' && activeOrganId ? (
+              <FullOrganViewport
+                organId={activeOrganId}
+                onSelectHotspot={(h) => {
+                  if (h) {
+                    // Điểm giải phẫu được chọn
+                  }
+                }}
+              />
+            ) : (
+              <View3D
+                atlas={atlas}
+                activeSystem={activeSystem}
+                onlySystem={onlySystem}
+                showGhost={showGhost}
+                showLabels={showLabels}
+                axis={axis}
+                sliceT={sliceT}
+                selection={selection}
+                gender={gender}
+                onGenderChange={setGender}
+                showBodyParams={showBodyParams}
+                onToggleBodyParams={(show) => {
+                  setShowBodyParams(show);
+                  if (show) {
+                    setIsSidebarOpen(false);
+                    setIsInfoOpen(false);
+                  }
+                }}
+                onPick={onPick}
+                onCounts={(visible, total) => setCounts({ visible, total })}
+                peelDepth={peelDepth}
+                hiddenPartIds={hiddenPartIds}
+                ghostPartIds={ghostPartIds}
+                isolatedTargetId={isolatedTargetId}
+                explode={explode}
+                focusKey={focusKey}
+              />
+            )}
           </>
         ) : (
           <div className="loading3d">
@@ -487,7 +536,11 @@ function AppInner() {
               setShowBodyParams(false);
             }}
             onFocusOrgan={() => {
-              setFocusKey((k) => k + 1);
+              if (activeOrganId) {
+                setViewScope('organ');
+              } else {
+                setFocusKey((k) => k + 1);
+              }
             }}
           />
         </aside>

@@ -47,11 +47,35 @@ interface MeshEntry {
 }
 
 /** Các mục chú thích được coi là "tim" — cho hiệu ứng đập nhịp. */
-const HEART_NOTE_IDS = new Set(['tim']);
+const HEART_NOTE_IDS = new Set(['tim', 'vantim']);
 /** Các mục chú thích được coi là "phổi" — cho hiệu ứng phồng-xẹp khi thở. */
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 /** Các mục thuộc hệ tuần hoàn nhưng KHÔNG phải mạch máu (không áp hiệu ứng dòng chảy). */
 const NON_VESSEL_CIRCULATORY_IDS = new Set(['tim', 'vantim']);
+
+function isHeartPart(part: { id: string; name: string; system?: string }, noteId: string | null): boolean {
+  if (noteId !== null && HEART_NOTE_IDS.has(noteId)) return true;
+  const id = part.id;
+  if (
+    id === 'FJ2428' || id === 'FJ2438' || id === 'FJ2439' ||
+    id === 'FJ2418' || id === 'FJ2419' || id === 'FJ2429' || id === 'FJ2430' || id === 'FJ2437' ||
+    id.startsWith('VH_F_left_ventricle') || id.startsWith('VH_F_right_ventricle') ||
+    id.startsWith('VH_F_left_cardiac_atrium') || id.startsWith('VH_F_right_cardiac_atrium') ||
+    id.startsWith('VH_F_interventricular_septum') || id.startsWith('VH_F_papillary_muscle') ||
+    id.startsWith('VH_F_aortic_valve') || id.startsWith('VH_F_pulmonary_valve') ||
+    id.startsWith('VH_F_mitral_valve') || id.startsWith('VH_F_tricuspid_valve')
+  ) {
+    return true;
+  }
+  const name = (part.name || '').toLowerCase();
+  if (
+    /^(wall of (ventricle|left atrium|right atrium)|interventricular septum|.*cardiac atrium|heart (left|right) ventricle|.*papillary muscle.*|.*valve.*)$/i.test(name) &&
+    !/lateral ventricle|third ventricle|fourth ventricle|interventricular foramen/i.test(name)
+  ) {
+    return true;
+  }
+  return false;
+}
 
 function getVietnameseFemaleName(nodeName: string): string {
   const nameMap: Record<string, string> = {
@@ -139,19 +163,6 @@ function getVietnameseFemaleName(nodeName: string): string {
     .replace(/^VH_F_/, '')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-/** Dịch chuyển hình học về gốc rồi đặt lại vị trí ở tâm khối, để scale mesh
- * co-giãn quanh CHÍNH TÂM của nó thay vì quanh gốc toạ độ thế giới — cần cho
- * hiệu ứng tim đập / thở vì dữ liệu BodyParts3D đã đóng gói toạ độ tuyệt đối
- * ngay trong hình học (mesh.position mặc định là gốc). */
-function pivotAtCenter(mesh: THREE.Mesh): void {
-  const geo = mesh.geometry;
-  geo.computeBoundingBox();
-  const center = new THREE.Vector3();
-  geo.boundingBox!.getCenter(center);
-  geo.translate(-center.x, -center.y, -center.z);
-  mesh.position.copy(center);
 }
 
 const VESSEL_VERTEX_SHADER = `
@@ -344,29 +355,21 @@ function deformMeshes(
     const isDigestive = m.userData.sys === 'tieuhoa';
     const isSkin = m.userData.sys === 'da';
     const isFat = m.userData.sys === 'mo';
-    const isPivoted = m.userData.isPivot;
-    const baseCenter = (m.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
     const norm = m.geometry.attributes.normal as THREE.BufferAttribute | undefined;
 
     for (let i = 0; i < a.length; i += 3) {
       const x = o[i];
       const y = o[i + 1];
       const z = o[i + 2];
-      const worldY = isPivoted ? y + baseCenter.y : y;
+      const worldY = y;
       const ageKyphosis = older * Math.max(0, worldY - 0.90) * 0.035;
 
       // 1. KHỐI XƯƠNG & CƠ NẠC: Không bị scale phồng ngang theo BMI!
       if (isBone || isMuscle) {
         const w = isMuscle ? ageMuscleLoss : 1.0;
-        if (isPivoted) {
-          a[i] = x * w * h;
-          a[i + 1] = y * h;
-          a[i + 2] = z * h;
-        } else {
-          a[i] = x * w * h;
-          a[i + 1] = y * h;
-          a[i + 2] = (z + ageKyphosis) * h;
-        }
+        a[i] = x * w * h;
+        a[i + 1] = y * h;
+        a[i + 2] = (z + ageKyphosis) * h;
         continue;
       }
 
@@ -516,6 +519,7 @@ export default function View3D({
   const vesselMatRef = useRef<THREE.ShaderMaterial | null>(null);
   const highlightedRef = useRef<THREE.Mesh[]>([]);
   const heartMeshesRef = useRef<THREE.Mesh[]>([]);
+  const heartCenterRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 1.35, 0));
   const lungMeshesRef = useRef<THREE.Mesh[]>([]);
   const camState = useRef({
     theta: 0.34,
@@ -720,14 +724,13 @@ export default function View3D({
             fatRef.current = fatMesh;
             continue;
           }
-          const isHeart = (noteId !== null && HEART_NOTE_IDS.has(noteId)) || part.id === 'FJ2428';
+          const isHeart = isHeartPart(part, noteId);
           const isVein = part.system === 'venous';
           const isVessel = !isHeart && (system === 'tuanhoan' || part.system === 'arterial') && !(noteId && NON_VESSEL_CIRCULATORY_IDS.has(noteId));
           const ownMaterial: THREE.Material = isHeart ? heartMaterial : isVein ? veinMaterial : isVessel ? vesselMaterial : normalMat[system];
           const mesh = new THREE.Mesh(geo, ownMaterial);
           mesh.userData.partId = part.id;
           const isLung = noteId !== null && LUNG_NOTE_IDS.has(noteId);
-          if (isLung) pivotAtCenter(mesh);
 
           // Lưu toạ độ đỉnh ban đầu để biến dạng thể trạng (BMI/Height/Weight) & tính tâm hình học
           mesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
@@ -738,9 +741,8 @@ export default function View3D({
           if (geo.boundingBox) {
             geo.boundingBox.getCenter(bcenter);
           }
-          mesh.userData.baseCenter = isLung ? mesh.position.clone() : bcenter.clone();
-          mesh.userData.basePos = mesh.position.clone();
-          mesh.userData.isPivot = isLung;
+          mesh.userData.baseCenter = bcenter.clone();
+          mesh.userData.basePos = new THREE.Vector3(0, 0, 0);
 
           scene.add(mesh);
           entries.push({ mesh, part, system, noteId, ownMaterial });
@@ -748,7 +750,7 @@ export default function View3D({
           if (isLung) lungMeshesRef.current.push(mesh);
         }
 
-        // Chuẩn hoá tâm co bóp chung cho toàn bộ khối tim (tâm thất, tâm nhĩ, cơ nhú) để đập đồng tâm liền mạch
+        // Tính tâm hình học đồng tâm cho toàn bộ khối tim (tâm thất, tâm nhĩ, vách tim, van tim)
         if (heartMeshesRef.current.length > 0) {
           const heartUnionBox = new THREE.Box3();
           for (const m of heartMeshesRef.current) {
@@ -757,16 +759,9 @@ export default function View3D({
               heartUnionBox.union(m.geometry.boundingBox);
             }
           }
-          const heartCenter = new THREE.Vector3();
-          heartUnionBox.getCenter(heartCenter);
+          heartUnionBox.getCenter(heartCenterRef.current);
           for (const m of heartMeshesRef.current) {
-            m.geometry.translate(-heartCenter.x, -heartCenter.y, -heartCenter.z);
-            m.position.copy(heartCenter);
-            m.userData.baseCenter = heartCenter.clone();
-            m.userData.basePos = heartCenter.clone();
-            m.userData.isPivot = true;
-            m.geometry.computeBoundingBox();
-            m.geometry.computeBoundingSphere();
+            m.userData.baseCenter = heartCenterRef.current.clone();
           }
         }
 
@@ -1124,13 +1119,31 @@ export default function View3D({
       }
 
       if (!reduceMotion) {
-        // Nhịp tim
+        // Nhịp tim - co bóp đồng tâm quanh heartCenter mà không dịch chuyển vị trí gốc
         const heartPulse = 1 + 0.07 * Math.pow(Math.max(0, Math.sin(2 * Math.PI * 1.2 * t)), 6);
-        for (const m of heartMeshesRef.current) m.scale.setScalar(heartPulse);
+        const hc = heartCenterRef.current;
+        const hScaleInv = 1 - heartPulse;
+        for (const m of heartMeshesRef.current) {
+          m.scale.setScalar(heartPulse);
+          const exp = m.userData.explodeDelta as THREE.Vector3 | undefined;
+          const ex = exp ? exp.x : 0;
+          const ey = exp ? exp.y : 0;
+          const ez = exp ? exp.z : 0;
+          m.position.set(ex + hc.x * hScaleInv, ey + hc.y * hScaleInv, ez + hc.z * hScaleInv);
+        }
 
-        // Hô hấp
+        // Hô hấp - phồng xẹp quanh tâm của từng phổi
         const breathPulse = 1 + 0.035 * Math.sin(2 * Math.PI * 0.25 * t);
-        for (const m of lungMeshesRef.current) m.scale.setScalar(breathPulse);
+        const bScaleInv = 1 - breathPulse;
+        for (const m of lungMeshesRef.current) {
+          m.scale.setScalar(breathPulse);
+          const lc = (m.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
+          const exp = m.userData.explodeDelta as THREE.Vector3 | undefined;
+          const ex = exp ? exp.x : 0;
+          const ey = exp ? exp.y : 0;
+          const ez = exp ? exp.z : 0;
+          m.position.set(ex + lc.x * bScaleInv, ey + lc.y * bScaleInv, ez + lc.z * bScaleInv);
+        }
 
         // Mạch máu
         if (vesselMatRef.current) vesselMatRef.current.uniforms.uTime.value = t;
@@ -1317,7 +1330,6 @@ export default function View3D({
 
     for (const en of entriesRef.current) {
       const baseCenter = (en.mesh.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
-      const basePos = (en.mesh.userData.basePos as THREE.Vector3) || new THREE.Vector3();
       const signX = Math.sign(baseCenter.x) || (en.mesh.id % 2 === 0 ? 1 : -1);
 
       let dx = 0;
@@ -1399,7 +1411,12 @@ export default function View3D({
           break;
       }
 
-      en.mesh.position.set(basePos.x + dx, basePos.y + dy, basePos.z + dz);
+      en.mesh.userData.explodeDelta = new THREE.Vector3(dx, dy, dz);
+      if (!heartMeshesRef.current.includes(en.mesh) && !lungMeshesRef.current.includes(en.mesh)) {
+        en.mesh.position.set(dx, dy, dz);
+      } else if (reducedMotionRef.current) {
+        en.mesh.position.set(dx, dy, dz);
+      }
     }
 
     if (skinRef.current) {
