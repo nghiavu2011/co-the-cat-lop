@@ -99,7 +99,7 @@ const TERM_MAP: Record<string, string> = {
   metacarpal: 'Xương đốt bàn tay',
   metatarsal: 'Xương đốt bàn chân',
   carpal: 'Xương cổ tay',
-  tarsal: 'Xương cổ chân',
+  tarsal: 'Thuộc cổ chân',
   tooth: 'Răng',
   incisor: 'Răng cửa',
   canine: 'Răng nanh',
@@ -171,7 +171,87 @@ export function translateAnatomyName(rawName: string): string {
   const isLeft = /\b(left)\b/i.test(text);
   const side = isRight ? 'phải' : isLeft ? 'trái' : '';
 
-  // Thay thế các mẫu giải phẫu đặc thù trước
+  // 1. Mắt & Mi mắt (Eyeball & Eyelids) — Xử lý triệt để lỗi "Xương cổ chân plate..."
+  if (/tarsal plate of (left|right) (upper|lower) eyelid/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    const pos = /upper/i.test(text) ? 'trên' : 'dưới';
+    return `Sụn mi ${pos} mắt ${s}`;
+  }
+  if (/tarsal plate of (upper|lower) eyelid/i.test(text)) {
+    const pos = /upper/i.test(text) ? 'trên' : 'dưới';
+    return `Sụn mi ${pos}`;
+  }
+  if (/tarsal plate/i.test(text)) return `Sụn mi mắt ${side}`.trim();
+  if (/(upper|lower) eyelid/i.test(text)) {
+    const pos = /upper/i.test(text) ? 'trên' : 'dưới';
+    return `Mi mắt ${pos} ${side}`.trim();
+  }
+
+  // 2. Mạc hãm gân cổ tay, cổ chân (Retinaculum)
+  if (/flexor retinaculum of (right|left) wrist/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Mạc hãm gân gấp cổ tay ${s} (Mái ống cổ tay)`;
+  }
+  if (/extensor retinaculum of (right|left) wrist/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Mạc hãm gân duỗi cổ tay ${s}`;
+  }
+  if (/flexor retinaculum/i.test(text)) return `Mạc hãm gân gấp ${side}`.trim();
+  if (/extensor retinaculum/i.test(text)) return `Mạc hãm gân duỗi ${side}`.trim();
+  if (/retinaculum/i.test(text)) return `Mạc hãm gân ${side}`.trim();
+
+  // 3. Nhãn cầu & Mắt chi tiết
+  if (/optic part of (left|right) retina/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Phần thị giác võng mạc ${s}`;
+  }
+  if (/suspensory ligament of (left|right) lens/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Dây chằng treo thể thủy tinh mắt ${s} (Dây chằng Zinn)`;
+  }
+  if (/anterior chamber of (left|right) eyeball/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Tiền phòng mắt ${s}`;
+  }
+  if (/(left|right) vitreous body/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Thể pha lê (Dịch kính) mắt ${s}`;
+  }
+  if (/(left|right) cornea/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Giác mạc mắt ${s}`;
+  }
+  if (/(left|right) sclera/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Củng mạc (Lòng trắng) mắt ${s}`;
+  }
+  if (/(left|right) iris/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Mống mắt ${s}`;
+  }
+  if (/(left|right) choroid/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Màng mạch (Hắc mạc) mắt ${s}`;
+  }
+  if (/(left|right) lens/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Thể thủy tinh mắt ${s}`;
+  }
+
+  // 4. Xương bàn chân & Cổ chân
+  if (/(left|right) (first|second|third|fourth|fifth) metatarsal bone/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    const numMap: Record<string, string> = { first: 'I', second: 'II', third: 'III', fourth: 'IV', fifth: 'V' };
+    const numMatch = text.match(/(first|second|third|fourth|fifth)/i);
+    const num = numMatch ? numMap[numMatch[1].toLowerCase()] : '';
+    return `Xương đốt bàn chân ${num} ${s}`;
+  }
+  if (/(left|right) lateral tarsal artery/i.test(text)) {
+    const s = /right/i.test(text) ? 'phải' : 'trái';
+    return `Động mạch cổ chân ngoài ${s}`;
+  }
+
+  // Thay thế các mẫu giải phẫu phế quản / lồng ngực
   if (/^segmental bronchus/i.test(text) || /bronchial tree/i.test(text)) {
     return `Phế quản phân thùy ${side}`.trim();
   }
@@ -210,7 +290,22 @@ export function getAnatomicalInsight(partName: string, system: string, conceptNa
   let func = 'Tham gia cấu thành mạng lưới liên kết sinh học và duy trì cơ chế sinh lý ổn định của cơ thể.';
   let clinicalNote = 'Mô hình nguyên bản chuẩn BodyParts3D từ Đại học Tokyo. Giữ toàn vẹn giải phẫu học tham chiếu quốc tế.';
 
-  if (lower.includes('artery') || lower.includes('arteriolar')) {
+  if (lower.includes('retinaculum')) {
+    category = 'Hệ thống mạc hãm gân & bao khớp';
+    location = `Bọc quanh vùng cổ tay, cố định đường đi của các gân cơ gấp ngón tay và dây thần kinh giữa.`;
+    func = 'Đóng vai trò như ròng rọc cơ học, giữ các gân cơ áp sát mặt xương khi co gập cổ tay, ngăn hiện tượng căng bật dây cung.';
+    clinicalNote = 'Mạc hãm gân gấp tạo nên trần của Ống Cổ Tay (Carpal Tunnel). Tình trạng viêm dày mạc hãm gây chèn ép thần kinh giữa dẫn đến Hội chứng Ống Cổ Tay (tê bì ngón cái, trỏ, giữa).';
+  } else if (lower.includes('tarsal plate') || lower.includes('eyelid')) {
+    category = 'Cấu trúc phụ trợ mắt & Mi mắt';
+    location = `Nằm trong chiều dày của bờ mi mắt trên và mi mắt dưới, ôm sát bề mặt giác mạc nhãn cầu.`;
+    func = 'Bản sụn mô liên kết đặc giúp giữ vững khung định hình mi mắt, bảo vệ nhãn cầu và chứa các tuyến bã Meibomius tiết lớp dầu phim nước mắt.';
+    clinicalNote = 'Tắc nghẽn các tuyến bã Meibomius trong sụn mi là nguyên nhân trực tiếp dẫn tới chắp mắt (chalazion) hoặc viêm bờ mi mạn tính.';
+  } else if (lower.includes('cornea') || lower.includes('sclera') || lower.includes('retina') || lower.includes('eyeball') || lower.includes('lens')) {
+    category = 'Hệ thống thị giác & Nhãn cầu';
+    location = `Tọa lạc an toàn trong hốc mắt xương sọ, nối liền với thùy chẩm não bộ qua đôi dây thần kinh thị giác số II.`;
+    func = 'Thu nhận, hội tụ quang học hình ảnh thế giới bên ngoài lên màng võng mạc và chuyển hóa thành tín hiệu điện sinh học truyền về vỏ não thị giác.';
+    clinicalNote = 'Võng mạc cần nguồn oxy cao từ hệ mạch màng mạch. Cần khám đáy mắt định kỳ phát hiện sớm thoái hóa hoàng điểm, đục thủy tinh thể hoặc bệnh võng mạc tiểu đường.';
+  } else if (lower.includes('artery') || lower.includes('arteriolar')) {
     category = 'Hệ mạch máu động mạch';
     location = `Phân nhánh từ trục động mạch chủ hoặc các thân mạch chính, dẫn máu nuôi dưỡng các tế bào vùng ${viName}.`;
     func = 'Dẫn dòng máu giàu oxy và chất dinh dưỡng dưới áp lực cao từ tim tới nuôi dưỡng các cơ quan mô đích.';

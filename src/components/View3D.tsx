@@ -522,6 +522,7 @@ export default function View3D({
   const heartMeshesRef = useRef<THREE.Mesh[]>([]);
   const heartCenterRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 1.35, 0));
   const lungMeshesRef = useRef<THREE.Mesh[]>([]);
+  const lungPivotRef = useRef<THREE.Group | null>(null);
   const camState = useRef({
     theta: 0.34,
     phi: 1.46,
@@ -776,16 +777,19 @@ export default function View3D({
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
 
-            // Tọa độ ngực: y ~ 1.34, chiều cao ~ 0.28m vừa khít lồng ngực BodyParts3D
-            const targetH = 0.28;
+            // Tọa độ ngực: Y = 1.317 (đồng bộ tâm cây phế quản), X = 0.003, Z = -0.001
+            // Chiều cao targetH = 0.275m bao trọn vẹn toàn bộ hệ thống phế quản (cao 0.228m)
+            const targetH = 0.275;
             const scale = targetH / Math.max(size.y, 0.001);
-            lungModel.scale.setScalar(scale);
 
-            lungModel.position.set(
-              0.003 - center.x * scale,
-              1.34 - center.y * scale,
-              0.012 - center.z * scale
-            );
+            // Sử dụng lungPivot cố định tại tâm ngực để thở (scale) không làm dịch chuyển tâm giải phẫu
+            const lungPivot = new THREE.Group();
+            lungPivot.position.set(0.003, 1.317, -0.001);
+
+            lungModel.scale.setScalar(scale);
+            // Dịch chuyển lungModel để tâm hình học của phổi trùng khớp đúng tâm (0,0,0) của lungPivot
+            lungModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+            lungPivot.add(lungModel);
 
             lungModel.traverse((child) => {
               if (child instanceof THREE.Mesh) {
@@ -793,17 +797,16 @@ export default function View3D({
                 child.material.side = THREE.DoubleSide;
                 child.userData.sys = 'hohap';
                 child.userData.partId = 'fullbody_lung_parenchyma';
-                child.userData.baseCenter = new THREE.Vector3(0.003, 1.34, 0.012);
+                child.userData.baseCenter = new THREE.Vector3(0.003, 1.317, -0.001);
                 if (child.geometry?.attributes?.position) {
                   child.userData.original = (child.geometry.attributes.position.array as Float32Array).slice();
                 }
-                lungMeshesRef.current.push(child);
                 entries.push({
                   mesh: child,
                   part: {
                     id: 'fullbody_lung_parenchyma',
                     conceptId: 'FMA7309',
-                    name: 'Hai lá phổi (Lungs)',
+                    name: 'Nhu mô hai lá phổi (Lungs)',
                     system: 'respiratory',
                     chunk: 0,
                     positions: 0,
@@ -812,8 +815,8 @@ export default function View3D({
                     vertexCount: child.geometry.attributes.position.count,
                     indexCount: child.geometry.index?.count ?? 0,
                     bounds: [
-                      [-0.13, 1.20, -0.09],
-                      [0.13, 1.48, 0.09],
+                      [-0.13, 1.18, -0.09],
+                      [0.13, 1.46, 0.09],
                     ],
                   },
                   system: 'hohap',
@@ -822,7 +825,8 @@ export default function View3D({
                 });
               }
             });
-            scene.add(lungModel);
+            scene.add(lungPivot);
+            lungPivotRef.current = lungPivot;
           }
         } catch (err) {
           console.warn('Could not load lungs.glb:', err);
@@ -1198,6 +1202,9 @@ export default function View3D({
         // Hô hấp - phồng xẹp quanh tâm của từng phổi
         const breathPulse = 1 + 0.035 * Math.sin(2 * Math.PI * 0.25 * t);
         const bScaleInv = 1 - breathPulse;
+        if (lungPivotRef.current) {
+          lungPivotRef.current.scale.setScalar(breathPulse);
+        }
         for (const m of lungMeshesRef.current) {
           m.scale.setScalar(breathPulse);
           const lc = (m.userData.baseCenter as THREE.Vector3) || new THREE.Vector3();
@@ -1249,6 +1256,7 @@ export default function View3D({
       vesselMaterial.dispose();
       heartMeshesRef.current = [];
       lungMeshesRef.current = [];
+      lungPivotRef.current = null;
       if (fatRef.current) {
         fatRef.current.geometry.dispose();
         (fatRef.current.material as THREE.Material).dispose();
@@ -1280,10 +1288,17 @@ export default function View3D({
       );
       if (targetIds.size === 0) targetIds.add(isolatedTargetId);
     } else if (selection) {
+      const isLungSel = selection.kind === 'note' && LUNG_NOTE_IDS.has(selection.id);
       targetIds = new Set(
         selection.kind === 'part'
           ? [selection.id]
-          : entries.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
+          : entries
+              .filter(
+                (e) =>
+                  e.noteId === selection.id ||
+                  (isLungSel && e.part.id === 'fullbody_lung_parenchyma'),
+              )
+              .map((e) => e.part.id),
       );
     }
 
@@ -1490,6 +1505,9 @@ export default function View3D({
       const fatBasePos = (fatRef.current.userData.basePos as THREE.Vector3) || new THREE.Vector3();
       fatRef.current.position.set(fatBasePos.x, fatBasePos.y, fatBasePos.z + 0.52 * t);
     }
+    if (lungPivotRef.current) {
+      lungPivotRef.current.position.set(0.003, 1.317, -0.001 + 0.50 * t);
+    }
   }, [explode, ready]);
 
   // ---------- Mô phỏng thể trạng cơ thể (Chiều cao, Cân nặng, BMI, Tuổi, Giới tính) ----------
@@ -1508,10 +1526,17 @@ export default function View3D({
 
   const focusOnSelection = () => {
     if (!selection || !ready) return;
+    const isLungSel = selection.kind === 'note' && LUNG_NOTE_IDS.has(selection.id);
     const targetIds = new Set(
       selection.kind === 'part'
         ? [selection.id]
-        : entriesRef.current.filter((e) => e.noteId === selection.id).map((e) => e.part.id),
+        : entriesRef.current
+            .filter(
+              (e) =>
+                e.noteId === selection.id ||
+                (isLungSel && e.part.id === 'fullbody_lung_parenchyma'),
+            )
+            .map((e) => e.part.id),
     );
     const box = new THREE.Box3();
     let found = false;

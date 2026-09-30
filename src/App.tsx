@@ -275,15 +275,11 @@ function AppInner() {
       setFocusKey((k) => k + 1);
     } else {
       // Chọn cơ quan cụ thể (Tim, Não, Phổi, Thận, Gan, Dạ dày, Tử cung...)
+      setViewScope('fullbody');
       setSelection({ kind: 'note', id: organ.noteId });
       setPeelDepth(organ.peel);
       if (organ.system) setActiveSystem(organ.system as SystemId);
       setIsolatedTargetId(null);
-      if (organ.noteId in NOTE_TO_ORGAN) {
-        setViewScope('organ');
-      } else {
-        setViewScope('fullbody');
-      }
       setIsInfoOpen(true);
       setFocusKey((k) => k + 1);
     }
