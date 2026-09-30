@@ -94,7 +94,6 @@ function AppInner() {
     }
   });
 
-  const [showBodyParams, setShowBodyParams] = useState(false);
   const [activeTour, setActiveTour] = useState<ActiveTour | null>(null);
   const [showCoffee, setShowCoffee] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -144,7 +143,6 @@ function AppInner() {
       setSelectedHotspot(null);
       setActiveTour(null);
       setIsSidebarOpen(false);
-      setShowBodyParams(false);
       setIsInfoOpen(true);
     },
     [],
@@ -347,7 +345,6 @@ function AppInner() {
             const next = !v;
             if (next) {
               setIsInfoOpen(false);
-              setShowBodyParams(false);
             }
             return next;
           });
@@ -356,17 +353,6 @@ function AppInner() {
         onShare={onShare}
         explode={explode}
         onExplodeChange={setExplode}
-        showBodyParams={showBodyParams}
-        onToggleBodyParams={() => {
-          setShowBodyParams((v) => {
-            const next = !v;
-            if (next) {
-              setIsSidebarOpen(false);
-              setIsInfoOpen(false);
-            }
-            return next;
-          });
-        }}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         onStartTour={startTour}
@@ -383,7 +369,6 @@ function AppInner() {
             const next = !v;
             if (next) {
               setIsSidebarOpen(false);
-              setShowBodyParams(false);
             }
             return next;
           });
@@ -460,14 +445,6 @@ function AppInner() {
                 selection={selection}
                 gender={gender}
                 onGenderChange={setGender}
-                showBodyParams={showBodyParams}
-                onToggleBodyParams={(show) => {
-                  setShowBodyParams(show);
-                  if (show) {
-                    setIsSidebarOpen(false);
-                    setIsInfoOpen(false);
-                  }
-                }}
                 onPick={onPick}
                 onCounts={(visible, total) => setCounts({ visible, total })}
                 peelDepth={peelDepth}
@@ -533,7 +510,6 @@ function AppInner() {
             onOpenSidebar={() => {
               setIsSidebarOpen(true);
               setIsInfoOpen(false);
-              setShowBodyParams(false);
             }}
             onFocusOrgan={() => {
               if (activeOrganId) {

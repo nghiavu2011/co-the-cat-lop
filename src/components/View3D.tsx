@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { AtlasJSON, AtlasPart, SystemId } from '../data/types';
@@ -218,8 +218,6 @@ export interface View3DProps {
   selection: Selection | null;
   gender?: 'male' | 'female';
   onGenderChange?: (gender: 'male' | 'female') => void;
-  showBodyParams?: boolean;
-  onToggleBodyParams?: (show: boolean) => void;
   onPick: (sel: Selection) => void;
   onCounts?: (visible: number, total: number) => void;
   peelDepth?: number;
@@ -251,185 +249,6 @@ const SYSTEM_PBR_PROFILES: Record<SystemId, SystemPBRProfile> = {
   thankinh: { color: 0xffd600, roughness: 0.30, metalness: 0.05, emissive: 0x443300 }, // Vàng hoàng yến rực rỡ, phát sáng nhẹ
 };
 
-export interface HealthLessonData {
-  badge: string;
-  color: string;
-  summary: string;
-  anatomyImpact: string;
-  risks: string[];
-  lifestyleTips: string[];
-}
-
-export const HEALTH_LESSONS: Record<'underweight' | 'normal' | 'overweight' | 'obese', HealthLessonData> = {
-  underweight: {
-    badge: 'Thiếu cân / Thiếu mỡ đệm',
-    color: '#42a5f5',
-    summary: 'Cơ thể thiếu hụt lớp mỡ đệm bảo vệ cơ học và kho dự trữ năng lượng sinh học.',
-    anatomyImpact: 'Lớp mỡ dưới da tiêu biến (< 2mm), cơ bắp bị dị hóa (teo sợi cơ) để bù đắp calo. Các cơ quan nội tạng mất lớp đệm nâng đỡ, dễ sa tạng và tổn thương khi va chạm.',
-    risks: [
-      'Suy giảm hệ miễn dịch, thường xuyên mệt mỏi và hạ đường huyết.',
-      'Giảm mật độ khoáng xương, tăng nguy cơ loãng xương và gãy xương sớm.',
-      'Ở nữ giới: Giảm tổng hợp Estrogen (do thiếu mô mỡ), gây rối loạn hoặc ngưng chu kỳ kinh nguyệt.',
-    ],
-    lifestyleTips: [
-      'Dinh dưỡng: Bổ sung calo lành mạnh từ chất béo tốt (bơ, dầu olive, các loại hạt, cá béo).',
-      'Đạm nuôi cơ: Tăng protein nạc (1.6 - 2.0g/kg/ngày) kết hợp chia 5 - 6 bữa nhỏ.',
-      'Vận động: Tập kháng lực (Gym/Calisthenics) để xây dựng khối cơ nạc, tránh tập cardio quá mức.',
-    ],
-  },
-  normal: {
-    badge: 'Chuẩn y khoa tối ưu',
-    color: '#66bb6a',
-    summary: 'Tỷ lệ khối cơ nạc và mô mỡ ở trạng thái cân bằng sinh học hoàn hảo.',
-    anatomyImpact: 'Lớp mỡ dưới da giữ độ dày tự nhiên (8 - 12mm) che chở cơ bắp. Mỡ nội tạng ở mức tối thiểu, ổ bụng thông thoáng, cơ hoành hô hấp dễ dàng.',
-    risks: [
-      'Áp lực lên cơ tim và hệ mạch vành ở mức tối thiểu an toàn.',
-      'Cột sống và sụn khớp gối chịu tải trọng sinh lý lý tưởng, ngừa thoái hóa sớm.',
-      'Độ nhạy Insulin tối ưu, hệ chuyển hóa năng lượng vận hành trơn tru.',
-    ],
-    lifestyleTips: [
-      'Duy trì thói quen: Chế độ ăn 80% thực vật nguyên bản, giàu chất xơ và vitamin.',
-      'Vận động bền bỉ: 150 phút thể thao vừa phải hoặc 75 phút thể thao cường độ cao mỗi tuần.',
-      'Giấc ngủ & Tinh thần: Ngủ đủ 7 - 8 tiếng, kiểm soát stress để giữ vững chỉ số vàng này.',
-    ],
-  },
-  overweight: {
-    badge: 'Thừa cân / Cảnh báo sớm',
-    color: '#ffa726',
-    summary: 'Mô mỡ bắt đầu tích lũy vượt ngưỡng đệm sinh học, tạo gánh nặng tuần hoàn & khớp.',
-    anatomyImpact: 'Lớp mỡ dưới da dày lên (25 - 35mm). Mỡ nội tạng bắt đầu thâm nhiễm vào mạc treo ruột và gan, đẩy thành bụng nhô ra trước.',
-    risks: [
-      'Mỗi 1kg mỡ thừa làm tăng 4kg lực tì đè lên khớp gối khi di chuyển, đẩy nhanh mòn sụn.',
-      'Tim phải co bóp mạnh hơn để bơm máu nuôi thêm hàng ngàn mét mao mạch mô mỡ.',
-      'Giai đoạn tiền đái tháo đường: Kháng insulin tế bào bắt đầu hình thành, gan nhiễm mỡ độ 1.',
-    ],
-    lifestyleTips: [
-      'Cắt giảm đường đơn: Hạn chế tối đa nước ngọt, trà sữa, bánh ngọt và đồ chiên rán ngập dầu.',
-      'Ăn chất xơ trước bữa: Ăn rau xanh trước khi ăn cơm để làm chậm hấp thu đường.',
-      'Vận động đốt mỡ: Đi bộ nhanh, bơi lội, đạp xe (bảo vệ khớp gối) kết hợp tập cơ nạc.',
-    ],
-  },
-  obese: {
-    badge: 'Béo phì / Nguy cơ cao',
-    color: '#ef5350',
-    summary: 'Mô mỡ phì đại diện rộng, mỡ nội tạng gây viêm mạn tính và chèn ép cơ học nặng nề.',
-    anatomyImpact: 'Lớp mỡ dưới da dày 40 - 65mm tạo ngấn phì đại. Mỡ nội tạng dày đặc chèn ép dạ dày, đẩy cơ hoành lên cao gây cản trở hô hấp khi nằm.',
-    risks: [
-      'Mỡ nội tạng tiết liên tục các Cytokine gây viêm mạn tính toàn thân và xơ vữa động mạch.',
-      'Nguy cơ cao mắc Đái tháo đường Type 2, Tăng huyết áp và Đột quỵ tim/não.',
-      'Hội chứng ngưng thở khi ngủ (Sleep Apnea) do mỡ chèn ép đường thở thanh quản.',
-      'Thoái hóa khớp gối nặng và thoát vị đĩa đệm cột sống thắt lưng L4-L5.',
-    ],
-    lifestyleTips: [
-      'Thâm hụt calo an toàn: Giảm 300 - 500 kcal/ngày, đặt mục tiêu giảm bền vững 0.5kg/tuần.',
-      'Tập kháng lực bảo vệ cơ: Tuyệt đối không nhịn ăn ép cân vì sẽ gây teo cơ nạc quý giá.',
-      'Khám định kỳ: Theo dõi mỡ máu (Triglyceride, LDL-C), đường huyết (HbA1c) cùng bác sĩ.',
-    ],
-  },
-};
-
-/**
- * Thuật toán biến dạng thể học sinh lý chính xác (Anatomical Body & Fat Simulation):
- * 1. KHỐI CƠ NẠC & XƯƠNG: Đóng băng không phồng to theo BMI (chỉ co giãn theo chiều cao & teo cơ do tuổi).
- * 2. MỠ NỘI TẠNG: Đẩy nhẹ khoang bụng & tạng tiêu hóa ra trước theo áp lực phúc mạc khi BMI > 22.
- * 3. LỚP MỠ DƯỚI DA & DA: Đùn theo vector pháp tuyến (Vertex Normal Extrusion) tạo lớp mỡ vàng ngà dày lên thực tế.
- */
-function deformMeshes(
-  meshes: THREE.Mesh[],
-  { height, weight, age, sex }: { height: number; weight: number; age: number; sex: 'male' | 'female' },
-): void {
-  const isFemale = sex === 'female';
-  const standardH = isFemale ? 162 : 175;
-  const h = height / standardH;
-  const bmi = weight / ((height / 100) ** 2);
-  const older = Math.max(0, age - 45) / 45; // Teo cơ nhẹ từ 45 tuổi
-  const ageMuscleLoss = 1 - older * 0.055;
-
-  for (const m of meshes) {
-    if (!m.geometry || !m.geometry.attributes.position) continue;
-    const a = m.geometry.attributes.position.array as Float32Array;
-    const o = m.userData.original as Float32Array | undefined;
-    if (!o) continue;
-
-    const isBone = m.userData.sys === 'xuong';
-    const isMuscle = m.userData.sys === 'co';
-    const isDigestive = m.userData.sys === 'tieuhoa';
-    const isSkin = m.userData.sys === 'da';
-    const isFat = m.userData.sys === 'mo';
-    const norm = m.geometry.attributes.normal as THREE.BufferAttribute | undefined;
-
-    for (let i = 0; i < a.length; i += 3) {
-      const x = o[i];
-      const y = o[i + 1];
-      const z = o[i + 2];
-      const worldY = y;
-      const ageKyphosis = older * Math.max(0, worldY - 0.90) * 0.035;
-
-      // 1. KHỐI XƯƠNG & CƠ NẠC: Không bị scale phồng ngang theo BMI!
-      if (isBone || isMuscle) {
-        const w = isMuscle ? ageMuscleLoss : 1.0;
-        a[i] = x * w * h;
-        a[i + 1] = y * h;
-        a[i + 2] = (z + ageKyphosis) * h;
-        continue;
-      }
-
-      // 2. MỠ NỘI TẠNG: Đẩy nhẹ tạng tiêu hóa ra trước & hơi trĩu xuống
-      if (isDigestive) {
-        const visceralFat = Math.max(0, bmi - 22.0);
-        const abdominalZone = Math.exp(-(((worldY - 1.10) / 0.16) ** 2));
-        const pushZ = visceralFat * 0.0018 * abdominalZone;
-        const pushY = -visceralFat * 0.0006 * abdominalZone;
-        a[i] = x * h;
-        a[i + 1] = (y + pushY) * h;
-        a[i + 2] = (z + pushZ + ageKyphosis) * h;
-        continue;
-      }
-
-      // 3. LỚP MỠ DƯỚI DA & LỚP DA BIỂU BÌ: Đùn theo vector pháp tuyến đỉnh (Normal Extrusion)
-      if (isFat || isSkin) {
-        const vIdx = i / 3;
-        const nx = norm ? norm.getX(vIdx) : 0;
-        const ny = norm ? norm.getY(vIdx) : 0;
-        const nz = norm ? norm.getZ(vIdx) : 0;
-
-        // Phân bổ sinh học mỡ theo giới tính
-        const belly = Math.exp(-(((worldY - 1.12) / 0.16) ** 2));
-        const chest = Math.exp(-(((worldY - 1.32) / 0.14) ** 2));
-        const hips = Math.exp(-(((worldY - 0.88) / 0.16) ** 2));
-        const thighs = Math.exp(-(((worldY - 0.68) / 0.18) ** 2));
-
-        const fatDistribution = isFemale
-          ? 0.50 * hips + 0.30 * thighs + 0.20 * belly
-          : 0.65 * belly + 0.20 * chest + 0.15 * hips;
-
-        const bmiDelta = bmi - 18.5;
-        // Độ dày lớp mỡ thực tế (tính bằng mét): từ 1.5mm (gầy) tới 50mm (béo phì)
-        const fatThickness = Math.max(
-          0.0012,
-          (0.004 + Math.max(0, bmiDelta) * 0.0024 + (bmiDelta < 0 ? bmiDelta * 0.0008 : 0)) * (0.35 + 0.95 * fatDistribution),
-        );
-
-        // Lớp mỡ đùn ra fatThickness, lớp da nằm ngoài lớp mỡ thêm 1.5mm
-        const extrusion = isFat ? fatThickness : fatThickness + 0.0016;
-
-        a[i] = (x + nx * extrusion) * h;
-        a[i + 1] = (y + ny * extrusion * 0.25) * h;
-        a[i + 2] = (z + nz * extrusion + ageKyphosis) * h;
-        continue;
-      }
-
-      // Các cơ quan khác (mạch máu, thần kinh...) giữ nguyên vị trí chuẩn
-      a[i] = x * h;
-      a[i + 1] = y * h;
-      a[i + 2] = (z + ageKyphosis) * h;
-    }
-    m.geometry.attributes.position.needsUpdate = true;
-    m.geometry.computeBoundingSphere();
-    m.geometry.computeBoundingBox();
-  }
-}
-
 export default function View3D({
   atlas,
   activeSystem,
@@ -439,10 +258,8 @@ export default function View3D({
   axis,
   sliceT,
   selection,
-  gender = 'male',
-  onGenderChange,
-  showBodyParams: showBodyParamsProp,
-  onToggleBodyParams,
+  gender: _gender = 'male',
+  onGenderChange: _onGenderChange,
   onPick,
   onCounts,
   peelDepth = 100,
@@ -464,57 +281,11 @@ export default function View3D({
   const showLabelsRef = useRef(showLabels);
   showLabelsRef.current = showLabels;
 
-  // Thể trạng & Chỉ số BMI (Body Parameters)
-  const [internalShowBodyParams, setInternalShowBodyParams] = useState(false);
-  const showBodyParams = showBodyParamsProp ?? internalShowBodyParams;
-  const setShowBodyParams = (val: boolean | ((prev: boolean) => boolean)) => {
-    const next = typeof val === 'function' ? val(showBodyParams) : val;
-    setInternalShowBodyParams(next);
-    onToggleBodyParams?.(next);
-  };
-
-  const [showFatLayer, setShowFatLayer] = useState(true);
-  const [isBodyParamsCompact, setIsBodyParamsCompact] = useState(false);
-
-  const [bodyParams, setBodyParams] = useState(() => ({
-    height: gender === 'female' ? 162 : 175,
-    weight: gender === 'female' ? 52 : 70,
-    age: 30,
-  }));
-
-  const bmi = useMemo(() => {
-    const hM = bodyParams.height / 100;
-    return +(bodyParams.weight / (hM * hM)).toFixed(1);
-  }, [bodyParams.height, bodyParams.weight]);
-
-  const bmiCategoryKey = useMemo<'underweight' | 'normal' | 'overweight' | 'obese'>(() => {
-    if (bmi < 18.5) return 'underweight';
-    if (bmi < 24.9) return 'normal';
-    if (bmi < 29.9) return 'overweight';
-    return 'obese';
-  }, [bmi]);
-
-  const bmiCategory = useMemo(() => {
-    switch (bmiCategoryKey) {
-      case 'underweight':
-        return { label: 'Gầy (Dưới chuẩn)', color: '#42a5f5' };
-      case 'normal':
-        return { label: 'Chuẩn y khoa', color: '#66bb6a' };
-      case 'overweight':
-        return { label: 'Thừa cân', color: '#ffa726' };
-      case 'obese':
-        return { label: 'Béo phì', color: '#ef5350' };
-    }
-  }, [bmiCategoryKey]);
-
-  const currentLesson = HEALTH_LESSONS[bmiCategoryKey];
-
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const planeRef = useRef<THREE.Plane | null>(null);
   const skinRef = useRef<THREE.Mesh | null>(null);
-  const fatRef = useRef<THREE.Mesh | null>(null);
   const entriesRef = useRef<MeshEntry[]>([]);
   const selectedMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const vesselMatRef = useRef<THREE.ShaderMaterial | null>(null);
@@ -703,27 +474,6 @@ export default function View3D({
             skinMesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
             scene.add(skinMesh);
             skinRef.current = skinMesh;
-
-            // Tạo Lớp Mô Mỡ Dưới Da riêng biệt (Subcutaneous Adipose Tissue)
-            const fatGeo = geo.clone();
-            const fatMat = new THREE.MeshStandardMaterial({
-              color: new THREE.Color(0xe5b84c), // Màu vàng mỡ y học
-              side: THREE.DoubleSide,
-              transparent: true,
-              opacity: 0.46,
-              depthWrite: false,
-              roughness: 0.68,
-              metalness: 0.02,
-              clippingPlanes: [plane],
-            });
-            const fatMesh = new THREE.Mesh(fatGeo, fatMat);
-            fatMesh.renderOrder = 2;
-            fatMesh.visible = showGhost && showFatLayer;
-            fatMesh.userData.basePos = fatMesh.position.clone();
-            fatMesh.userData.sys = 'mo';
-            fatMesh.userData.original = (geo.attributes.position.array as Float32Array).slice();
-            scene.add(fatMesh);
-            fatRef.current = fatMesh;
             continue;
           }
           const isHeart = isHeartPart(part, noteId);
@@ -1257,20 +1007,14 @@ export default function View3D({
       heartMeshesRef.current = [];
       lungMeshesRef.current = [];
       lungPivotRef.current = null;
-      if (fatRef.current) {
-        fatRef.current.geometry.dispose();
-        (fatRef.current.material as THREE.Material).dispose();
-        fatRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atlas]);
 
-  // ---------- lớp da & lớp mô mỡ dưới da ----------
+  // ---------- lớp da bán trong suốt ----------
   useEffect(() => {
     if (skinRef.current) skinRef.current.visible = !isIsolated && showGhost;
-    if (fatRef.current) fatRef.current.visible = !isIsolated && showGhost && showFatLayer;
-  }, [showGhost, showFatLayer, isIsolated]);
+  }, [showGhost, isIsolated]);
 
   // ---------- hiển thị / ẩn theo hệ đang chọn, bóc tách Zygote & thao tác ngữ cảnh ----------
   useEffect(() => {
@@ -1362,9 +1106,8 @@ export default function View3D({
       if (show) visible += 1;
     }
 
-    // Lớp da ngoài cùng & mỡ ngoài cùng
+    // Lớp da ngoài cùng
     const showOuterSkin = peelDepth >= 85 && !effectiveIsolated && showGhost;
-    const showOuterFat = peelDepth >= 70 && !effectiveIsolated && showGhost && showFatLayer;
 
     if (skinRef.current) {
       skinRef.current.visible = showOuterSkin;
@@ -1372,15 +1115,6 @@ export default function View3D({
         (skinRef.current.material as THREE.Material).opacity = Math.min(
           0.38,
           0.12 + ((peelDepth - 85) / 15) * 0.26,
-        );
-      }
-    }
-    if (fatRef.current) {
-      fatRef.current.visible = showOuterFat;
-      if (fatRef.current.material && 'opacity' in fatRef.current.material) {
-        (fatRef.current.material as THREE.Material).opacity = Math.min(
-          0.45,
-          0.15 + ((peelDepth - 70) / 15) * 0.3,
         );
       }
     }
@@ -1395,7 +1129,6 @@ export default function View3D({
     isolatedTargetId,
     selection,
     showGhost,
-    showFatLayer,
     peelDepth,
     hiddenPartIds,
     ghostPartIds,
@@ -1501,28 +1234,10 @@ export default function View3D({
       const skinBasePos = (skinRef.current.userData.basePos as THREE.Vector3) || new THREE.Vector3();
       skinRef.current.position.set(skinBasePos.x, skinBasePos.y, skinBasePos.z + 0.68 * t);
     }
-    if (fatRef.current) {
-      const fatBasePos = (fatRef.current.userData.basePos as THREE.Vector3) || new THREE.Vector3();
-      fatRef.current.position.set(fatBasePos.x, fatBasePos.y, fatBasePos.z + 0.52 * t);
-    }
     if (lungPivotRef.current) {
       lungPivotRef.current.position.set(0.003, 1.317, -0.001 + 0.50 * t);
     }
   }, [explode, ready]);
-
-  // ---------- Mô phỏng thể trạng cơ thể (Chiều cao, Cân nặng, BMI, Tuổi, Giới tính) ----------
-  useEffect(() => {
-    if (!ready || !entriesRef.current.length) return;
-    const allMeshes = entriesRef.current.map((e) => e.mesh);
-    if (skinRef.current) allMeshes.push(skinRef.current);
-    if (fatRef.current) allMeshes.push(fatRef.current);
-    deformMeshes(allMeshes, {
-      height: bodyParams.height,
-      weight: bodyParams.weight,
-      age: bodyParams.age,
-      sex: gender,
-    });
-  }, [bodyParams, gender, ready]);
 
   const focusOnSelection = () => {
     if (!selection || !ready) return;
@@ -1639,311 +1354,6 @@ export default function View3D({
   return (
     <div className={isFullscreen ? 'view3dFullscreen' : undefined}>
       <canvas id="c3d" ref={canvasRef} style={{ touchAction: 'none' }} />
-
-      {ready && (
-        <>
-
-
-          {/* Bảng điều khiển mô phỏng Thể trạng & BMI */}
-          {showBodyParams && (
-            <div
-              className={`bodyParamsPanel ${isBodyParamsCompact ? 'isCompact' : ''}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              <div className="bodyParamsHeader">
-                <div className="bodyParamsHeaderLeft">
-                  <span>⚖ THỂ TRẠNG & CHỈ SỐ BMI</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsBodyParamsCompact(!isBodyParamsCompact)}
-                    className="compactToggleBtn"
-                    title={isBodyParamsCompact ? 'Mở rộng xem bài học sức khỏe và phân tích y khoa' : 'Thu gọn bảng để nhìn rõ chuyển động 3D'}
-                  >
-                    {isBodyParamsCompact ? '▼ Xem bài học y khoa' : '▲ Thu gọn'}
-                  </button>
-                </div>
-                <button type="button" onClick={() => setShowBodyParams(false)} className="closeBtn" title="Đóng bảng">
-                  ✕
-                </button>
-              </div>
-
-              {/* Giới tính sinh học (Nam / Nữ) */}
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Giới tính sinh học</label>
-                  <b style={{ color: gender === 'female' ? '#f06292' : '#64b5f6' }}>
-                    {gender === 'female' ? '♀ Nữ giới' : '♂ Nam giới'}
-                  </b>
-                </div>
-                <div className="genderToggleGroup">
-                  <button
-                    type="button"
-                    className={`genderBtn ${gender === 'male' ? 'active male' : ''}`}
-                    onClick={() => {
-                      if (gender !== 'male') {
-                        onGenderChange?.('male');
-                        setBodyParams((p) => ({ ...p, height: 175, weight: 70 }));
-                      }
-                    }}
-                  >
-                    ♂ Nam (175cm · 70kg)
-                  </button>
-                  <button
-                    type="button"
-                    className={`genderBtn ${gender === 'female' ? 'active female' : ''}`}
-                    onClick={() => {
-                      if (gender !== 'female') {
-                        onGenderChange?.('female');
-                        setBodyParams((p) => ({ ...p, height: 162, weight: 52 }));
-                      }
-                    }}
-                  >
-                    ♀ Nữ (162cm · 52kg)
-                  </button>
-                </div>
-              </div>
-
-              {/* Thẻ hiển thị chỉ số BMI kèm thanh đo màu trực quan */}
-              <div className="bmiDisplayCard">
-                <div className="bmiCardTop">
-                  <div className="bmiNumberRow">
-                    <span className="bmiLabel">Chỉ số BMI:</span>
-                    <strong className="bmiValue" style={{ color: bmiCategory.color }}>{bmi}</strong>
-                  </div>
-                  <div
-                    className="bmiCategoryBadge"
-                    style={{
-                      background: `${bmiCategory.color}22`,
-                      color: bmiCategory.color,
-                      borderColor: bmiCategory.color,
-                    }}
-                  >
-                    {bmiCategory.label}
-                  </div>
-                </div>
-
-                {/* Thanh trượt điều chỉnh BMI trực tiếp */}
-                <div style={{ marginTop: 8 }}>
-                  <div className="paramLabelRow">
-                    <label style={{ fontSize: 11, color: 'var(--muted)' }}>Kéo nhanh chỉ số BMI (16.0 - 36.0):</label>
-                  </div>
-                  <input
-                    type="range"
-                    min={16}
-                    max={36}
-                    step={0.5}
-                    value={bmi}
-                    onChange={(e) => {
-                      const targetBmi = Number(e.target.value);
-                      const hM = bodyParams.height / 100;
-                      const nextW = Math.round(targetBmi * (hM * hM));
-                      setBodyParams((p) => ({ ...p, weight: Math.max(35, Math.min(140, nextW)) }));
-                    }}
-                    style={{ width: '100%', accentColor: bmiCategory.color }}
-                  />
-                </div>
-              </div>
-
-              {/* Các thanh trượt điều chỉnh Chiều cao, Cân nặng, Tuổi */}
-              <div className="bodyParamItem" style={{ marginTop: 8 }}>
-                <div className="paramLabelRow">
-                  <label>Chiều cao</label>
-                  <b>{bodyParams.height} cm</b>
-                </div>
-                <input
-                  type="range"
-                  min={135}
-                  max={210}
-                  value={bodyParams.height}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, height: Number(e.target.value) }))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Cân nặng</label>
-                  <b>{bodyParams.weight} kg</b>
-                </div>
-                <input
-                  type="range"
-                  min={35}
-                  max={140}
-                  value={bodyParams.weight}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, weight: Number(e.target.value) }))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div className="bodyParamItem">
-                <div className="paramLabelRow">
-                  <label>Độ tuổi</label>
-                  <b>{bodyParams.age} tuổi</b>
-                </div>
-                <input
-                  type="range"
-                  min={18}
-                  max={85}
-                  value={bodyParams.age}
-                  onChange={(e) => setBodyParams((p) => ({ ...p, age: Number(e.target.value) }))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              {/* Nút bật/tắt Lớp mô mỡ dưới da để so sánh trực quan với cơ nạc */}
-              <button
-                type="button"
-                className={`fatToggleBtn ${showFatLayer ? 'active' : ''}`}
-                onClick={() => setShowFatLayer((v) => !v)}
-                title="Bật/Tắt hiển thị lớp mô mỡ dưới da để quan sát cơ bắp nạc và khung xương bên trong"
-              >
-                {showFatLayer ? '👁 Đang hiện: Lớp mỡ dưới da (Vàng ngà)' : '🚫 Đang ẩn: Lớp mỡ (Xem cơ bắp nạc)'}
-              </button>
-
-              {!isBodyParamsCompact && (
-                <>
-                  {/* Thẻ Bài Học Sức Khỏe & Lối Sống Lành Mạnh theo chuẩn Y Khoa */}
-                  <div className="healthLessonCard" style={{ borderLeftColor: currentLesson.color }}>
-                    <div className="healthLessonHeader">
-                      <span
-                        className="healthLessonBadge"
-                        style={{
-                          background: `${currentLesson.color}22`,
-                          color: currentLesson.color,
-                          borderColor: currentLesson.color,
-                        }}
-                      >
-                        💡 BÀI HỌC SỨC KHỎE · {currentLesson.badge}
-                      </span>
-                    </div>
-                    <p className="healthLessonSummary">{currentLesson.summary}</p>
-
-                    <div className="healthSection">
-                      <strong className="healthSectionTitle">🔬 Biến đổi giải phẫu học:</strong>
-                      <p className="healthSectionText">{currentLesson.anatomyImpact}</p>
-                    </div>
-
-                    <div className="healthSection">
-                      <strong className="healthSectionTitle" style={{ color: currentLesson.color }}>
-                        ⚠️ Tác hại & Nguy cơ y khoa:
-                      </strong>
-                      <ul className="healthList">
-                        {currentLesson.risks.map((r, idx) => (
-                          <li key={idx}>{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="healthSection">
-                      <strong className="healthSectionTitle" style={{ color: '#66bb6a' }}>
-                        🥗 Lời khuyên giữ cơ thể sống lành mạnh:
-                      </strong>
-                      <ul className="healthList">
-                        {currentLesson.lifestyleTips.map((t, idx) => (
-                          <li key={idx}>{t}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Khối Ghi Chú Lâm Sàng: Giới Hạn của BMI (Skinny Fat vs Cơ Bắp VĐV) */}
-                  <div className="bmiLimitationNote">
-                    <div className="bmiLimitationHeader">
-                      <span className="bmiLimitationIcon">🩺</span>
-                      <strong>Góc nhìn lâm sàng: Giới hạn của chỉ số BMI</strong>
-                    </div>
-                    <p className="bmiLimitationLead">
-                      Chỉ số BMI chỉ là thước đo gián tiếp dựa trên cân nặng và chiều cao. Hai trường hợp ngoại lệ kinh điển cần lưu ý:
-                    </p>
-                    <ul className="bmiLimitationList">
-                      <li>
-                        <b>Vận động viên / Người tập tạ:</b> BMI có thể &gt; 25 do khối cơ nạc phát triển nặng, nhưng tỷ lệ mỡ cơ thể rất thấp (8–14%) $\rightarrow$ Hoàn toàn khỏe mạnh, không phải béo phì.
-                      </li>
-                      <li>
-                        <b>Hiện tượng &quot;Gầy nhưng nhiều mỡ&quot; (Skinny Fat):</b> BMI ở ngưỡng chuẩn (18.5–24.9) nhưng ít cơ nạc, mỡ nội tạng lại cao $\rightarrow$ Vẫn đối mặt nguy cơ kháng insulin, gan nhiễm mỡ và tim mạch.
-                      </li>
-                    </ul>
-                    <div className="bmiLimitationAdvice">
-                      💡 <b>Lời khuyên chuyên môn:</b> Để đánh giá toàn diện, hãy phối hợp chỉ số BMI với <b>Tỷ lệ mỡ cơ thể (% Body Fat)</b> và <b>Tỷ số vòng eo / vòng mông (WHR)</b>.
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Mẫu thể trạng nhanh */}
-              <div className="bmiPresets">
-                <span className="bmiPresetsLabel">Mẫu thể trạng nhanh:</span>
-                <div className="bmiPresetBtns">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (gender !== 'male') onGenderChange?.('male');
-                      setBodyParams({ height: 175, weight: 70, age: 28 });
-                    }}
-                    title="Nam chuẩn y khoa: 175cm, 70kg, BMI 22.9"
-                  >
-                    ♂ Nam chuẩn
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (gender !== 'female') onGenderChange?.('female');
-                      setBodyParams({ height: 162, weight: 52, age: 25 });
-                    }}
-                    title="Nữ chuẩn y khoa: 162cm, 52kg, BMI 19.8"
-                  >
-                    ♀ Nữ chuẩn
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBodyParams((p) => ({ ...p, weight: Math.round(28.5 * ((p.height / 100) ** 2)) }));
-                    }}
-                    title="Thể trạng thừa cân (BMI 28.5)"
-                  >
-                    Thừa cân
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBodyParams((p) => ({ ...p, weight: Math.round(17.2 * ((p.height / 100) ** 2)) }));
-                    }}
-                    title="Thể trạng gầy / thiếu cân (BMI 17.2)"
-                  >
-                    Gầy mảnh
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBodyParams({ height: 190, weight: 88, age: 30 });
-                    }}
-                    title="Thể trạng cao lớn: 190cm, 88kg"
-                  >
-                    Cao lớn
-                  </button>
-                </div>
-              </div>
-
-
-
-              <button
-                type="button"
-                className="resetParamsBtn"
-                onClick={() =>
-                  setBodyParams({
-                    height: gender === 'female' ? 162 : 175,
-                    weight: gender === 'female' ? 52 : 70,
-                    age: 30,
-                  })
-                }
-              >
-                ↺ Đặt lại chuẩn ({gender === 'female' ? 'Nữ 162cm · 52kg' : 'Nam 175cm · 70kg'})
-              </button>
-            </div>
-          )}
-        </>
-      )}
 
       {!ready && (
         <div className="loading3d">

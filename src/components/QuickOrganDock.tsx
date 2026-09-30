@@ -18,6 +18,7 @@ export const QUICK_ORGANS: QuickOrganDef[] = [
   { id: 'gan', noteId: 'gan', labelVi: 'Gan', labelEn: 'Liver', icon: '🫀', peel: 25, system: 'tieuhoa' },
   { id: 'than', noteId: 'thanphai', labelVi: 'Thận', labelEn: 'Kidneys', icon: '🩸', peel: 20, system: 'tietnieu' },
   { id: 'daday', noteId: 'dsday', labelVi: 'Dạ dày', labelEn: 'Stomach', icon: '🍽️', peel: 25, system: 'tieuhoa' },
+  { id: 'ruot', noteId: 'ruotnon', labelVi: 'Hệ ruột', labelEn: 'Intestines', icon: '〰️', peel: 25, system: 'tieuhoa' },
   { id: 'da', noteId: 'bieubi', labelVi: 'Da & Biểu bì', labelEn: 'Skin & Tissue', icon: '🔬', peel: 100, system: 'da' },
   { id: 'mat', noteId: 'mat', labelVi: 'Mắt & Thị giác', labelEn: 'Eyeball', icon: '👁️', peel: 0, system: 'thankinh' },
   { id: 'tuy', noteId: 'tuy', labelVi: 'Tụy & Lách', labelEn: 'Pancreas', icon: '🥞', peel: 25, system: 'tieuhoa' },

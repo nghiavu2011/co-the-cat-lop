@@ -16,8 +16,6 @@ export interface TopBarZygoteProps {
   // Các công cụ giải phẫu (Tools)
   explode: number;
   onExplodeChange: (val: number) => void;
-  showBodyParams: boolean;
-  onToggleBodyParams: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onStartTour?: (tourId: string) => void;
@@ -46,8 +44,6 @@ export default function TopBarZygote({
   onShare,
   explode,
   onExplodeChange,
-  showBodyParams,
-  onToggleBodyParams,
   isFullscreen,
   onToggleFullscreen,
   onStartTour,
@@ -224,18 +220,6 @@ export default function TopBarZygote({
               </div>
 
               <div className="zygoteToolDivider" />
-
-              {/* Mô phỏng thể trạng & BMI */}
-              <button
-                type="button"
-                className={`zygoteToolActionBtn ${showBodyParams ? 'active' : ''}`}
-                onClick={() => {
-                  onToggleBodyParams();
-                  setShowTools(false);
-                }}
-              >
-                ⚖ {locale === 'en' ? 'Body Simulator (BMI)' : 'Mô phỏng thể trạng (BMI)'}
-              </button>
 
               {/* Toàn màn hình */}
               <button
