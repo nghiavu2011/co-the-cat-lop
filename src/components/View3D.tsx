@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { AtlasJSON, AtlasPart, SystemId } from '../data/types';
 import { loadAllChunks, type LoadProgress } from '../data/loader';
 import { buildPartGeometry } from '../data/geometry';
@@ -763,6 +764,68 @@ export default function View3D({
           for (const m of heartMeshesRef.current) {
             m.userData.baseCenter = heartCenterRef.current.clone();
           }
+        }
+
+        // Nạp khối giải phẫu hai lá phổi (Lung Lobes) bổ sung vào lồng ngực
+        try {
+          const lungLoader = new GLTFLoader();
+          const lungGltf = await lungLoader.loadAsync(`${import.meta.env.BASE_URL}organs/models/lungs.glb`);
+          if (!cancelled) {
+            const lungModel = lungGltf.scene;
+            const box = new THREE.Box3().setFromObject(lungModel);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            // Tọa độ ngực: y ~ 1.34, chiều cao ~ 0.28m vừa khít lồng ngực BodyParts3D
+            const targetH = 0.28;
+            const scale = targetH / Math.max(size.y, 0.001);
+            lungModel.scale.setScalar(scale);
+
+            lungModel.position.set(
+              0.003 - center.x * scale,
+              1.34 - center.y * scale,
+              0.012 - center.z * scale
+            );
+
+            lungModel.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.material.clippingPlanes = [plane];
+                child.material.side = THREE.DoubleSide;
+                child.userData.sys = 'hohap';
+                child.userData.partId = 'fullbody_lung_parenchyma';
+                child.userData.baseCenter = new THREE.Vector3(0.003, 1.34, 0.012);
+                if (child.geometry?.attributes?.position) {
+                  child.userData.original = (child.geometry.attributes.position.array as Float32Array).slice();
+                }
+                lungMeshesRef.current.push(child);
+                entries.push({
+                  mesh: child,
+                  part: {
+                    id: 'fullbody_lung_parenchyma',
+                    conceptId: 'FMA7309',
+                    name: 'Hai lá phổi (Lungs)',
+                    system: 'respiratory',
+                    chunk: 0,
+                    positions: 0,
+                    normals: 0,
+                    indices: 0,
+                    vertexCount: child.geometry.attributes.position.count,
+                    indexCount: child.geometry.index?.count ?? 0,
+                    bounds: [
+                      [-0.13, 1.20, -0.09],
+                      [0.13, 1.48, 0.09],
+                    ],
+                  },
+                  system: 'hohap',
+                  noteId: 'phoiphai',
+                  ownMaterial: child.material,
+                });
+              }
+            });
+            scene.add(lungModel);
+          }
+        } catch (err) {
+          console.warn('Could not load lungs.glb:', err);
         }
 
         entriesRef.current = entries;

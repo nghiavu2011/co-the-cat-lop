@@ -6,6 +6,7 @@ import InfoPanel from './components/InfoPanel';
 import TourBar from './components/TourBar';
 import QuickOrganDock, { type QuickOrganDef } from './components/QuickOrganDock';
 import FullOrganViewport from './components/FullOrganViewport';
+import OrganDetail from './components/OrganDetail';
 import { NOTE_TO_ORGAN, type OrganId } from './organs/organData';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
@@ -31,7 +32,7 @@ import type { Selection } from './selection';
 
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 
-type Mode = '2d' | '3d';
+type Mode = '2d' | '3d' | 'detail';
 
 interface ActiveTour {
   tour: Tour;
@@ -44,7 +45,7 @@ function AppInner() {
   const { atlas, error: atlasError } = useAtlas(gender);
 
   const initialUrl = useMemo(() => readUrlState(), []);
-  const [mode, setMode] = useState<Mode>(initialUrl.mode === '2d' ? '2d' : '3d');
+  const [mode, setMode] = useState<Mode>(initialUrl.mode ?? '3d');
   const [axis, setAxis] = useState(0);
   const [sliceT, setSliceT] = useState(0);
   const [activeSystem, setActiveSystem] = useState<SystemId | null>(initialUrl.activeSystem ?? null);
@@ -415,6 +416,11 @@ function AppInner() {
             selectedId={selection?.kind === 'note' ? selection.id : null}
             onPick={(id) => onPick({ kind: 'note', id })}
           />
+        ) : mode === 'detail' ? (
+          <OrganDetail
+            noteId={selection?.kind === 'note' ? selection.id : null}
+            onSelectNote={(noteId) => onPick({ kind: 'note', id: noteId })}
+          />
         ) : atlasError ? (
           <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
         ) : atlas ? (
@@ -528,7 +534,7 @@ function AppInner() {
           <InfoPanel
             selection={selection}
             atlas={atlas}
-            mode={mode === '2d' ? '2d' : '3d'}
+            mode={mode}
             onClose={() => setIsInfoOpen(false)}
             onOpenSidebar={() => {
               setIsSidebarOpen(true);
@@ -541,6 +547,9 @@ function AppInner() {
               } else {
                 setFocusKey((k) => k + 1);
               }
+            }}
+            onOpenDetail={() => {
+              setMode('detail');
             }}
           />
         </aside>

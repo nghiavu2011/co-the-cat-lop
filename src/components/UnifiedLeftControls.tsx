@@ -8,9 +8,9 @@ export interface UnifiedLeftControlsProps {
   gender: 'male' | 'female';
   onToggleGender: () => void;
 
-  // 2. Merged Tools (3D/2D, Cắt lớp, Tách lớp, Âm thanh)
-  mode: '3d' | '2d';
-  onChangeMode: (m: '3d' | '2d') => void;
+  // 2. Merged Tools (3D/2D/Vi thể, Cắt lớp, Tách lớp, Âm thanh)
+  mode: '3d' | '2d' | 'detail';
+  onChangeMode: (m: '3d' | '2d' | 'detail') => void;
   axis: number;
   onChangeAxis: (axis: number) => void;
   sliceT: number;
@@ -174,13 +174,13 @@ export default function UnifiedLeftControls({
 
         {/* PHẦN CÔNG CỤ TÍCH HỢP TRỰC TIẾP TRONG CAPSULE DUY NHẤT */}
         <div className="railSection toolsSection">
-          {/* Chế độ 3D / 2D */}
+          {/* Chế độ 3D / 2D / Vi thể */}
           <div className="railModeGroup">
             <button
               type="button"
               className={`railModeBtn ${mode === '3d' ? 'active' : ''}`}
               onClick={() => onChangeMode('3d')}
-              title="Chế độ 3D"
+              title={locale === 'en' ? 'Full Body 3D' : 'Toàn thân 3D'}
             >
               3D
             </button>
@@ -188,9 +188,17 @@ export default function UnifiedLeftControls({
               type="button"
               className={`railModeBtn ${mode === '2d' ? 'active' : ''}`}
               onClick={() => onChangeMode('2d')}
-              title="Chế độ 2D"
+              title={locale === 'en' ? '2D Slice Layers' : 'Bóc lớp 2D'}
             >
               2D
+            </button>
+            <button
+              type="button"
+              className={`railModeBtn ${mode === 'detail' ? 'active' : ''}`}
+              onClick={() => onChangeMode('detail')}
+              title={locale === 'en' ? 'Detailed Organs & Histology' : 'Kho vi thể & tiêu bản hiển vi'}
+            >
+              🔬
             </button>
           </div>
 

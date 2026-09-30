@@ -11,8 +11,9 @@ import type { Selection } from '../selection';
 export interface InfoPanelProps {
   selection: Selection | null;
   atlas: AtlasJSON | null;
-  mode: '2d' | '3d';
+  mode: '2d' | '3d' | 'detail';
   onFocusOrgan?: () => void;
+  onOpenDetail?: () => void;
   onClose?: () => void;
   onOpenSidebar?: () => void;
 }
@@ -137,7 +138,7 @@ function RawPartCard({
   );
 }
 
-export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onClose, onOpenSidebar }: InfoPanelProps) {
+export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onOpenDetail, onClose, onOpenSidebar }: InfoPanelProps) {
   const { t, locale } = useLocale();
 
   if (!selection) return <Intro />;
@@ -200,11 +201,23 @@ export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onClos
         <h2>{locale === 'en' ? note.e : note.n}</h2>
         <div className="en">{locale === 'en' ? `VN: ${note.n}` : note.e}</div>
 
-        {onFocusOrgan && (
-          <button type="button" className="organDetailCta" onClick={onFocusOrgan}>
-            🔍 {locale === 'en' ? 'Focus & Inspect Organ in 3D' : 'Phóng to & Quan sát cận cảnh 3D'}
-          </button>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+          {onFocusOrgan && (
+            <button type="button" className="organDetailCta" onClick={onFocusOrgan}>
+              🔍 {locale === 'en' ? 'Focus & Inspect Organ in 3D' : 'Phóng to & Quan sát cận cảnh 3D'}
+            </button>
+          )}
+          {onOpenDetail && (
+            <button
+              type="button"
+              className="organDetailCta"
+              style={{ background: '#2563eb', color: '#ffffff', border: 'none' }}
+              onClick={onOpenDetail}
+            >
+              🔬 {locale === 'en' ? 'Open Detailed View & Histology Slides' : 'Kho vi thể & Tiêu bản hiển vi'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="pbody">
