@@ -11,6 +11,8 @@ export interface UnifiedLeftControlsProps {
   // 2. Merged Tools (3D/2D/Vi thể, Cắt lớp, Tách lớp, Âm thanh)
   mode: '3d' | '2d' | 'detail';
   onChangeMode: (m: '3d' | '2d' | 'detail') => void;
+  viewScope?: 'fullbody' | 'organ';
+  onToggleViewScope?: (scope: 'fullbody' | 'organ') => void;
   axis: number;
   onChangeAxis: (axis: number) => void;
   sliceT: number;
@@ -28,6 +30,8 @@ export default function UnifiedLeftControls({
   onToggleGender,
   mode,
   onChangeMode,
+  viewScope = 'fullbody',
+  onToggleViewScope,
   axis,
   onChangeAxis,
   sliceT,
@@ -178,8 +182,11 @@ export default function UnifiedLeftControls({
           <div className="railModeGroup">
             <button
               type="button"
-              className={`railModeBtn ${mode === '3d' ? 'active' : ''}`}
-              onClick={() => onChangeMode('3d')}
+              className={`railModeBtn ${mode === '3d' && viewScope !== 'organ' ? 'active' : ''}`}
+              onClick={() => {
+                onChangeMode('3d');
+                onToggleViewScope?.('fullbody');
+              }}
               title={locale === 'en' ? 'Full Body 3D' : 'Toàn thân 3D'}
             >
               3D
@@ -187,15 +194,21 @@ export default function UnifiedLeftControls({
             <button
               type="button"
               className={`railModeBtn ${mode === '2d' ? 'active' : ''}`}
-              onClick={() => onChangeMode('2d')}
+              onClick={() => {
+                onChangeMode('2d');
+                onToggleViewScope?.('fullbody');
+              }}
               title={locale === 'en' ? '2D Slice Layers' : 'Bóc lớp 2D'}
             >
               2D
             </button>
             <button
               type="button"
-              className={`railModeBtn ${mode === 'detail' ? 'active' : ''}`}
-              onClick={() => onChangeMode('detail')}
+              className={`railModeBtn ${viewScope === 'organ' ? 'active' : ''}`}
+              onClick={() => {
+                onChangeMode('3d');
+                onToggleViewScope?.('organ');
+              }}
               title={locale === 'en' ? 'Detailed Organs & Histology' : 'Kho vi thể & tiêu bản hiển vi'}
             >
               🔬

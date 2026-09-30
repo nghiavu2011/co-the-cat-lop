@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ORGAN_BY_ID,
   ORGANS,
+  getOrganImages,
   type HotspotDef,
   type OrganDef,
   type OrganId,
@@ -34,6 +35,7 @@ export default function FullOrganViewport({
   const [cavityOpen, setCavityOpen] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [showTools, setShowTools] = useState(false);
+  const [showHistology, setShowHistology] = useState(false);
 
   const organDef: OrganDef = ORGAN_BY_ID[organId] ?? ORGANS[0];
 
@@ -82,6 +84,7 @@ export default function FullOrganViewport({
     setCrossSection(false);
     setCavityOpen(false);
     setCutOffset(0);
+    setShowHistology(false);
     viewerRef.current.setOrgan(organDef.model, organDef.hotspots, organDef.accent, organDef.companionModel);
   }, [organDef]);
 
@@ -163,6 +166,15 @@ export default function FullOrganViewport({
           title={locale === 'en' ? 'Open Internal Chambers' : 'Mở buồng nội tạng'}
         >
           🫀 {locale === 'en' ? 'Chambers' : 'Mở buồng'}
+        </button>
+
+        <button
+          type="button"
+          className={`organToolBtn ${showHistology ? 'active' : ''}`}
+          onClick={() => setShowHistology((v) => !v)}
+          title={locale === 'en' ? 'Microscopic Histology Slide' : 'Tiêu bản hiển vi & Lát cắt vi thể'}
+        >
+          🔬 {locale === 'en' ? 'Histology' : 'Tiêu bản vi thể'}
         </button>
 
         <button
@@ -291,6 +303,49 @@ export default function FullOrganViewport({
             <span className="hotspotCardSideNote">
               {locale === 'en' ? 'Full anatomy in right panel →' : 'Hồ sơ đầy đủ ở cột phải →'}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Thẻ nổi xem tiêu bản hiển vi / lát cắt vi thể không che lấp mô hình 3D */}
+      {showHistology && (
+        <div className="fullOrganHistologyModal" role="dialog" aria-label="Tiêu bản hiển vi">
+          <div className="histologyModalHeader">
+            <div className="histologyModalTitleGroup">
+              <span>🔬</span>
+              <strong>
+                {locale === 'en'
+                  ? `Histology & Microscopic Slide: ${organDef.nameEn}`
+                  : `Tiêu bản hiển vi: ${organDef.name}`}
+              </strong>
+            </div>
+            <button
+              type="button"
+              className="histologyModalClose"
+              onClick={() => setShowHistology(false)}
+              title={locale === 'en' ? 'Close' : 'Đóng'}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="histologyModalBody">
+            <img
+              src={getOrganImages(organDef.id).microscopic}
+              alt={`Tiêu bản hiển vi ${organDef.name}`}
+              className="histologySlideImg"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = getOrganImages(organDef.id).organ;
+              }}
+            />
+            <div className="histologyCaption">
+              <span className="histologyBadge">{organDef.system}</span>
+              <p>{organDef.description}</p>
+              <small style={{ color: 'var(--muted)' }}>
+                {locale === 'en'
+                  ? 'High-magnification histological sample (H&E stain)'
+                  : 'Lát cắt mô học hiển vi nhuộm HE độ phân giải cao'}
+              </small>
+            </div>
           </div>
         </div>
       )}

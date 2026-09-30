@@ -7,18 +7,24 @@ import type { SystemId } from './data/types';
 import type { Selection } from './selection';
 
 export interface UrlState {
-  mode: '2d' | '3d' | 'detail' | null;
+  mode: '2d' | '3d' | null;
+  scope: 'fullbody' | 'organ' | null;
   activeSystem: SystemId | null;
   selection: Selection | null;
 }
 
 /** Đọc trạng thái ban đầu từ URL hiện tại (nếu có) — dùng khi khởi tạo state. */
 export function readUrlState(): UrlState {
-  if (typeof window === 'undefined') return { mode: null, activeSystem: null, selection: null };
+  if (typeof window === 'undefined') return { mode: null, scope: null, activeSystem: null, selection: null };
   const p = new URLSearchParams(window.location.search);
 
   const modeRaw = p.get('mode');
-  const mode: UrlState['mode'] = modeRaw === '2d' || modeRaw === '3d' || modeRaw === 'detail' ? modeRaw : null;
+  // Nếu link cũ hoặc người dùng gõ mode=detail, chuyển mượt sang 3D vi thể trên màn hình lớn
+  const isOldDetail = modeRaw === 'detail';
+  const mode: UrlState['mode'] = modeRaw === '2d' ? '2d' : '3d';
+
+  const scopeRaw = p.get('scope');
+  const scope: UrlState['scope'] = scopeRaw === 'organ' || isOldDetail ? 'organ' : 'fullbody';
 
   const sysRaw = p.get('he');
   const activeSystem: SystemId | null = sysRaw && sysRaw in SYSTEM_BY_ID ? (sysRaw as SystemId) : null;
@@ -31,14 +37,15 @@ export function readUrlState(): UrlState {
     if (kind === 'note' && id in NOTE_BY_ID) selection = { kind: 'note', id };
     else if (kind === 'part' && id) selection = { kind: 'part', id };
   }
-  return { mode, activeSystem, selection };
+  return { mode, scope, activeSystem, selection };
 }
 
 /** Ghi trạng thái hiện tại vào URL (không tạo mục lịch sử mới). */
 export function writeUrlState(state: UrlState): void {
   if (typeof window === 'undefined') return;
   const p = new URLSearchParams();
-  if (state.mode) p.set('mode', state.mode);
+  if (state.mode && state.mode !== '3d') p.set('mode', state.mode);
+  if (state.scope && state.scope === 'organ') p.set('scope', 'organ');
   if (state.activeSystem) p.set('he', state.activeSystem);
   if (state.selection) p.set('bp', `${state.selection.kind}:${state.selection.id}`);
   const qs = p.toString();

@@ -6,7 +6,6 @@ import InfoPanel from './components/InfoPanel';
 import TourBar from './components/TourBar';
 import QuickOrganDock, { type QuickOrganDef } from './components/QuickOrganDock';
 import FullOrganViewport from './components/FullOrganViewport';
-import OrganDetail from './components/OrganDetail';
 import { NOTE_TO_ORGAN, type HotspotDef, type OrganId } from './organs/organData';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
@@ -32,7 +31,7 @@ import type { Selection } from './selection';
 
 const LUNG_NOTE_IDS = new Set(['phoiphai', 'phoitrai']);
 
-type Mode = '2d' | '3d' | 'detail';
+type Mode = '2d' | '3d';
 
 interface ActiveTour {
   tour: Tour;
@@ -68,8 +67,10 @@ function AppInner() {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [focusKey, setFocusKey] = useState(0);
-  const [viewScope, setViewScope] = useState<'fullbody' | 'organ'>('fullbody');
   const [selectedHotspot, setSelectedHotspot] = useState<HotspotDef | null>(null);
+  const [viewScope, setViewScope] = useState<'fullbody' | 'organ'>(
+    initialUrl.scope ?? 'fullbody',
+  );
 
   const activeOrganId = useMemo<OrganId | null>(() => {
     if (selection?.kind === 'note' && selection.id in NOTE_TO_ORGAN) {
@@ -211,8 +212,8 @@ function AppInner() {
 
   // URL State
   useEffect(() => {
-    writeUrlState({ mode, activeSystem, selection });
-  }, [mode, activeSystem, selection]);
+    writeUrlState({ mode, scope: viewScope, activeSystem, selection });
+  }, [mode, viewScope, activeSystem, selection]);
 
   const onShare = useCallback(async () => {
     try {
@@ -273,7 +274,6 @@ function AppInner() {
       setFocusKey((k) => k + 1);
     } else {
       // Chọn cơ quan cụ thể (Tim, Não, Phổi, Thận, Gan, Dạ dày, Tử cung...)
-      setViewScope('fullbody');
       setSelection({ kind: 'note', id: organ.noteId });
       setPeelDepth(organ.peel);
       if (organ.system) setActiveSystem(organ.system as SystemId);
@@ -389,7 +389,9 @@ function AppInner() {
         gender={gender}
         onToggleGender={() => setGender((g) => (g === 'male' ? 'female' : 'male'))}
         mode={mode}
-        onChangeMode={(m) => setMode(m)}
+        onChangeMode={(m) => setMode(m as Mode)}
+        viewScope={viewScope}
+        onToggleViewScope={setViewScope}
         explode={explode}
         onChangeExplode={setExplode}
         axis={axis}
@@ -418,18 +420,13 @@ function AppInner() {
             selectedId={selection?.kind === 'note' ? selection.id : null}
             onPick={(id) => onPick({ kind: 'note', id })}
           />
-        ) : mode === 'detail' ? (
-          <OrganDetail
-            noteId={selection?.kind === 'note' ? selection.id : null}
-            onSelectNote={(noteId) => onPick({ kind: 'note', id: noteId })}
-          />
         ) : atlasError ? (
           <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
         ) : atlas ? (
           <>
-            {viewScope === 'organ' && activeOrganId ? (
+            {viewScope === 'organ' ? (
               <FullOrganViewport
-                organId={activeOrganId}
+                organId={activeOrganId ?? 'stomach'}
                 selectedHotspot={selectedHotspot}
                 onSelectHotspot={handleSelectHotspot}
               />
@@ -519,7 +516,10 @@ function AppInner() {
               }
             }}
             onOpenDetail={() => {
-              setMode('detail');
+              if (!activeOrganId) {
+                setSelection({ kind: 'note', id: 'dsday' });
+              }
+              setViewScope('organ');
             }}
           />
         </aside>
