@@ -1,4 +1,4 @@
-export type OrganId = 'heart' | 'brain' | 'lungs' | 'liver' | 'kidneys' | 'eyeball' | 'intestine' | 'pancreas' | 'skin' | 'uterus' | 'pelvis';
+export type OrganId = 'heart' | 'brain' | 'lungs' | 'liver' | 'kidneys' | 'eyeball' | 'intestine' | 'pancreas' | 'skin' | 'uterus' | 'pelvis' | 'stomach';
 
 export interface HotspotDef {
   id: string;
@@ -11,6 +11,7 @@ export interface HotspotDef {
 export interface OrganDef {
   id: OrganId;
   model: string; // path to .glb
+  companionModel?: string; // path to companion .glb (e.g. pelvis for uterus)
   name: string; // Vietnamese name
   nameEn: string; // English/Latin
   icon: string;
@@ -44,7 +45,7 @@ export const NOTE_TO_ORGAN: Record<string, OrganId> = {
   thanphai: 'kidneys',
   thantrai: 'kidneys',
   mat: 'eyeball',
-  dsday: 'intestine',
+  dsday: 'stomach',
   ruotnon: 'intestine',
   ruotgia: 'intestine',
   daitruc: 'intestine',
@@ -66,6 +67,7 @@ export const ORGAN_TO_NOTE: Record<OrganId, string> = {
   liver: 'gan',
   kidneys: 'thanphai',
   eyeball: 'mat',
+  stomach: 'dsday',
   intestine: 'ruotnon',
   pancreas: 'tuyentuy',
   skin: 'da',
@@ -391,28 +393,28 @@ export const ORGANS: OrganDef[] = [
   {
     id: 'uterus',
     model: '/organs/models/uterus.glb',
-    name: 'Tử cung & Buồng trứng',
-    nameEn: 'Uterus & Ovaries / Organa genitalia feminina',
+    companionModel: '/organs/models/pelvis.glb',
+    name: 'Tử cung & Khung chậu',
+    nameEn: 'Uterus & Pelvis / Organa genitalia feminina et Pelvis',
     icon: '♀',
     accent: '#e06c9f',
-    system: 'Hệ sinh dục & Sinh sản nữ',
-    description: 'Cơ quan cơ trơn hình quả lê ngược trong khung chậu nữ giới, đóng vai trò nuôi dưỡng và bảo vệ thai nhi trong suốt thai kỳ, cùng buồng trứng điều hòa chu kỳ kinh nguyệt và nội tiết tố nữ.',
-    size: 'Dài khoảng 7,5 cm, rộng 5 cm, dày 2,5 cm (ở phụ nữ chưa sinh)',
-    weight: 'Khoảng 50–60 g (có thể tăng lên hơn 1.000 g khi mang thai)',
-    location: 'Nằm trong khoang chậu bé, phía sau bàng quang và phía trước trực tràng',
-    function: 'Nơi phôi làm tổ và phát triển; co bóp chuyển dạ khi sinh; buồng trứng phóng noãn và tiết Estrogen / Progesterone',
-    dailyFact: 'Nội mạc tử cung tự đổi mới sau mỗi 28 ngày chu kỳ kinh nguyệt, có khả năng tăng thể tích gấp 500 lần khi mang thai',
-    bloodSupply: 'Động mạch tử cung (nhánh của động mạch chậu trong) và động mạch buồng trứng (tách từ động mạch chủ bụng)',
-    funFact: 'Lớp cơ tử cung (myometrium) là một trong những khối cơ có lực kéo và sức đàn hồi mạnh nhất trong toàn bộ cơ thể người.',
+    system: 'Hệ sinh dục & Khung chậu nữ',
+    description: 'Cơ quan sinh sản nữ tích hợp hoàn hảo trong khung xương chậu: tử cung cơ trơn hình quả lê cùng buồng trứng được bao bọc an toàn bên trong vòm chậu xương, bảo vệ và nuôi dưỡng thai nhi suốt thai kỳ.',
+    size: 'Tử cung dài ~7,5 cm; đường kính eo trên khung chậu ~12,5–13 cm',
+    weight: 'Tử cung ~50–60 g (tăng đến 1.000 g khi mang thai); khung chậu nâng đỡ toàn bộ đáy bụng',
+    location: 'Nằm trong khoang chậu bé, được nâng đỡ vững chắc bởi các xương chậu, xương cùng và hoành chậu hông',
+    function: 'Nơi phôi làm tổ và thai nhi phát triển; khung chậu tạo đường kính ống sinh sản tự nhiên; buồng trứng tiết Estrogen / Progesterone',
+    dailyFact: 'Khung chậu nữ có góc vòm mu tù (>90°) và đường kính ngang rộng, tạo đường kính đẻ thuận lợi nhất trong các loài linh trưởng',
+    bloodSupply: 'Động mạch tử cung (nhánh của động mạch chậu trong) và động mạch buồng trứng (từ ĐM chủ bụng)',
+    funFact: 'Hormone Relaxin tiết ra vào cuối thai kỳ giúp nới lỏng các dây chằng khớp mu và khớp cùng-chậu để xương chậu giãn nở thêm khi sinh.',
     conditions: [
       'U xơ tử cung (Uterine fibroids)',
       'Lạc nội mạc tử cung (Endometriosis)',
       'Hội chứng buồng trứng đa nang (PCOS)',
-      'Viêm lộ tuyến cổ tử cung',
-      'Viêm vùng chậu (PID)',
-      'Sa tử cung',
-      'Ung thư cổ tử cung',
-      'Ung thư nội mạc tử cung',
+      'Sa tử cung và sa sàn chậu sau sinh',
+      'Đau khớp cùng chậu và khớp mu khi mang thai',
+      'Hẹp khung chậu gây đẻ khó',
+      'Ung thư cổ tử cung và nội mạc tử cung',
     ],
     hotspots: [
       { id: 'fundus', label: 'Đáy tử cung', detail: 'Phần vòm cong phía trên lỗ vòi trứng', position: [0.12, 0.34, 0.82], color: '#ee7c6a' },
@@ -423,6 +425,9 @@ export const ORGANS: OrganDef[] = [
       { id: 'fimbria', label: 'Tua vòi trứng (Loa vòi)', detail: 'Các tua nhỏ đón bắt noãn khi rụng trứng', position: [-1.12, 1.02, 0.46], color: '#e11d48' },
       { id: 'tube-l', label: 'Bóng vòi tử cung', detail: 'Đoạn dài nơi thường diễn ra quá trình thụ tinh', position: [1.21, 0.82, 0.76], color: '#ec4899' },
       { id: 'ligament', label: 'Dây chằng rộng & Dây chằng tròn', detail: 'Nếp phúc mạc và dải xơ neo giữ tử cung trong khung chậu', position: [0.08, 0.47, 0.08], color: '#8b5cf6' },
+      { id: 'sacrum', label: 'Xương cùng (Sacrum)', detail: 'Bản xương đáy chốt phía sau khung chậu bảo vệ đám rối thần kinh cùng', position: [0.0, 1.15, -0.95], color: '#6393d8' },
+      { id: 'pubis', label: 'Khớp mu (Pubic Symphysis)', detail: 'Cung trước bảo vệ bàng quang và thành trước tử cung', position: [0.0, -0.65, 0.95], color: '#10b981' },
+      { id: 'ilium', label: 'Cánh chậu (Ilium)', detail: 'Gờ mào chậu loe rộng nâng đỡ ổ bụng và tử cung', position: [1.45, 0.95, -0.2], color: '#3b82f6' },
     ],
   },
   {
@@ -454,6 +459,38 @@ export const ORGANS: OrganDef[] = [
       { id: 'pubis', label: 'Xương mu & Khớp mu', detail: 'Vòm mu rộng tạo đường kính eo dưới', position: [0, -0.7, 0.8], color: '#ee7c6a' },
       { id: 'sacrum', label: 'Xương cùng', detail: 'Thành sau chậu, cong lõm ra sau', position: [0, 0.4, -0.9], color: '#f2a33b' },
       { id: 'acetabulum', label: 'Ổ cối', detail: 'Khớp tiếp nối chỏm xương đùi', position: [0.85, -0.2, 0.2], color: '#6393d8' },
+    ],
+  },
+  {
+    id: 'stomach',
+    model: '/organs/models/stomach.glb',
+    name: 'Dạ dày',
+    nameEn: 'Stomach / Gaster',
+    icon: '🍽️',
+    accent: '#d87040',
+    system: 'Hệ tiêu hoá',
+    description: 'Đoạn phình to nhất của ống tiêu hoá hình chữ J, đóng vai trò như bể chứa cơ học, nhào trộn thức ăn với dịch vị axit chlohydric và enzym pepsin để phân giải protein.',
+    size: 'Dài khoảng 25 cm, rộng 10–12 cm khi rỗng; dung tích sinh lý 1.000–1.500 ml',
+    weight: 'Khoảng 150–200 g',
+    location: 'Nằm ở tầng trên mạc treo đại tràng ngang, chiếm phần lớn vùng thượng vị và ô dưới hoành trái',
+    function: 'Chứa đựng, nghiền nát thức ăn bằng nhu động cơ học 3 lớp cơ trơn (dọc, vòng, chéo); tiêu hóa hóa học protein nhờ Pepsin và HCl (pH 1.5–2.0); hấp thu một phần nước, cồn và thuốc',
+    dailyFact: 'Tiết khoảng 2–3 lít dịch vị mỗi ngày; lớp nhầy bicarbonate bảo vệ niêm mạc khỏi bị chính axit tự tiêu hủy',
+    bloodSupply: 'Vòng mạch bờ cong nhỏ (ĐM vị trái & ĐM vị phải) và Vòng mạch bờ cong lớn (ĐM vị mạc nối trái & phải) từ thân tạng',
+    funFact: 'Dạ dày có thể giãn nở tăng thể tích gấp hơn 20 lần sau một bữa ăn thịnh soạn mà áp lực nội dạ dày vẫn không tăng đột ngột.',
+    conditions: [
+      'Viêm loét dạ dày - tá tràng (nhiễm khuẩn Helicobacter pylori)',
+      'Trào ngược dạ dày - thực quản (GERD)',
+      'Xuất huyết tiêu hóa trên do loét hoặc rách tâm vị Mallory-Weiss',
+      'Hẹp môn vị',
+      'Ung thư dạ dày (Adenocarcinoma)',
+      'Sa dạ dày (Gastroptosis)',
+      'Liệt dạ dày (Gastroparesis do đái tháo đường)',
+    ],
+    hotspots: [
+      { id: 'fundus', label: 'Đáy vị (Fundus)', detail: 'Vòm đỉnh túi hơi dạ dày nằm dưới vòm hoành trái', position: [0.03, 1.22, 0.04], color: '#ee7c6a' },
+      { id: 'corpus', label: 'Thân vị (Corpus)', detail: 'Phần thân chính chứa các tuyến tiết acid HCl và pepsinogen', position: [0.04, 1.17, 0.05], color: '#f2a33b' },
+      { id: 'antrum', label: 'Hang vị (Pyloric Antrum)', detail: 'Nơi nhào trộn cơ học mạnh nhất và dễ viêm loét H. pylori nhất', position: [0.01, 1.13, 0.02], color: '#e06c9f' },
+      { id: 'pylorus', label: 'Môn vị (Pylorus)', detail: 'Cơ thắt van kiểm soát tống thức ăn xuống tá tràng', position: [-0.02, 1.14, -0.01], color: '#6393d8' },
     ],
   },
 ];

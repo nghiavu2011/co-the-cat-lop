@@ -153,7 +153,7 @@ export class OrganDetailViewer {
 
   // ---- organs ----
 
-  async setOrgan(modelUrl: string, hotspots: HotspotDef[], accent: string) {
+  async setOrgan(modelUrl: string, hotspots: HotspotDef[], accent: string, companionUrl?: string) {
     const request = ++this.loadRequest;
     this.select(null);
     this.callbacks.onLoading(true, 0);
@@ -168,9 +168,13 @@ export class OrganDetailViewer {
 
     let organ: LoadedOrgan;
     try {
-      organ = await this.assets.load(modelUrl, (progress) => {
-        if (request === this.loadRequest) this.callbacks.onLoading(true, progress);
-      });
+      organ = await this.assets.load(
+        modelUrl,
+        (progress) => {
+          if (request === this.loadRequest) this.callbacks.onLoading(true, progress);
+        },
+        companionUrl,
+      );
     } catch (err) {
       console.error('Failed to load organ in OrganViewer:', modelUrl, err);
       if (request === this.loadRequest) this.callbacks.onLoading(false, 0);

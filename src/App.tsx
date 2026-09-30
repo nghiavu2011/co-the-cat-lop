@@ -285,6 +285,14 @@ function AppInner() {
     }
   };
 
+  const handleSelectHotspot = useCallback((h: HotspotDef | null) => {
+    setSelectedHotspot(h);
+    if (h) {
+      setIsInfoOpen(true);
+      setIsSidebarOpen(false);
+    }
+  }, []);
+
   // Sound
   useEffect(() => {
     if (!soundOn || selection?.kind !== 'note') {
@@ -438,13 +446,7 @@ function AppInner() {
               <FullOrganViewport
                 organId={activeOrganId}
                 selectedHotspot={selectedHotspot}
-                onSelectHotspot={(h) => {
-                  setSelectedHotspot(h);
-                  if (h) {
-                    setIsInfoOpen(true);
-                    setIsSidebarOpen(false);
-                  }
-                }}
+                onSelectHotspot={handleSelectHotspot}
               />
             ) : (
               <View3D

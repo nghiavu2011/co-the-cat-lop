@@ -37,7 +37,12 @@ export default function FullOrganViewport({
 
   const organDef: OrganDef = ORGAN_BY_ID[organId] ?? ORGANS[0];
 
-  // Khởi tạo viewer 3D toàn màn hình
+  const onSelectHotspotRef = useRef(onSelectHotspot);
+  useEffect(() => {
+    onSelectHotspotRef.current = onSelectHotspot;
+  }, [onSelectHotspot]);
+
+  // Khởi tạo viewer 3D toàn màn hình - Chạy duy nhất 1 lần khi mount để không bao giờ bị hủy nhầm
   useEffect(() => {
     if (!containerRef.current) return;
     const viewer = new OrganDetailViewer(containerRef.current, {
@@ -46,16 +51,21 @@ export default function FullOrganViewport({
         setProgress(p);
       },
       onSelect: (h) => {
-        onSelectHotspot?.(h);
+        onSelectHotspotRef.current?.(h);
       },
     });
     viewerRef.current = viewer;
+
+    if (organDef) {
+      viewer.setOrgan(organDef.model, organDef.hotspots, organDef.accent, organDef.companionModel);
+    }
 
     return () => {
       viewer.dispose();
       viewerRef.current = null;
     };
-  }, [onSelectHotspot]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Đồng bộ điểm giải phẫu được chọn với 3D viewer
   useEffect(() => {
@@ -64,12 +74,15 @@ export default function FullOrganViewport({
   }, [selectedHotspot]);
 
   // Nạp mô hình 3D của cơ quan khi organId thay đổi
+  const prevOrganIdRef = useRef<string>(organDef.id);
   useEffect(() => {
     if (!viewerRef.current || !organDef) return;
+    if (prevOrganIdRef.current === organDef.id) return;
+    prevOrganIdRef.current = organDef.id;
     setCrossSection(false);
     setCavityOpen(false);
     setCutOffset(0);
-    viewerRef.current.setOrgan(organDef.model, organDef.hotspots, organDef.accent);
+    viewerRef.current.setOrgan(organDef.model, organDef.hotspots, organDef.accent, organDef.companionModel);
   }, [organDef]);
 
   const onToggleCrossSection = useCallback(() => {

@@ -54,21 +54,22 @@ export class OrganAssetManager {
     void fetch(url, { priority: 'low' } as RequestInit).catch(() => {});
   }
 
-  async load(url: string, onProgress?: (p: number) => void): Promise<LoadedOrgan> {
-    const cached = this.cache.get(url);
+  async load(url: string, onProgress?: (p: number) => void, companionUrl?: string): Promise<LoadedOrgan> {
+    const cacheKey = companionUrl ? `${url}#${companionUrl}` : url;
+    const cached = this.cache.get(cacheKey);
     if (cached) {
-      this.cache.delete(url);
-      this.cache.set(url, cached);
+      this.cache.delete(cacheKey);
+      this.cache.set(cacheKey, cached);
       this.resetMaterials(cached);
       onProgress?.(1);
       this.current = cached;
       return cached;
     }
-    const pending = this.inflight.get(url) ?? this.parse(url, onProgress);
-    this.inflight.set(url, pending);
+    const pending = this.inflight.get(cacheKey) ?? this.parse(url, onProgress, companionUrl);
+    this.inflight.set(cacheKey, pending);
     try {
       const organ = await pending;
-      this.cache.set(url, organ);
+      this.cache.set(cacheKey, organ);
       this.evict();
       this.current = organ;
       return organ;
@@ -76,30 +77,60 @@ export class OrganAssetManager {
       console.error('Error loading organ model:', url, e);
       throw e;
     } finally {
-      this.inflight.delete(url);
+      this.inflight.delete(cacheKey);
     }
   }
 
-  private async parse(url: string, onProgress?: (p: number) => void): Promise<LoadedOrgan> {
+  private async parse(url: string, onProgress?: (p: number) => void, companionUrl?: string): Promise<LoadedOrgan> {
     await MeshoptDecoder.ready;
     const gltf = await this.loader.loadAsync(url, (event) => {
       if (event.total > 0) onProgress?.(event.loaded / event.total);
     });
     const model = gltf.scene;
-    const box = new THREE.Box3().setFromObject(model);
+
+    const container = new THREE.Group();
+    container.name = 'organ-container';
+    container.add(model);
+
+    if (companionUrl) {
+      try {
+        const compGltf = await this.loader.loadAsync(companionUrl);
+        const compModel = compGltf.scene;
+        compModel.traverse((c) => {
+          if (c instanceof THREE.Mesh) {
+            const mats = Array.isArray(c.material) ? c.material : [c.material];
+            mats.forEach((mat) => {
+              mat.transparent = true;
+              mat.opacity = 0.82;
+              mat.depthWrite = true;
+              mat.side = THREE.DoubleSide;
+              if (mat instanceof THREE.MeshStandardMaterial) {
+                mat.roughness = 0.58;
+                mat.metalness = 0.04;
+              }
+            });
+          }
+        });
+        container.add(compModel);
+      } catch (err) {
+        console.warn('Could not load companion model:', companionUrl, err);
+      }
+    }
+
+    const box = new THREE.Box3().setFromObject(container);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const scale = FIT_SIZE / Math.max(size.x, size.y, size.z, 0.001);
-    model.scale.setScalar(scale);
-    model.position.copy(center.multiplyScalar(-scale));
+    container.scale.setScalar(scale);
+    container.position.copy(center.multiplyScalar(-scale));
 
     const pivot = new THREE.Group();
     pivot.name = 'organ-pivot';
-    pivot.add(model);
+    pivot.add(container);
     pivot.rotation.set(0.05, -0.28, 0);
 
     const meshes: THREE.Mesh[] = [];
-    model.traverse((child) => {
+    container.traverse((child) => {
       const childName = (child.name || '').toLowerCase();
       if (
         childName.includes('text') ||
