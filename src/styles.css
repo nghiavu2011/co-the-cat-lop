@@ -4017,6 +4017,11 @@ input, textarea {
   box-shadow: 0 0 6px #10b981;
   flex-shrink: 0;
 }
+.contextPillNameGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .contextPillName {
   font-size: 12px;
   font-weight: 700;
@@ -4028,6 +4033,51 @@ input, textarea {
 }
 [data-theme="dark"] .contextPillName {
   color: #f8fafc;
+}
+.contextPillHotspotSub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
+  white-space: nowrap;
+  animation: contextHudSlideUp 0.15s ease;
+}
+[data-theme="dark"] .contextPillHotspotSub {
+  color: #60a5fa;
+}
+.contextScopeSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 9999px;
+  padding: 2px;
+}
+[data-theme="dark"] .contextScopeSwitcher {
+  background: rgba(255, 255, 255, 0.08);
+}
+.contextScopeBtn {
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+[data-theme="dark"] .contextScopeBtn {
+  color: #94a3b8;
+}
+.contextScopeBtn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+[data-theme="dark"] .contextScopeBtn.active {
+  background: #3b82f6;
+  color: #ffffff;
 }
 .contextPillSep {
   color: rgba(0, 0, 0, 0.18);
@@ -4973,7 +5023,7 @@ input, textarea {
 
 .fullOrganFloatingTools {
   position: absolute;
-  top: 16px;
+  top: 64px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
@@ -5033,7 +5083,7 @@ input, textarea {
 
 .fullOrganSliceDrawer {
   position: absolute;
-  top: 66px;
+  top: 114px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 49;
@@ -5117,63 +5167,276 @@ input, textarea {
 /* ==========================================================================
    VIEW SWITCHER CAPSULE (TOÀN THÂN ⇄ MÔ HÌNH VI THỂ 3D)
    ========================================================================== */
-.zygoteViewModeCapsule {
+/* ==========================================================================
+   LANDMARK CHIPS & INTERACTIVE HOTSPOT CARDS (MỐC GIẢI PHẪU VI THỂ 3D)
+   ========================================================================== */
+.fullOrganHotspotChips {
   position: absolute;
-  top: 14px;
+  top: 114px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 60;
+  z-index: 47;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(248, 246, 240, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  gap: 5px;
+  background: rgba(248, 246, 240, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.10);
   border-radius: 9999px;
-  padding: 4px 6px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 3px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fullOrganHotspotChips::-webkit-scrollbar {
+  display: none;
+}
+[data-theme="dark"] .fullOrganHotspotChips {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.hotspotChipsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+  margin-right: 2px;
+}
+[data-theme="dark"] .hotspotChipsLabel {
+  color: #94a3b8;
+}
+.hotspotChipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2.5px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+}
+[data-theme="dark"] .hotspotChipBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+}
+.hotspotChipBtn:hover {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .hotspotChipBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+.hotspotChipBtn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .hotspotChipBtn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-[data-theme="dark"] .zygoteViewModeCapsule {
-  background: rgba(15, 23, 42, 0.92);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+/* Thẻ nổi chú thích điểm giải phẫu trên Canvas 3D */
+.fullOrganHotspotCard {
+  position: absolute;
+  left: 80px;
+  bottom: 74px;
+  z-index: 55;
+  background: rgba(248, 246, 240, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  max-width: 320px;
+  animation: contextHudSlideUp 0.18s ease;
+  pointer-events: auto;
+}
+[data-theme="dark"] .fullOrganHotspotCard {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+}
+.hotspotCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.hotspotCardTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hotspotCardDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+.hotspotCardLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+[data-theme="dark"] .hotspotCardLabel {
+  color: #f8fafc;
+}
+.hotspotCardCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+.hotspotCardCloseBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+[data-theme="dark"] .hotspotCardCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+.hotspotCardDetail {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+}
+[data-theme="dark"] .hotspotCardDetail {
+  color: #cbd5e1;
+}
+.hotspotCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #64748b;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 6px;
+}
+[data-theme="dark"] .hotspotCardFooter {
+  color: #94a3b8;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+.hotspotCardPos {
+  font-family: ui-monospace, monospace;
+}
+.hotspotCardSideNote {
+  font-weight: 600;
+  color: #2563eb;
+}
+[data-theme="dark"] .hotspotCardSideNote {
+  color: #60a5fa;
 }
 
-.zygoteViewModeBtn {
+/* Thẻ hiển thị điểm giải phẫu trong InfoPanel */
+.hotspotPanelCard {
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+  animation: contextHudSlideUp 0.18s ease;
+}
+[data-theme="dark"] .hotspotPanelCard {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+.hotspotPanelCard .hotspotCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.hotspotCardBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #2563eb;
+}
+[data-theme="dark"] .hotspotCardBadge {
+  color: #93c5fd;
+}
+.hotspotCardClose {
   background: transparent;
   border: none;
-  border-radius: 9999px;
+  font-size: 13px;
+  color: #64748b;
   cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
 }
-
-[data-theme="dark"] .zygoteViewModeBtn {
-  color: #cbd5e1;
-}
-
-.zygoteViewModeBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
+.hotspotCardClose:hover {
+  background: rgba(0, 0, 0, 0.08);
   color: #0f172a;
 }
-
-[data-theme="dark"] .zygoteViewModeBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
+[data-theme="dark"] .hotspotCardClose:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
+.hotspotCardTitle {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+[data-theme="dark"] .hotspotCardTitle {
+  color: #f8fafc;
+}
+.hotspotCardDesc {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #334155;
+}
+[data-theme="dark"] .hotspotCardDesc {
+  color: #cbd5e1;
+}
+.hotspotCardMeta {
+  font-size: 10.5px;
+  color: #64748b;
+  font-family: ui-monospace, monospace;
+}
+[data-theme="dark"] .hotspotCardMeta {
+  color: #94a3b8;
+}
 
-.zygoteViewModeBtn.active {
-  background: #2563eb;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+@media (max-width: 768px) {
+  .fullOrganHotspotCard {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    bottom: 70px;
+  }
 }
 

@@ -23,6 +23,10 @@ export interface TopBarZygoteProps {
   onStartTour?: (tourId: string) => void;
   // Tác vụ ngữ cảnh khi chọn bộ phận (Đưa lên khung trên)
   selectedName?: string | null;
+  selectedHotspotName?: string | null;
+  activeOrganId?: string | null;
+  viewScope?: 'fullbody' | 'organ';
+  onToggleViewScope?: (scope: 'fullbody' | 'organ') => void;
   onHideSelected?: () => void;
   onGhostSelected?: () => void;
   onIsolateSelected?: () => void;
@@ -48,6 +52,10 @@ export default function TopBarZygote({
   onToggleFullscreen,
   onStartTour,
   selectedName,
+  selectedHotspotName,
+  activeOrganId,
+  viewScope,
+  onToggleViewScope,
   onHideSelected,
   onGhostSelected,
   onIsolateSelected,
@@ -72,9 +80,42 @@ export default function TopBarZygote({
       {selectedName && (
         <div className="zygoteTopContextPill">
           <span className="contextPillDot" />
-          <span className="contextPillName" title={selectedName}>
-            {selectedName}
-          </span>
+          <div className="contextPillNameGroup">
+            <span className="contextPillName" title={selectedName}>
+              {selectedName}
+            </span>
+            {selectedHotspotName && (
+              <span className="contextPillHotspotSub" title={selectedHotspotName}>
+                › {selectedHotspotName}
+              </span>
+            )}
+          </div>
+
+          {/* Công tắc chuyển đổi phạm vi hiển thị Toàn thân ⇄ Vi thể 3D trực tiếp trong TopBar */}
+          {activeOrganId && onToggleViewScope && (
+            <>
+              <span className="contextPillSep">|</span>
+              <div className="contextScopeSwitcher" role="tablist" aria-label="Chế độ hiển thị">
+                <button
+                  type="button"
+                  className={`contextScopeBtn ${viewScope === 'fullbody' ? 'active' : ''}`}
+                  onClick={() => onToggleViewScope('fullbody')}
+                  title={locale === 'en' ? 'Full Body Context' : 'Toàn cơ thể'}
+                >
+                  🧍 {locale === 'en' ? 'Body' : 'Toàn thân'}
+                </button>
+                <button
+                  type="button"
+                  className={`contextScopeBtn ${viewScope === 'organ' ? 'active' : ''}`}
+                  onClick={() => onToggleViewScope('organ')}
+                  title={locale === 'en' ? 'Detailed Organ 3D' : 'Mô hình vi thể 3D'}
+                >
+                  🔬 {locale === 'en' ? 'Organ 3D' : 'Vi thể 3D'}
+                </button>
+              </div>
+            </>
+          )}
+
           <span className="contextPillSep">|</span>
           <button type="button" className="contextPillBtn" onClick={onHideSelected} title="Ẩn bộ phận này">
             Ẩn

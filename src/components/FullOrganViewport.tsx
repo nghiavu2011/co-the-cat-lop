@@ -11,6 +11,7 @@ import { useLocale } from '../locale/useLocale';
 
 export interface FullOrganViewportProps {
   organId: OrganId;
+  selectedHotspot?: HotspotDef | null;
   onSelectHotspot?: (hotspot: HotspotDef | null) => void;
   externalAxis?: number; // 0: axial, 1: coronal, 2: sagittal
   externalSliceT?: number; // 0..100
@@ -18,6 +19,7 @@ export interface FullOrganViewportProps {
 
 export default function FullOrganViewport({
   organId,
+  selectedHotspot,
   onSelectHotspot,
 }: FullOrganViewportProps) {
   const { locale } = useLocale();
@@ -54,6 +56,12 @@ export default function FullOrganViewport({
       viewerRef.current = null;
     };
   }, [onSelectHotspot]);
+
+  // Đồng bộ điểm giải phẫu được chọn với 3D viewer
+  useEffect(() => {
+    if (!viewerRef.current) return;
+    viewerRef.current.selectHotspot(selectedHotspot?.id ?? null);
+  }, [selectedHotspot]);
 
   // Nạp mô hình 3D của cơ quan khi organId thay đổi
   useEffect(() => {
@@ -100,7 +108,8 @@ export default function FullOrganViewport({
 
   const onResetCamera = useCallback(() => {
     viewerRef.current?.reset();
-  }, []);
+    onSelectHotspot?.(null);
+  }, [onSelectHotspot]);
 
   return (
     <div className="fullOrganViewportRoot" style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -171,6 +180,36 @@ export default function FullOrganViewport({
         </button>
       </div>
 
+      {/* Hàng nút chọn nhanh điểm giải phẫu (Landmark Chips) */}
+      {organDef.hotspots && organDef.hotspots.length > 0 && (
+        <div className="fullOrganHotspotChips" role="tablist" aria-label="Mốc giải phẫu">
+          <span className="hotspotChipsLabel">
+            {locale === 'en' ? 'Landmarks:' : 'Mốc vi thể:'}
+          </span>
+          {organDef.hotspots.map((h) => {
+            const isSelected = selectedHotspot?.id === h.id;
+            return (
+              <button
+                key={h.id}
+                type="button"
+                className={`hotspotChipBtn ${isSelected ? 'active' : ''}`}
+                onClick={() => {
+                  if (isSelected) {
+                    onSelectHotspot?.(null);
+                  } else {
+                    onSelectHotspot?.(h);
+                  }
+                }}
+                title={h.detail}
+              >
+                <span className="chipDot" style={{ background: h.color }} />
+                {h.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Panel điều chỉnh trục cắt chi tiết khi bật cross-section hoặc mở cài đặt */}
       {(crossSection || showTools) && (
         <div className="fullOrganSliceDrawer">
@@ -210,6 +249,35 @@ export default function FullOrganViewport({
               className="sliceRangeInput"
             />
             <span className="sliceValText">{cutOffset > 0 ? `+${cutOffset.toFixed(2)}` : cutOffset.toFixed(2)}m</span>
+          </div>
+        </div>
+      )}
+
+      {/* Thẻ chú thích nổi giải phẫu vi thể khi người dùng bấm vào mốc trên mô hình */}
+      {selectedHotspot && (
+        <div className="fullOrganHotspotCard" role="region" aria-label="Thông tin điểm giải phẫu">
+          <div className="hotspotCardHeader">
+            <div className="hotspotCardTitleGroup">
+              <span className="hotspotCardDot" style={{ background: selectedHotspot.color }} />
+              <strong className="hotspotCardLabel">{selectedHotspot.label}</strong>
+            </div>
+            <button
+              type="button"
+              className="hotspotCardCloseBtn"
+              onClick={() => onSelectHotspot?.(null)}
+              title={locale === 'en' ? 'Deselect' : 'Bỏ chọn'}
+            >
+              ✕
+            </button>
+          </div>
+          <p className="hotspotCardDetail">{selectedHotspot.detail}</p>
+          <div className="hotspotCardFooter">
+            <span className="hotspotCardPos">
+              📍 [{selectedHotspot.position.map((v) => v.toFixed(2)).join(', ')}]
+            </span>
+            <span className="hotspotCardSideNote">
+              {locale === 'en' ? 'Full anatomy in right panel →' : 'Hồ sơ đầy đủ ở cột phải →'}
+            </span>
           </div>
         </div>
       )}

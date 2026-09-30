@@ -8,14 +8,57 @@ import { useLocale } from '../locale/useLocale';
 import type { AtlasJSON } from '../data/types';
 import type { Selection } from '../selection';
 
+import type { HotspotDef } from '../organs/organData';
+
 export interface InfoPanelProps {
   selection: Selection | null;
   atlas: AtlasJSON | null;
   mode: '2d' | '3d' | 'detail';
+  selectedHotspot?: HotspotDef | null;
+  onClearHotspot?: () => void;
   onFocusOrgan?: () => void;
   onOpenDetail?: () => void;
   onClose?: () => void;
   onOpenSidebar?: () => void;
+}
+
+function HotspotCard({
+  hotspot,
+  onClear,
+}: {
+  hotspot: HotspotDef;
+  onClear?: () => void;
+}) {
+  const { locale } = useLocale();
+
+  return (
+    <div className="hotspotPanelCard">
+      <div className="hotspotCardHeader">
+        <div className="hotspotCardBadge">
+          <span className="hotspotDot" style={{ background: hotspot.color }} />
+          <span>{locale === 'en' ? 'Anatomical Landmark' : 'Mốc giải phẫu vi thể'}</span>
+        </div>
+        {onClear && (
+          <button
+            type="button"
+            className="hotspotCardClose"
+            onClick={onClear}
+            title={locale === 'en' ? 'Deselect landmark' : 'Bỏ chọn mốc'}
+            aria-label="Deselect"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      <h3 className="hotspotCardTitle">{hotspot.label}</h3>
+      <p className="hotspotCardDesc">{hotspot.detail}</p>
+      <div className="hotspotCardMeta">
+        <span className="hotspotCoord">
+          📍 {locale === 'en' ? '3D Coordinates' : 'Toạ độ 3D'}: [{hotspot.position.join(', ')}]
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function Intro() {
@@ -138,14 +181,43 @@ function RawPartCard({
   );
 }
 
-export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onOpenDetail, onClose, onOpenSidebar }: InfoPanelProps) {
+export default function InfoPanel({
+  selection,
+  atlas,
+  mode,
+  selectedHotspot,
+  onClearHotspot,
+  onFocusOrgan,
+  onOpenDetail,
+  onClose,
+  onOpenSidebar,
+}: InfoPanelProps) {
   const { t, locale } = useLocale();
 
-  if (!selection) return <Intro />;
-  if (selection.kind === 'part') return <RawPartCard partId={selection.id} atlas={atlas} onClose={onClose} onOpenSidebar={onOpenSidebar} />;
+  if (!selection && !selectedHotspot) return <Intro />;
+  if (selection && selection.kind === 'part') {
+    return (
+      <>
+        {selectedHotspot && (
+          <div style={{ padding: '12px 16px 0 16px' }}>
+            <HotspotCard hotspot={selectedHotspot} onClear={onClearHotspot} />
+          </div>
+        )}
+        <RawPartCard partId={selection.id} atlas={atlas} onClose={onClose} onOpenSidebar={onOpenSidebar} />
+      </>
+    );
+  }
 
-  const note = NOTE_BY_ID[selection.id];
+  const note = selection && selection.kind === 'note' ? NOTE_BY_ID[selection.id] : null;
+  if (!note && selectedHotspot) {
+    return (
+      <div style={{ padding: 18 }}>
+        <HotspotCard hotspot={selectedHotspot} onClear={onClearHotspot} />
+      </div>
+    );
+  }
   if (!note) return <Intro />;
+
   const sys = SYSTEM_BY_ID[note.s];
   const layerNamesVi = ['Da', 'Mỡ dưới da', 'Cơ', 'Xương', 'Nội tạng', 'Mạch máu & thần kinh'];
   const layerNamesEn = ['Skin', 'Subcutaneous Fat', 'Muscles', 'Skeletal', 'Organs', 'Vessels & Nerves'];
@@ -157,6 +229,11 @@ export default function InfoPanel({ selection, atlas, mode, onFocusOrgan, onOpen
 
   return (
     <>
+      {selectedHotspot && (
+        <div style={{ padding: '14px 16px 0 16px' }}>
+          <HotspotCard hotspot={selectedHotspot} onClear={onClearHotspot} />
+        </div>
+      )}
       <div className="pcap">
         <div className="pcapTopRow">
           <span className="sys">

@@ -7,7 +7,7 @@ import TourBar from './components/TourBar';
 import QuickOrganDock, { type QuickOrganDef } from './components/QuickOrganDock';
 import FullOrganViewport from './components/FullOrganViewport';
 import OrganDetail from './components/OrganDetail';
-import { NOTE_TO_ORGAN, type OrganId } from './organs/organData';
+import { NOTE_TO_ORGAN, type HotspotDef, type OrganId } from './organs/organData';
 import CoffeeModal from './components/CoffeeModal';
 import SideDonateWidget from './components/SideDonateWidget';
 import AdminDashboard from './components/AdminDashboard';
@@ -69,6 +69,7 @@ function AppInner() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [focusKey, setFocusKey] = useState(0);
   const [viewScope, setViewScope] = useState<'fullbody' | 'organ'>('fullbody');
+  const [selectedHotspot, setSelectedHotspot] = useState<HotspotDef | null>(null);
 
   const activeOrganId = useMemo<OrganId | null>(() => {
     if (selection?.kind === 'note' && selection.id in NOTE_TO_ORGAN) {
@@ -140,6 +141,7 @@ function AppInner() {
   const onPick = useCallback(
     (sel: Selection) => {
       setSelection(sel);
+      setSelectedHotspot(null);
       setActiveTour(null);
       setIsSidebarOpen(false);
       setShowBodyParams(false);
@@ -258,6 +260,7 @@ function AppInner() {
 
   const handleSelectQuickOrgan = (organ: QuickOrganDef) => {
     setActiveTour(null);
+    setSelectedHotspot(null);
     if (organ.noteId === null) {
       // Toàn thân (Full Body Reset)
       setViewScope('fullbody');
@@ -364,6 +367,10 @@ function AppInner() {
         onToggleFullscreen={toggleFullscreen}
         onStartTour={startTour}
         selectedName={selectedDisplayName}
+        selectedHotspotName={selectedHotspot?.label ?? null}
+        activeOrganId={activeOrganId}
+        viewScope={viewScope}
+        onToggleViewScope={setViewScope}
         onHideSelected={handleHideSelected}
         onGhostSelected={handleGhostSelected}
         onIsolateSelected={handleIsolateSelected}
@@ -377,7 +384,13 @@ function AppInner() {
             return next;
           });
         }}
-        onDeselect={() => setSelection(null)}
+        onDeselect={() => {
+          if (selectedHotspot) {
+            setSelectedHotspot(null);
+          } else {
+            setSelection(null);
+          }
+        }}
       />
 
       {/* 2. THANH ĐIỀU KHIỂN BÊN TRÁI DUY NHẤT (CAPSULE BÓC TÁCH & CÔNG CỤ LIỀN MẠCH, KHÔNG CÒN CỤM CAMERA) */}
@@ -425,34 +438,15 @@ function AppInner() {
           <div style={{ padding: 26, color: 'var(--alert)', fontSize: 13 }}>{atlasError}</div>
         ) : atlas ? (
           <>
-            {/* Thanh chuyển chế độ xem: Toàn thân ⇄ Mô hình vi thể 3D */}
-            {activeOrganId && (
-              <div className="zygoteViewModeCapsule" role="tablist" aria-label="Phạm vi hiển thị">
-                <button
-                  type="button"
-                  className={`zygoteViewModeBtn ${viewScope === 'fullbody' ? 'active' : ''}`}
-                  onClick={() => setViewScope('fullbody')}
-                  title={locale === 'en' ? 'View in Full Body Context' : 'Xem trong giải phẫu cơ thể'}
-                >
-                  🧍 {locale === 'en' ? 'Full Body' : 'Toàn cơ thể'}
-                </button>
-                <button
-                  type="button"
-                  className={`zygoteViewModeBtn ${viewScope === 'organ' ? 'active' : ''}`}
-                  onClick={() => setViewScope('organ')}
-                  title={locale === 'en' ? 'Inspect High-Resolution 3D Organ' : 'Mô hình vi thể 3D siêu nét'}
-                >
-                  🔬 {locale === 'en' ? 'Detailed Organ 3D' : 'Mô hình vi thể 3D'}
-                </button>
-              </div>
-            )}
-
             {viewScope === 'organ' && activeOrganId ? (
               <FullOrganViewport
                 organId={activeOrganId}
+                selectedHotspot={selectedHotspot}
                 onSelectHotspot={(h) => {
+                  setSelectedHotspot(h);
                   if (h) {
-                    // Điểm giải phẫu được chọn
+                    setIsInfoOpen(true);
+                    setIsSidebarOpen(false);
                   }
                 }}
               />
@@ -535,6 +529,8 @@ function AppInner() {
             selection={selection}
             atlas={atlas}
             mode={mode}
+            selectedHotspot={selectedHotspot}
+            onClearHotspot={() => setSelectedHotspot(null)}
             onClose={() => setIsInfoOpen(false)}
             onOpenSidebar={() => {
               setIsSidebarOpen(true);
